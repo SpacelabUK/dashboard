@@ -45,8 +45,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 			while (rs.next()) {
 				String offsetx = rs.getString("offsetx");
 				String offsety = rs.getString("offsety");
-				if (offsetx.trim().length() < 1) offsetx = "0";
-				if (offsety.trim().length() < 1) offsety = "0";
+				if (offsetx == null || offsetx.trim().length() < 1) offsetx = "0";
+				if (offsety == null || offsety.trim().length() < 1) offsety = "0";
 				String point = "(" + offsetx + "," + offsety + ")";
 
 				String [] args =
@@ -62,6 +62,7 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 						Database.getSequenceCurrVal(psql, "spaces_id_seq")
 								.getJSONObject(0).getInt("currval"));
 			}
+			
 
 			// psql.commit();
 			columnString =

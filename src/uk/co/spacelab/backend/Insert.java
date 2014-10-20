@@ -68,9 +68,13 @@ public class Insert extends HttpServlet {
 			} else if (type.equals("study")) {
 				out.println(postForTable(request, response, "studies",
 						paramsJSON));
-			} else if (type.equals("studypart")) {
-				out.println(postForTable(request, response, "observations",
-						paramsJSON));
+			} else if (type.equals("study_part")) {
+				out.println(postForTable(
+						request,
+						response,
+						"observations",
+						new JSONObject("{study_id : \""
+								+ paramsJSON.getInt("study_id") + "\"}")));
 			} else if (type.equals("spatial_function")) {
 				out.println(postForTable(request, response,
 						"spatial_functions", paramsJSON));

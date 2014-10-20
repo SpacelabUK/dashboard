@@ -126,7 +126,7 @@ public class Database {
 		return result;
 	}
 	protected static JSONArray insertInto(Connection psql, String table,
-			String columnString, String valueString, String [] args)
+			String columnString, String valueString, String... args)
 			throws ClassNotFoundException, SQLException, ParseException {
 
 		String sql =
