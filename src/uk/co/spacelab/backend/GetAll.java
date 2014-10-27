@@ -6,11 +6,14 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Map;
 
+import javax.security.auth.Subject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.shiro.SecurityUtils;
 
 /**
  * Servlet implementation class getDevices
@@ -24,6 +27,7 @@ public class GetAll extends HttpServlet {
 	}
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
+		System.out.println(SecurityUtils.getSubject());
 		Map<String, String []> params = request.getParameterMap();
 		if (params == null || !params.containsKey("t")
 				|| params.get("t") == null && params.get("t").length != 1) {

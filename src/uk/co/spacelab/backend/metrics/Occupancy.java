@@ -86,10 +86,17 @@ public class Occupancy extends HttpServlet {
 								"SELECT * FROM splab_min_occupancy(?)", obsID)
 								.getJSONObject(0);
 				out.println(result.getInt((String) result.keys().next()));
-			} else if (type.equals("occ_per_round")) {
+			} else if (type.equals("total_occ_per_round")) {
 				JSONArray result =
 						Database.customQuery(
-								"SELECT day_id,round_id,count FROM splab_occupancy_per_round"
+								"SELECT day_id,round_id,count FROM splab_total_occupancy_per_round"
+										+ " WHERE " + "observation_id=?", obsID);
+				// out.println(result.getInt((String) result.keys().next()));
+				out.println(result);
+			} else if (type.equals("desk_occ_frequency")) {
+				JSONArray result =
+						Database.customQuery(
+								"SELECT times_found,frequency FROM splab_desk_occupancy_frequency"
 										+ " WHERE " + "observation_id=?", obsID);
 				// out.println(result.getInt((String) result.keys().next()));
 				out.println(result);
