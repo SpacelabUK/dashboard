@@ -5,11 +5,9 @@
 	version="3.1"
 >
 	<display-name>SpLab-BackEnd</display-name>
-
 	<listener>
 		<listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class>
 	</listener>
-
 	<listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
 	</listener>
@@ -36,4 +34,12 @@
 		<welcome-file>default.htm</welcome-file>
 		<welcome-file>default.jsp</welcome-file>
 	</welcome-file-list>
+	<servlet>
+		<servlet-name>fileServlet</servlet-name>
+		<servlet-class>uk.co.spacelab.backend.FileServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>fileServlet</servlet-name>
+		<url-pattern>/data/*</url-pattern>
+	</servlet-mapping>
 </web-app>

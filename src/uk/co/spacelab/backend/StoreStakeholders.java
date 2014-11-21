@@ -1,11 +1,6 @@
 package uk.co.spacelab.backend;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -17,7 +12,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+
+import org.json.JSONObject;
 
 /**
  * Servlet implementation class StoreStakeholders
@@ -68,112 +64,35 @@ public class StoreStakeholders extends HttpServlet {
 					"malformed data... -_-");
 			return;
 		}
-		final Part filePart = request.getPart("file");
-		final String fileName = getFileName(filePart);
-		if (!fileName.endsWith(".xlsx")) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-					"not an xlsx... -_-");
+		response.setContentType("text/json;charset=UTF-8");
+		String fileName = null;
+		if (!validParam(request.getParameterMap(), "fileid"))
+			fileName = FileHandler.uploadFileAndGetAlias(request, "xlsx", 3600);
+		else fileName = request.getParameter("fileid");
+		JSONObject dataIn = null;
+		if (!validParam(request.getParameterMap(), "datain")) {
+			getDataToValidate(request, response, FileHandler.path + fileName
+					+ ".xlsx");
 			return;
-		}
-		response.setContentType("text/html;charset=UTF-8");
+		} else dataIn = new JSONObject(request.getParameter("datain"));
+	}
+	private void getDataToValidate(HttpServletRequest request,
+			HttpServletResponse response, String filePath) throws IOException,
+			ServletException {
 
 		int studyID = Integer.parseInt(request.getParameter("studyid"));
-		// Create path components to save the file
-		final String path =
-				"/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
-		// request.getParameter("destination");
-		// System.out.println(path);
-
-		OutputStream out = null;
-		InputStream filecontent = null;
-		final PrintWriter writer = response.getWriter();
-
 		try {
-			out =
-					new FileOutputStream(new File(path + File.separator
-							+ fileName));
-			filecontent = filePart.getInputStream();
-
-			int read = 0;
-			final byte [] bytes = new byte [1024];
-
-			while ((read = filecontent.read(bytes)) != -1) {
-				out.write(bytes, 0, read);
-			}
-			new StakeholderReader().convert(path + fileName, studyID);
-			// Database.insertInto("asdadsa", "asdf", new String [] {"asdf"});
-			// BufferedReader reader = null;
-			//
-			// try {
-			// File file = new File(path + fileName);
-			// file.deleteOnExit();
-			// reader = new BufferedReader(new FileReader(file));
-			//
-			// String line;
-			// while ((line = reader.readLine()) != null) {
-			// System.out.println(line);
-			// }
-			//
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// } finally {
-			// try {
-			// reader.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
-			// writer.println("New file " + fileName + " created at " + path);
-			System.out.println("File{0}being uploaded to {1}" + fileName + " "
-					+ path);
-		} catch (FileNotFoundException fne) {
-			writer.println("You either did not specify a file to upload or are "
-					+ "trying to upload a file to a protected or nonexistent "
-					+ "location.");
-			// writer.println("<br/> ERROR: ");
-
-			System.err.println("Problems during file upload. Error: {0}"
-					+ fne.getMessage());
-			// } catch (ClassNotFoundException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// } catch (SQLException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// } catch (ParseException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
+			JSONObject out =
+					new StakeholderReader().getStaticData(filePath, studyID);
+			PrintWriter pw = response.getWriter();
+			pw.print(out.toString());
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-//		} catch (ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-		} finally {
-			if (out != null) {
-				out.close();
-			}
-			if (filecontent != null) {
-				filecontent.close();
-			}
-			if (writer != null) {
-				writer.close();
-			}
 		}
 	}
-	private String getFileName(final Part part) {
-		final String partHeader = part.getHeader("content-disposition");
-		System.out.println("Part Header = {0}" + partHeader);
-		for (String content : part.getHeader("content-disposition").split(";")) {
-			if (content.trim().startsWith("filename")) {
-				return content.substring(content.indexOf('=') + 1).trim()
-						.replace("\"", "");
-			}
-		}
-		return null;
-	}
-
 }

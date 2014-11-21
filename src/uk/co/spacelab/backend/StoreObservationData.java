@@ -7,8 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -17,6 +20,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Servlet implementation class UploadGatheredData
@@ -56,13 +62,21 @@ public class StoreObservationData extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		if (!validParam(request.getParameterMap(), "studyid")
-				|| !validParam(request.getParameterMap(), "observationid")) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-					"type undefined");
-			return;
+		if (request.getCharacterEncoding() == null) {
+			if (!validParam(request.getParameterMap(), "studyid")
+					|| !validParam(request.getParameterMap(), "observationid")) {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"type undefined");
+				return;
+			}
+			processRequest(request, response);
+		} else {
+			try {
+				updateDatabase(request, response);
+			} catch (ClassNotFoundException | SQLException | ParseException e) {
+				e.printStackTrace();
+			}
 		}
-		processRequest(request, response);
 	}
 	protected void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -72,8 +86,10 @@ public class StoreObservationData extends HttpServlet {
 		int observationID =
 				Integer.parseInt(request.getParameter("observationid"));
 		// Create path components to save the file
-		final String path =
-				"/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
+		// final String path =
+		// "/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
+
+		String UPLOAD_DIR = Database.getUploadDirectory();
 		// request.getParameter("destination");
 		// System.out.println(path);
 		final Part filePart = request.getPart("file");
@@ -84,9 +100,7 @@ public class StoreObservationData extends HttpServlet {
 		final PrintWriter writer = response.getWriter();
 
 		try {
-			out =
-					new FileOutputStream(new File(path + File.separator
-							+ fileName));
+			out = new FileOutputStream(new File(UPLOAD_DIR + fileName));
 			filecontent = filePart.getInputStream();
 
 			int read = 0;
@@ -95,10 +109,24 @@ public class StoreObservationData extends HttpServlet {
 			while ((read = filecontent.read(bytes)) != -1) {
 				out.write(bytes, 0, read);
 			}
-			SQLiteToPostgreSQL.convert(studyID, observationID, path + fileName);
 			// writer.println("New file " + fileName + " created at " + path);
+
+			System.out.println(UPLOAD_DIR + fileName + " exists: "
+					+ new File(UPLOAD_DIR + fileName).exists());
+			JSONObject result =
+					SQLiteToPostgreSQL.getSpaces(observationID, UPLOAD_DIR
+							+ fileName);
+			System.out.println(UPLOAD_DIR + fileName + " exists: "
+					+ new File(UPLOAD_DIR + fileName).exists());
+			String newFileName = UUID.randomUUID().toString();
+			new File(UPLOAD_DIR + fileName).renameTo(new File(UPLOAD_DIR
+					+ newFileName + ".db"));
+			result.put("fileid", newFileName);
+			response.setContentType("application/json; charset=UTF-8");
+			response.getWriter().print(result.toString());
+
 			System.out.println("File{0}being uploaded to {1}" + fileName + " "
-					+ path);
+					+ UPLOAD_DIR);
 		} catch (FileNotFoundException fne) {
 			writer.println("You either did not specify a file to upload or are "
 					+ "trying to upload a file to a protected or nonexistent "
@@ -133,5 +161,25 @@ public class StoreObservationData extends HttpServlet {
 		}
 		return null;
 	}
+	private void updateDatabase(HttpServletRequest request,
+			HttpServletResponse response) throws ClassNotFoundException,
+			IOException, SQLException, ParseException {
+		JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 
+		String fileName;
+		Integer observationID;
+		JSONArray spaces;
+		try {
+			fileName = paramsJSON.getString("fileid");
+			observationID = paramsJSON.getInt("observationid");
+			spaces = paramsJSON.getJSONArray("spaces");
+		} catch (NullPointerException e) {
+			throw new MalformedDataException("Malformed data buddy... -.-");
+		}
+		String UPLOAD_DIR = Database.getUploadDirectory();
+		System.out.println(UPLOAD_DIR + " exists: "
+				+ new File(UPLOAD_DIR).exists());
+		SQLiteToPostgreSQL
+				.convert(observationID, UPLOAD_DIR + fileName + ".db");
+	}
 }

@@ -57,8 +57,8 @@ public class SpacesValid extends HttpServlet {
 					counter++;
 				}
 			}
-		} catch (JSONException | ArrayIndexOutOfBoundsException
-				| ClassNotFoundException | SQLException | ParseException e) {
+		} catch (JSONException | ArrayIndexOutOfBoundsException | SQLException
+				| ParseException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"ohai.. malformed data...");

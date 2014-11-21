@@ -57,9 +57,6 @@ public class StakeholderReader {
 		int ns = wb.getNumberOfNames();
 		Map<String, List<String>> result = new HashMap<String, List<String>>();
 		for (int i = 0; i < ns; i++) {
-			System.out.println(wb.getNameAt(i).getNameName() + " "
-					+ wb.getNameAt(i).getSheetName() + " "
-					+ wb.getNameAt(i).getRefersToFormula());
 			for (String name : findNames) {
 				if (wb.getNameAt(i).getNameName().equalsIgnoreCase(name)) {
 					result.put(name, extractNonEmptyCellsFromName(wb, i));
@@ -68,11 +65,29 @@ public class StakeholderReader {
 		}
 		return result;
 	}
-	protected void convert(String filename, int studyID)
-			throws ClassNotFoundException, SQLException, IOException {
+	protected Map<String, String> getNamesFormulas(Workbook wb,
+			String... findNames) {
+		int ns = wb.getNumberOfNames();
+		Map<String, String> result = new HashMap<String, String>();
+		for (int i = 0; i < ns; i++) {
+			for (String name : findNames) {
+				System.out.println(wb.getNameAt(i).getNameName() + " "
+						+ wb.getNameAt(i).getSheetName() + " "
+						+ wb.getNameAt(i).getRefersToFormula());
+				if (wb.getNameAt(i).getNameName().equalsIgnoreCase(name)) {
+					result.put(name, wb.getNameAt(i).getRefersToFormula());
+				}
+			}
+		}
+		return result;
+	}
+	// protected Map<String, List<String>> getStaticData(String fileName,
+	protected JSONObject getStaticData(String fileName, int studyID)
+			throws FileNotFoundException, IOException, ClassNotFoundException,
+			SQLException, ParseException {
 		Database.getConnection();
 
-		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(filename));
+		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
 		int ns = wb.getNumberOfSheets();
 		XSSFSheet teamSheet = null;
 		XSSFSheet questionSheet = null;
@@ -87,16 +102,168 @@ public class StakeholderReader {
 		if (questionSheet == null)
 			throw new MalformedDataException("Questions sheet missing");
 		ns = wb.getNumberOfNames();
+		String [] requiredNames =
+				new String [] {"DEPARTMENT_LIST", "QUESTION_LIST"};
+		Map<String, List<String>> staticData =
+				extractCellsFromNames(wb, requiredNames);
+		for (String name : requiredNames)
+			if (!staticData.containsKey(name))
+				throw new MalformedDataException(name + " named range missing");
+		Map<String, String> nameFormulas = getNamesFormulas(wb, requiredNames);
 
-		Map<String, List<String>> deps =
-				extractCellsFromNames(wb, "DEPARTMENT_LIST", "QUESTION_LIST");
-		if (!deps.containsKey("DEPARTMENT_LIST"))
-			throw new MalformedDataException("Teams named range missing");
-		if (!deps.containsKey("QUESTION_LIST"))
-			throw new MalformedDataException("Questions named range missing");
+		JSONArray databaseTeams =
+				Database.selectAllFromTableWhere("teams", "study_id=?",
+						String.valueOf(studyID));
+		// List<String> databaseTeamsList = new ArrayList<String>();
+		// for (int i = 0; i < databaseTeams.length(); i++)
+		// databaseTeamsList.add(databaseTeams.getString(i));
+		// staticData.put("DATABASE_TEAMS", databaseTeamsList);
+		List<XSSFDataValidation> dvs = questionSheet.getDataValidations();
+		Map<String, CellRangeAddress []> perNameCellReferences =
+				new HashMap<String, CellRangeAddress []>();
+		for (XSSFDataValidation dv : dvs) {
+			CellRangeAddress [] cral = dv.getRegions().getCellRangeAddresses();
+			String formula = dv.getValidationConstraint().getFormula1();
+			if (!formula.contains("!"))
+				formula = questionSheet.getSheetName() + "!" + formula;
+			String formulaKey = null;
+			for (String name : nameFormulas.keySet())
+				if (formula.equalsIgnoreCase(name)) {
+					formulaKey = name;
+					break;
+				} else if (formula.equalsIgnoreCase(nameFormulas.get(name))) {
+					formulaKey = name;
+					break;
+				}
+			if (formulaKey != null)
+				perNameCellReferences.put(formulaKey, cral);
+		}
+		Map<String, Question> idQuestion = new HashMap<String, Question>();
+		for (String alias : staticData.get("QUESTION_LIST")) {
+			String [] pieces = alias.split("\\(");
+			Question question = new Question(alias).title(pieces[0].trim());
+			if (pieces.length > 1) { // we have hierarchy
+				idQuestion.put(pieces[1].split("\\)")[0], question);
+			}
+		}
+		Map<String, Question> questions = new HashMap<String, Question>();
+		for (String key : idQuestion.keySet()) {
+			Question question = idQuestion.get(key);
+			int dotIndex = key.lastIndexOf(".");
+			if (-1 == dotIndex) continue;
+			String parentID = key.substring(0, dotIndex);
+			if (!idQuestion.containsKey(parentID))
+				throw new MalformedDataException("Parent " + parentID
+						+ " of question " + question.alias + " does not exist");
+			question.parent(idQuestion.get(parentID));
+			questions.put(question.alias, question);
+		}
+		String choiceIdentifier = "CHOICE";
+		XSSFRow firstRow = questionSheet.getRow(0);
+		for (String key : perNameCellReferences.keySet()) {
+			for (CellRangeAddress cra : perNameCellReferences.get(key)) {
+				int firstColumnIndex = cra.getFirstColumn();
+				int lastColumnIndex = cra.getLastColumn();
+				if (lastColumnIndex - firstColumnIndex != 0
+						|| !firstRow.getCell(firstColumnIndex)
+								.getStringCellValue().trim()
+								.equalsIgnoreCase(choiceIdentifier)) continue;
+				List<String> questionRefs =
+						extractCellsFromRange(questionSheet, cra);
+				int choiceColumn = lastColumnIndex + 1;
+				List<String> choices = new ArrayList<String>();
+				Cell f = null, c = null;
+				for (int row = 0; row < questionSheet.getPhysicalNumberOfRows(); row++) {
+					c = questionSheet.getRow(row).getCell(choiceColumn);
+					if (c == null) continue;
+					if (f == null) f = c;
+					String cellValue = c.getStringCellValue().trim();
+					if (cellValue.length() < 1) continue;
+					choices.add(cellValue);
+				}
+				System.out.println(choices + " " + c + " " + f);
+				if (c != null && f != null)
+					for (String question : questionRefs) {
+						questions.get(question)
+								.choices(
+										new int [] {f.getRowIndex(),
+												c.getRowIndex(),
+												f.getColumnIndex(),
+												c.getColumnIndex()}, choices);
+					}
+			}
+		}
+		// JSONArray databaseQuestions =
+		// Database.selectAllFromTable("questions");
+		// List<String> databaseQuestionsList = new ArrayList<String>();
+		// for (int i = 0; i < databaseQuestions.length(); i++)
+		// databaseQuestionsList.add(databaseQuestions.getString(i));
+		// staticData.put("DATABASE_QUESTIONS", databaseQuestionsList);
 		checkValidation((XSSFSheet) teamSheet);
 		checkValidation((XSSFSheet) questionSheet);
-		ns = wb.getNumberOfSheets();
+		JSONObject out = new JSONObject();
+		for (String key : staticData.keySet()) {
+			JSONArray arr;
+			if (key.equalsIgnoreCase("QUESTION_LIST")) {
+				arr = new JSONArray();
+				for (String alias : questions.keySet()) {
+					Question q = questions.get(alias);
+					JSONObject o = new JSONObject();
+					o.put("alias", alias);
+					o.put("title", q.title);
+					if (q.parent != null) o.put("parent", q.parent.alias);
+					if (q.choices != null) {
+						o.put("choicesReference", new JSONArray(
+								q.choicesReference));
+						o.put("choices", new JSONArray(q.choices));
+					}
+					arr.put(o);
+				}
+			} else {
+				arr = new JSONArray();
+
+				for (String alias : staticData.get(key)) {
+					JSONObject o = new JSONObject();
+					o.put("alias", alias);
+					arr.put(o);
+				}
+			}
+			out.put(key, arr);
+		}
+		out.put("DATABASE_TEAMS", databaseTeams);
+		return out;
+	}
+	class Question {
+		String alias;
+		String title;
+		Question parent;
+		int [] choicesReference;
+		List<String> choices;
+		Question(String alias) {
+			this.alias = alias;
+		}
+		Question title(String title) {
+			this.title = title;
+			return this;
+		}
+		Question parent(Question parent) {
+			this.parent = parent;
+			return this;
+		}
+		Question choices(int [] choicesReference, List<String> choices) {
+			this.choicesReference = choicesReference;
+			this.choices = choices;
+			return this;
+		}
+	}
+	protected void convert(String fileName, int studyID,
+			Map<String, Map<String, String>> staticData)
+			throws ClassNotFoundException, SQLException, IOException {
+
+		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
+		int ns = wb.getNumberOfSheets();
+		List<Score> scores = new ArrayList<Score>();
+		List<Quote> comments = new ArrayList<Quote>();
 		for (int i = 0; i < ns; i++) {
 			if (wb.getSheetName(i).equalsIgnoreCase("TEAMS")) {
 			} else if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS")) {
@@ -111,17 +278,24 @@ public class StakeholderReader {
 						firstRow.getCell(0).getCellComment().getString()
 								.getString();
 				if (firstCellComment.equals("dept/dept")) {
+					String question =
+							sheet.getRow(0).getCell(0).getStringCellValue();
+					if (!staticData.get("QUESTION_LIST").containsKey(question))
+						continue;
 					// department to department scoring / first row should
 					// contain departments
-					Map<Integer, String> teamsFound =
+					Map<Integer, String> teamsHorizontal =
+							new HashMap<Integer, String>();
+					Map<Integer, String> teamsVertical =
 							new HashMap<Integer, String>();
 					int commentsColumn = -1;
 					for (int j = 0; j < firstRow.getPhysicalNumberOfCells(); j++) {
 						if (firstRow.getCell(j) == null) continue;
 						String cellVal =
 								firstRow.getCell(j).getStringCellValue().trim();
-						if (deps.get("DEPARTMENT_LIST").contains(cellVal))
-							teamsFound.put(j, cellVal);
+						if (staticData.get("DEPARTMENT_LIST").containsKey(
+								cellVal))
+							teamsHorizontal.put(j, cellVal);
 						else if (cellVal.equalsIgnoreCase("COMMENTS"))
 							commentsColumn = j;
 					}
@@ -130,12 +304,80 @@ public class StakeholderReader {
 						if (c == null) continue;
 						String cellVal = c.getStringCellValue().trim();
 						if (cellVal.length() < 1
-								|| deps.get("DEPARTMENT_LIST")
-										.contains(cellVal)) continue;
+								|| staticData.get("DEPARTMENT_LIST")
+										.containsKey(cellVal)) continue;
+						teamsVertical.put(j, cellVal);
 						// Database.insertInto(table, columnString, args)
 					}
+					for (Integer r : teamsVertical.keySet()) {
+						String comment =
+								sheet.getRow(r).getCell(commentsColumn)
+										.getStringCellValue();
+						comments.add(new Quote(question, teamsVertical.get(r),
+								comment));
+						for (Integer c : teamsHorizontal.keySet()) {
+
+							scores.add(new Score(question,
+									teamsVertical.get(r), teamsHorizontal
+											.get(c), Integer.parseInt(sheet
+											.getRow(r).getCell(c)
+											.getStringCellValue().trim()), ""));
+						}
+					}
 				} else if (firstCellComment.equals("dept/question")) {
-					// department answering question
+					Map<Integer, String> teamsVertical =
+							new HashMap<Integer, String>();
+					String currVal = null;
+					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
+						Cell c = sheet.getRow(j).getCell(0);
+						if (c == null) continue;
+						String cellVal = c.getStringCellValue().trim();
+						if (cellVal.length() < 1) {
+							if (currVal != null)
+								teamsVertical.put(j, currVal);
+							else continue;
+						}
+						if (staticData.get("DEPARTMENT_LIST").containsKey(
+								cellVal)) continue;
+						teamsVertical.put(j, cellVal);
+						currVal = cellVal;
+						// Database.insertInto(table, columnString, args)
+					}
+					for (int j = 0; j < firstRow.getPhysicalNumberOfCells(); j++) {
+						if (firstRow.getCell(j) == null) continue;
+						String question =
+								firstRow.getCell(j).getStringCellValue().trim();
+						if (!staticData.get("QUESTION_LIST").containsKey(
+								question)) continue;
+						for (Integer row : teamsVertical.keySet()) {
+							Cell c = sheet.getRow(row).getCell(j);
+							if (c == null) continue;
+							String cellVal = c.getStringCellValue().trim();
+							if (cellVal.length() < 1) continue;
+							comments.add(new Quote(question, teamsVertical
+									.get(row), cellVal));
+						}
+
+						int maxSearchColumns =
+								staticData.get("ISSUES_LIST").size() + 2;
+						for (int k = 0; k < maxSearchColumns; k++) {
+							if (firstRow.getCell(j + 1) == null) break;
+							if (firstRow.getCell(j + 1).getStringCellValue()
+									.trim().equalsIgnoreCase("ISSUE CATEGORY")) {
+								j++;
+							} else if (firstRow.getCell(j + 1) != null
+									&& firstRow.getCell(j + 1)
+											.getStringCellValue().trim()
+											.equalsIgnoreCase("FLAG")) {
+								j++;
+							} else if (firstRow.getCell(j + 1) != null
+									&& firstRow.getCell(j + 1)
+											.getStringCellValue().trim()
+											.equalsIgnoreCase("ISSUE")) {
+								j++;
+							} else break;
+						}
+					}
 				} else if (firstCellComment.equals("question/choice")) {
 					// department scoring question
 				}
@@ -145,6 +387,31 @@ public class StakeholderReader {
 				// sheet.getRow(j).getCell(0);
 				// }
 			}
+		}
+	}
+	class Quote {
+		String question, from, quote;
+		boolean flag;
+		Quote(String question, String from, String quote) {
+			this.question = question;
+			this.from = from;
+			this.quote = quote;
+		}
+		Quote flag(boolean flag) {
+			this.flag = flag;
+			return this;
+		}
+	}
+	class Score {
+		String question, from, to, comment;
+		float score;
+		Score(String question, String from, String to, float score,
+				String comment) {
+			this.question = question;
+			this.from = from;
+			this.to = to;
+			this.score = score;
+			this.comment = comment;
 		}
 	}
 	void checkValidation(XSSFSheet sheet) {
@@ -200,6 +467,19 @@ public class StakeholderReader {
 			}
 			c = sheet.getRow(row).getCell(col);
 			if (c != null) cells.add(c.getStringCellValue().trim());
+		}
+		return cells;
+	}
+	List<String> extractCellsFromRange(Sheet sheet, CellRangeAddress range) {
+		List<String> cells = new ArrayList<String>();
+		for (int row = range.getFirstRow(); row <= range.getLastRow(); row++) {
+			for (int col = range.getFirstColumn(); col <= range.getLastColumn(); col++) {
+				Cell c = sheet.getRow(row).getCell(col);
+				if (c != null) {
+					String cellVal = c.getStringCellValue().trim();
+					if (cellVal.length() > 0) cells.add(cellVal);
+				}
+			}
 		}
 		return cells;
 	}

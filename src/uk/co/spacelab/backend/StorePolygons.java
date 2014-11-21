@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+	package uk.co.spacelab.backend;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -122,8 +122,8 @@ public class StorePolygons extends HttpServlet {
 				}
 				// System.out.println(spaceID);
 			}
-		} catch (JSONException | ArrayIndexOutOfBoundsException
-				| ClassNotFoundException | SQLException | ParseException e) {
+		} catch (JSONException | ArrayIndexOutOfBoundsException | SQLException
+				| ParseException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"ohai.. malformed data...");

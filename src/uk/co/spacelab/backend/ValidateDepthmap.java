@@ -87,8 +87,8 @@ public class ValidateDepthmap extends HttpServlet {
 					spaces.remove(i);
 				}
 			}
-		} catch (JSONException | ArrayIndexOutOfBoundsException
-				| ClassNotFoundException | SQLException | ParseException e) {
+		} catch (JSONException | ArrayIndexOutOfBoundsException | SQLException
+				| ParseException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"ohai.. malformed data...");

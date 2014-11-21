@@ -27,7 +27,7 @@ public class GetAll extends HttpServlet {
 	}
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println(SecurityUtils.getSubject());
+		// System.out.println(SecurityUtils.getSubject());
 		Map<String, String []> params = request.getParameterMap();
 		if (params == null || !params.containsKey("t")
 				|| params.get("t") == null && params.get("t").length != 1) {

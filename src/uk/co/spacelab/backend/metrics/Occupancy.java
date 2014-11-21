@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.Util;
 
 /**
  * Servlet implementation class Occupancy
@@ -36,16 +37,12 @@ public class Occupancy extends HttpServlet {
 		// TODO Auto-generated constructor stub
 	}
 
-	boolean validParam(Map<String, String []> params, String param) {
-		return params.containsKey(param) && params.get(param) != null
-				&& params.get(param).length == 1;
-	}
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
 		Map<String, String []> params = request.getParameterMap();
-		if (params == null || !validParam(params, "t")
-				|| !validParam(params, "obsid")) {
+		if (params == null || !Util.validParam(params, "t")
+				|| !Util.validParam(params, "obsid")) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"missing data from request... -_-");
 			return;
@@ -92,6 +89,73 @@ public class Occupancy extends HttpServlet {
 								"SELECT day_id,round_id,count FROM splab_total_occupancy_per_round"
 										+ " WHERE " + "observation_id=?", obsID);
 				// out.println(result.getInt((String) result.keys().next()));
+				out.println(result);
+			} else if (type.equals("occ_per_space_and_round_prc")) {
+
+				JSONArray spaces =
+						Database.customQuery(
+								"SELECT spaces.id AS space_id,spaces.alias AS space_alias,"
+										+ " spaces.study_id AS study_id,"
+										+ " coalesce(desks_per_space.count,0) AS desks"
+										+ " FROM spaces JOIN observations"
+										+ " ON observations.study_id=spaces.study_id"
+										+ " FULL OUTER JOIN splab_desks_per_space"
+										+ " AS desks_per_space"
+										+ " ON observations.id=desks_per_space.observation_id"
+										+ " AND spaces.id=desks_per_space.space_id WHERE"
+										+ " observations.id=?", obsID);
+				// JSONArray rounds = Database.
+				JSONArray aggregate =
+						Database.customQuery(
+								"SELECT space_id,snapshot_id,day_id,round_id,occupied_desks"
+										+ " FROM splab_space_desk_occ_per_round"
+										+ " WHERE " + "observation_id=?", obsID);
+				// JSONObject total =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
+				// + "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
+				// + "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
+				// obsID, obsID, obsID).getJSONObject(0);
+				// int totalDesks = total.getInt((String) total.keys().next());
+
+				Map<Integer, JSONObject> spaceMap =
+						new HashMap<Integer, JSONObject>();
+				for (int i = 0; i < spaces.length(); i++) {
+					JSONObject row = spaces.getJSONObject(i);
+					int spaceID = row.getInt("space_id");
+					String spaceAlias = row.getString("space_alias");
+					String img =
+							row.getString("study_id") + "_" + spaceAlias
+									+ ".png";
+					// if (!spaceMap.containsKey(spaceID))
+					spaceMap.put(
+							spaceID,
+							new JSONObject().put("id", spaceID)
+									.put("alias", spaceAlias)
+									.put("snapshots", new JSONArray())
+									.put("desks", row.getInt("desks"))
+									.put("img", img));
+				}
+				for (int i = 0; i < aggregate.length(); i++) {
+					JSONObject row = aggregate.getJSONObject(i);
+					int spaceID = row.getInt("space_id");
+					row.remove("space_id");
+					int desks = spaceMap.get(spaceID).getInt("desks");
+					// System.out.println(spaceID + " "
+					// + row.getInt("occupied_desks"));
+					if (desks == 0)
+						row.put("occupancy", 0);
+					else row.put("occupancy", row.getInt("occupied_desks")
+							/ (float) (desks));
+					row.remove("occupied_desks");
+					spaceMap.get(spaceID).getJSONArray("snapshots").put(row);
+				}
+				JSONArray result = new JSONArray();
+				for (Integer i : spaceMap.keySet())
+					result.put(spaceMap.get(i));
+
 				out.println(result);
 			} else if (type.equals("desk_occ_frequency")) {
 				JSONArray result =
@@ -187,7 +251,7 @@ public class Occupancy extends HttpServlet {
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"unknown request");
 			}
-		} catch (ClassNotFoundException | SQLException | ParseException e) {
+		} catch (SQLException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
