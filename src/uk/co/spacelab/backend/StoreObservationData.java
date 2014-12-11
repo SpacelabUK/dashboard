@@ -63,10 +63,14 @@ public class StoreObservationData extends HttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		if (request.getCharacterEncoding() == null) {
-			if (!validParam(request.getParameterMap(), "studyid")
-					|| !validParam(request.getParameterMap(), "observationid")) {
+			if (!validParam(request.getParameterMap(), "studyid")) {
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-						"type undefined");
+						"studyid undefined");
+				return;
+			}
+			if (!validParam(request.getParameterMap(), "observationid")) {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"observationid undefined");
 				return;
 			}
 			processRequest(request, response);
@@ -111,13 +115,13 @@ public class StoreObservationData extends HttpServlet {
 			}
 			// writer.println("New file " + fileName + " created at " + path);
 
-			System.out.println(UPLOAD_DIR + fileName + " exists: "
-					+ new File(UPLOAD_DIR + fileName).exists());
+//			System.out.println(UPLOAD_DIR + fileName + " exists: "
+//					+ new File(UPLOAD_DIR + fileName).exists());
 			JSONObject result =
 					SQLiteToPostgreSQL.getSpaces(observationID, UPLOAD_DIR
 							+ fileName);
-			System.out.println(UPLOAD_DIR + fileName + " exists: "
-					+ new File(UPLOAD_DIR + fileName).exists());
+//			System.out.println(UPLOAD_DIR + fileName + " exists: "
+//					+ new File(UPLOAD_DIR + fileName).exists());
 			String newFileName = UUID.randomUUID().toString();
 			new File(UPLOAD_DIR + fileName).renameTo(new File(UPLOAD_DIR
 					+ newFileName + ".db"));

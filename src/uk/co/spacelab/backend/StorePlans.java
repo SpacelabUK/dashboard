@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.AbstractMap.SimpleEntry;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -513,14 +514,10 @@ public class StorePlans extends FlowUpload {
 										System.out.println(type
 												+ " not found. Appending as "
 												+ nextVal);
-										Database.insertInto(
-												psql,
+										Database.insertInto(psql,
 												"spatial_functions",
-												"id,alias,name",
-												"?,?,?",
-												new String [] {
-														String.valueOf(nextVal),
-														type, type});
+												"id,alias,name", "?,?,?",
+												nextVal, type, type);
 										typeID = nextVal;
 									} else throw new MalformedDataException(
 											"no such type (" + type + ") found");
@@ -545,11 +542,12 @@ public class StorePlans extends FlowUpload {
 								Database.insertInto(psql, "polygons",
 										"polygon,space_id,functeam,type_id",
 										"ST_GeomFromText(?),?,?,?", polyString,
-										String.valueOf(spaceID), "func",
-										String.valueOf(typeID));
+										spaceID, "func", typeID);
 							}
+							puncturePolys(psql, spaceID, typeID, "func");
 						}
 					}
+					System.out.println("Done");
 					if (psql.isClosed())
 						throw new InternalException(
 								"Connection is already closed");
@@ -710,6 +708,7 @@ public class StorePlans extends FlowUpload {
 										String.valueOf(spaceID), "team",
 										String.valueOf(typeID));
 							}
+							puncturePolys(psql, spaceID, typeID, "team");
 						}
 					}
 					psql.commit();
@@ -724,6 +723,7 @@ public class StorePlans extends FlowUpload {
 				}
 			}
 		}
+		System.out.println("Done importing");
 	}
 	public Map<String, GeometryLayer> getBlocks(List<String []> blockData,
 			double [] transform, float scale) {
@@ -757,5 +757,123 @@ public class StorePlans extends FlowUpload {
 			block.getOwnLimits();
 
 		return blockz;
+	}
+
+	class Tree {
+		Integer id;
+		Tree parent;
+		Set<Tree> children;
+		Tree(Integer id, Tree parent) {
+			this.id = id;
+			this.parent = parent;
+			children = new HashSet<Tree>();
+		}
+	}
+	void printTree(Tree tree, int depth) {
+		for (int i = 0; i < depth; i++)
+			System.out.print(" ");
+		System.out.println(tree.id);
+		depth++;
+		for (Tree t : tree.children) {
+			printTree(t, depth);
+		}
+	}
+	/**
+	 * Tree of polygons needs to be flattened, first depth layer is fill, second
+	 * is hole of first, third is fill, fourth is hole of third. So we bring up
+	 * odd numbers to first depth layer
+	 * 
+	 * @param base
+	 *            The base trunk where the odd depth children will go
+	 * @param tree
+	 *            The currently examined tree
+	 * @param depth
+	 *            The current depth
+	 */
+	void flattenTree(Tree base, Tree tree, int depth) {
+		depth++;
+		for (Tree t : tree.children) {
+			if (depth % 2 == 1) {
+				base.children.add(t);
+				t.parent = base;
+			}
+			flattenTree(base, t, depth);
+		}
+	}
+	void
+			puncturePolys(Connection psql, int spaceID, int typeID,
+					String functeam) {
+		Tree trunk = new Tree(null, null);
+		Map<Integer, Tree> polymap = new HashMap<Integer, Tree>();
+		List<SimpleEntry<Integer, Integer>> contains =
+				new ArrayList<SimpleEntry<Integer, Integer>>();
+		JSONArray result;
+		try {
+			result =
+					Database.customQuery(
+							psql,
+							"SELECT id FROM polygons WHERE space_id=? AND type_id=? AND functeam=?",
+							spaceID, typeID, functeam);
+			for (int i = 0; i < result.length(); i++) {
+				int id = result.getJSONObject(i).getInt("id");
+				Tree t = new Tree(id, trunk);
+				trunk.children.add(t);
+				polymap.put(id, t);
+			}
+			if (polymap.size() == 0) {
+				System.out.println("No polys found");
+				return;
+			}
+			List<Integer> polyIDs = new ArrayList<Integer>(polymap.keySet());
+			for (int i = 0; i < polyIDs.size() - 1; i++) {
+				int id1 = polyIDs.get(i);
+				for (int j = i + 1; j < polyIDs.size(); j++) {
+					int id2 = polyIDs.get(j);
+					if (Database
+							.customQuery(
+									psql,
+									"SELECT splab_poly_contains_not_equals(?,?) AS contains",
+									String.valueOf(id1), String.valueOf(id2))
+							.getJSONObject(0).getString("contains")
+							.equalsIgnoreCase("t")) {
+						contains.add(new SimpleEntry<Integer, Integer>(id1, id2));
+					} else if (Database
+							.customQuery(
+									psql,
+									"SELECT splab_poly_contains_not_equals(?,?) AS contains",
+									String.valueOf(id2), String.valueOf(id1))
+							.getJSONObject(0).getString("contains")
+							.equalsIgnoreCase("t")) {
+						contains.add(new SimpleEntry<Integer, Integer>(id2, id1));
+					}
+				}
+			}
+			for (SimpleEntry<Integer, Integer> entry : contains) {
+				Tree container = polymap.get(entry.getKey());
+				Tree contained = polymap.get(entry.getValue());
+				contained.parent.children.remove(contained);
+				container.children.add(contained);
+				contained.parent = container;
+			}
+			printTree(trunk, 0);
+			flattenTree(trunk, trunk, 0);
+			printTree(trunk, 0);
+			for (Tree tree : trunk.children) {
+				String idArray = "{";
+				int i = 0;
+				for (Tree hole : tree.children) {
+					if (i != 0) idArray += ",";
+					idArray += String.valueOf(hole.id);
+					i++;
+				}
+				idArray += "}";
+				Database.customQuery(psql,
+						"SELECT splab_puncture_poly(?,?::integer[])",
+						String.valueOf(tree.id), idArray);
+			}
+		} catch (SQLException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

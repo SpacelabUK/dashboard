@@ -133,6 +133,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 							+ "observation_offset=CAST(? AS point),display_order=?";
 
 			Map<Integer, Integer> spaceMapper = new HashMap<Integer, Integer>();
+			Map<Integer, double []> spaceOffsetMap =
+					new HashMap<Integer, double []>();
 			ResultSet rs = statement.executeQuery("SELECT * FROM spaces");
 			int studyID =
 					Database.customQuery(
@@ -173,7 +175,12 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 							"id=?",
 							new String [] {point, rs.getString("displayorder"),
 									String.valueOf(spaceID)});
-					spaceMapper.put(rs.getInt("_id"), spaceID);
+					int inSpaceID = rs.getInt("_id");
+					spaceMapper.put(inSpaceID, spaceID);
+					spaceOffsetMap.put(
+							inSpaceID,
+							new double [] {rs.getDouble("offsetx"),
+									rs.getDouble("offsety")});
 				} else {
 					Database.insertInto(psql, "spaces", columnString,
 							valueString, args);
@@ -201,27 +208,29 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 					"?,?,?,?,CAST(? AS timestamp without time zone),CAST(? AS timestamp without time zone)";
 			DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 			Map<Integer, Integer> snapMapper = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> snapSpaceMapper =
+					new HashMap<Integer, Integer>();
 			rs = statement.executeQuery("SELECT * FROM snapshots");
 			while (rs.next()) {
+				int inSpaceID = rs.getInt("spaceid");
 				Date start =
 						new Date(
 								(long) (rs.getLong("startunixtimestamp") * 1000));
 				Date end =
 						new Date((long) (rs.getLong("endunixtimestamp") * 1000));
-				String [] args =
-						new String [] {
-								String.valueOf(observationID),
-								rs.getString("dayid"),
-								rs.getString("roundid"),
-								String.valueOf(spaceMapper.get(rs
-										.getInt("spaceid"))), df.format(start),
+				Object [] args =
+						new Object [] {observationID, rs.getInt("dayid"),
+								rs.getInt("roundid"),
+								spaceMapper.get(inSpaceID), df.format(start),
 								df.format(end)};
 				Database.insertInto(psql, "snapshots", columnString,
 						valueString, args);
 				int newVal =
 						Database.getSequenceCurrVal(psql, "snapshots_id_seq")
 								.getJSONObject(0).getInt("currval");
-				snapMapper.put(rs.getInt("_id"), newVal);
+				int inSnapID = rs.getInt("_id");
+				snapMapper.put(inSnapID, newVal);
+				snapSpaceMapper.put(inSnapID, inSpaceID);
 			}
 			// psql.commit();
 
@@ -232,24 +241,23 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 			}
 			columnString =
 					"observation_id,original_id,space_id,type,state,interaction,angle,position,system_comment";
-			valueString = "?,?,?,?,?,?,?,CAST(? AS point),?";
+			valueString = "?,?,?,?,?,?,?,ST_Point(?,?),?";
 			Map<Integer, Integer> idMapper = new HashMap<Integer, Integer>();
 			rs = statement.executeQuery("SELECT * FROM predefined");
 			while (rs.next()) {
-				String xpos = rs.getString("xpos");
-				String ypos = rs.getString("ypos");
-				if (xpos.trim().length() < 1) xpos = "0";
-				if (ypos.trim().length() < 1) ypos = "0";
-				String point = "(" + xpos + "," + ypos + ")";
-				String [] args =
-						new String [] {
-								String.valueOf(observationID),
+				int inSpaceID = rs.getInt("spaceid");
+				double xpos = rs.getDouble("xpos");
+				double ypos = rs.getDouble("ypos");
+				xpos += spaceOffsetMap.get(inSpaceID)[0];
+				ypos += spaceOffsetMap.get(inSpaceID)[1];
+				// String point = "(" + xpos + "," + ypos + ")";
+				Object [] args =
+						new Object [] {observationID,
 								rs.getString("originalid"),
-								String.valueOf(spaceMapper.get(rs
-										.getInt("spaceid"))),
+								spaceMapper.get(inSpaceID),
 								rs.getString("type"), rs.getString("state"),
 								rs.getString("interaction"),
-								rs.getString("angle"), point,
+								rs.getString("angle"), xpos, ypos,
 								rs.getString("systemcomment")};
 				Database.insertInto(psql, "predefined", columnString,
 						valueString, args);
@@ -265,7 +273,7 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 			columnString =
 					"type,state,flag_bit,interaction,angle,position,last_edit,user_comment,system_comment,snapshot_id,username,entity_id";
 			valueString =
-					"?,?,?,?,?,CAST(? AS point),CAST(? AS timestamp without time zone),?,?,?,?,?";
+					"?,?,?,?,?,ST_Point(?,?),CAST(? AS timestamp without time zone),?,?,?,?,?";
 			Map<Integer, Integer> interactions =
 					new HashMap<Integer, Integer>();
 			rs = statement.executeQuery("SELECT * FROM occupancy");
@@ -291,13 +299,15 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 					idMapper.put(id, newID);
 				}
 
+				int snapshotID = snapMapper.get(rs.getInt("snapshotid"));
+				double [] spaceOffset =
+						spaceOffsetMap.get(snapSpaceMapper.get(snapshotID));
 				Date lastedit =
 						new Date((long) (rs.getLong("lasttimestamp") * 1000));
-				String xpos = rs.getString("xpos");
-				String ypos = rs.getString("ypos");
-				if (xpos.trim().length() < 1) xpos = "0";
-				if (ypos.trim().length() < 1) ypos = "0";
-				String point = "(" + xpos + "," + ypos + ")";
+				double xpos = rs.getDouble("xpos") + spaceOffset[0];
+				double ypos = rs.getDouble("ypos") + spaceOffset[1];
+
+				// String point = "(" + xpos + "," + ypos + ")";
 				int interaction = rs.getInt("interaction");
 				if (-1 != interaction) {
 					if (interactions.containsKey(interaction))
@@ -311,17 +321,14 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 						interaction = i;
 					}
 				}
-				int snapshotID = snapMapper.get(rs.getInt("snapshotid"));
-				String [] args =
-						new String [] {rs.getString("type"),
+				Object [] args =
+						new Object [] {rs.getString("type"),
 								rs.getString("state"), rs.getString("flagbit"),
-								String.valueOf(interaction),
-								rs.getString("angle"), point,
+								interaction, rs.getString("angle"), xpos, ypos,
 								df.format(lastedit),
 								rs.getString("usercomment"),
-								rs.getString("systemcomment"),
-								String.valueOf(snapshotID),
-								rs.getString("username"), String.valueOf(newID)};
+								rs.getString("systemcomment"), snapshotID,
+								rs.getString("username"), newID};
 
 				Database.insertInto(psql, "occupancy", columnString,
 						valueString, args);

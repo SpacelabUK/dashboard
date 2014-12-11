@@ -101,14 +101,25 @@ public class Database {
 		return expandResultSet(rs);
 	}
 	private static ResultSet execPrepared(Connection con, String sql,
-			String... args) throws SQLException, PSQLException, ParseException {
+			Object... args) throws SQLException, PSQLException, ParseException {
 		PreparedStatement prep = con.prepareStatement(sql);
 		for (int i = 0; i < args.length; i++) {
+			// TODO: PROPER WAY TO DO IS HERE, REPLACE THIS
+			// if (Integer.class.isInstance(args[i])) {
+			// prep.setInt(i + 1, (int) args[i]);
+			// } else if (Integer.class.isInstance(args[i])) {
+			// prep.setFloat(i + 1, (float) args[i]);
+			// } else if (String.class.isInstance(args[i])) {
+			// prep.setString(i + 1, String.valueOf(args[i]));
+			// } else {
+			// prep.setNull(i + 1, 0);
+			// }
 			try {
-				prep.setInt(i + 1, Integer.parseInt(args[i]));
+				prep.setInt(i + 1, Integer.parseInt(String.valueOf(args[i])));
 			} catch (NumberFormatException ie) {
 				try {
-					prep.setFloat(i + 1, Float.parseFloat(args[i]));
+					prep.setFloat(i + 1,
+							Float.parseFloat(String.valueOf(args[i])));
 				} catch (NumberFormatException fe) {
 					// String arg = args[i];
 					// if (arg.startsWith("date::"))
@@ -129,7 +140,7 @@ public class Database {
 					// .substring("interval::".length())));
 
 					// else
-					prep.setString(i + 1, args[i]);
+					prep.setString(i + 1, String.valueOf(args[i]));
 				} catch (NullPointerException e) {
 					prep.setNull(i + 1, 0);
 				}
@@ -190,7 +201,7 @@ public class Database {
 		}
 	}
 	protected static JSONArray insertInto(Connection psql, String table,
-			String columnString, String valueString, String... args)
+			String columnString, String valueString, Object... args)
 			throws ClassNotFoundException, SQLException, ParseException {
 
 		String sql =
@@ -272,6 +283,20 @@ public class Database {
 			return new JSONArray("[{result:success}]");
 		}
 	}
+	protected static JSONArray update(Connection psql, String table,
+			String toSetString, String where, String [] args)
+			throws ClassNotFoundException, SQLException, ParseException {
+		String sql =
+				"UPDATE " + table + " SET " + toSetString + " WHERE " + where;
+		try {
+			ResultSet rs = execPrepared(psql, sql, args);
+			return expandResultSet(rs);
+		} catch (PSQLException e) {
+			if (!e.getLocalizedMessage().startsWith("No results"))
+				e.printStackTrace();
+			return new JSONArray("[{result:success}]");
+		}
+	}
 	protected static JSONArray getSequenceNextVal(Connection psql, String seq)
 			throws SQLException, ClassNotFoundException, ParseException {
 		String sql = "SELECT nextval('" + seq + "');";
@@ -298,7 +323,7 @@ public class Database {
 		con.close();
 		return result;
 	}
-	public static JSONArray customQuery(String sql, String... args)
+	public static JSONArray customQuery(String sql, Object... args)
 			throws PSQLException, SQLException, ParseException {
 		try {
 			Connection psql = getConnection();
@@ -309,6 +334,12 @@ public class Database {
 		} catch (ClassNotFoundException e) {
 			throw new InternalException("JDBC Driver class not found");
 		}
+	}
+	public static JSONArray customQuery(Connection psql, String sql,
+			Object... args) throws PSQLException, SQLException, ParseException {
+		ResultSet rs = execPrepared(psql, sql, args);
+		JSONArray result = expandResultSet(rs);
+		return result;
 	}
 	/**
 	 * Recursive function to extract boolean string and list of values

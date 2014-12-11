@@ -48,7 +48,7 @@ public class Occupancy extends HttpServlet {
 			return;
 		}
 		String type = params.get("t")[0];
-		String obsID = params.get("obsid")[0];
+		int obsID = Integer.parseInt(params.get("obsid")[0]);
 		response.setContentType("application/json; charset=UTF-8");
 		PrintWriter out = response.getWriter();
 		try {
@@ -94,16 +94,10 @@ public class Occupancy extends HttpServlet {
 
 				JSONArray spaces =
 						Database.customQuery(
-								"SELECT spaces.id AS space_id,spaces.alias AS space_alias,"
-										+ " spaces.study_id AS study_id,"
-										+ " coalesce(desks_per_space.count,0) AS desks"
-										+ " FROM spaces JOIN observations"
-										+ " ON observations.study_id=spaces.study_id"
-										+ " FULL OUTER JOIN splab_desks_per_space"
-										+ " AS desks_per_space"
-										+ " ON observations.id=desks_per_space.observation_id"
-										+ " AND spaces.id=desks_per_space.space_id WHERE"
-										+ " observations.id=?", obsID);
+								"SELECT space_id,alias as space_alias, study_id,count AS desks "
+										+ "FROM splab_desks_per_space AS desks_per_space "
+										+ "JOIN spaces ON spaces.id=desks_per_space.space_id "
+										+ "WHERE observation_id=?", obsID);
 				// JSONArray rounds = Database.
 				JSONArray aggregate =
 						Database.customQuery(
@@ -238,6 +232,55 @@ public class Occupancy extends HttpServlet {
 										+ "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
 								obsID, obsID, obsID).getJSONObject(0);
 				out.println(result.getInt((String) result.keys().next()));
+			} else if (type.equals("avg_moving_total")) {
+				JSONObject result =
+						Database.customQuery(
+								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
+								// obsID));
+								"SELECT walking/count::float AS prc_walking FROM"
+										+ " (SELECT SUM(case when state=3 then 1 else 0 end) AS walking,"
+										+ "COUNT(occupancy.entity_id) FROM occupancy "
+										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+										+ "WHERE observation_id=?) AS walking_prc;",
+								obsID).getJSONObject(0);
+				out.println(result.getDouble((String) result.keys().next()));
+			} else if (type.equals("avg_moving_spaces")) {
+				JSONArray result =
+						Database.customQuery(
+								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
+								// obsID));
+								"SELECT space_id,walking/count::float AS prc_walking FROM"
+										+ " (SELECT space_id,SUM(case when state=3 then 1 else 0 end) AS walking,"
+										+ "COUNT(occupancy.entity_id) FROM occupancy "
+										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+										+ "WHERE observation_id=? GROUP BY snapshots.space_id) AS walking_prc;",
+								obsID);
+				out.println(result);
+			} else if (type.equals("movement_density_total")) {
+				JSONObject result =
+						Database.customQuery(
+								"SELECT "
+										+ " ( SELECT SUM(st_area) FROM splab_polygons_areas WHERE observation_id=?"
+										+ " AND functeam='func' AND type_alias='CIRC-PRI')"
+										+ "/"
+										+ "(SELECT COUNT(occupancy.entity_id) FROM occupancy "
+										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+										+ "WHERE observation_id=? AND state=3) "
+										+ "::float "
+										+ "AS walkin_per_circ_sqm;", obsID,
+								obsID).getJSONObject(0);
+				out.println(result.getDouble((String) result.keys().next()));
+			} else if (type.equals("movement_density_spaces")) {
+				JSONArray result =
+						Database.customQuery(
+								" SELECT splab_polygons_areas.space_id,st_area/walking::float AS sqm_per_walker FROM splab_polygons_areas JOIN "
+										+ "(SELECT space_id,COUNT(occupancy.entity_id) AS walking FROM occupancy "
+										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+										+ "WHERE observation_id=? AND state=3 GROUP BY snapshots.space_id)"
+										+ " AS walkers ON walkers.space_id=splab_polygons_areas.space_id"
+										+ " WHERE observation_id=? AND functeam='func' AND type_alias='CIRC-PRI'",
+								obsID, obsID);
+				out.println(result);
 			} else if (type.equals("study_parts")
 					&& params.containsKey("studyid")
 					&& params.get("studyid") != null) {
@@ -254,6 +297,9 @@ public class Occupancy extends HttpServlet {
 		} catch (SQLException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (NumberFormatException nfe) {
+			System.out
+					.println("Yo dawg, that ain't no number...! Go fetch the developer");
 		}
 	}
 	/**

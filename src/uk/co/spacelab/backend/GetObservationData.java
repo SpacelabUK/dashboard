@@ -43,7 +43,7 @@ public class GetObservationData extends HttpServlet {
 					Database.selectWhatFromTableWhere(
 							"occupancy",
 							"entity_id,type,state,flag_bit,interaction,"
-									+ "position[0] AS cx,position[1] AS cy,angle,user_comment",
+									+ "ST_X(position) AS cx,ST_Y(position) AS cy,angle,user_comment",
 							"snapshot_id=?", String.valueOf(snapshotID));
 			int spaceID =
 					Database.selectWhatFromTableWhere("snapshots", "space_id",
