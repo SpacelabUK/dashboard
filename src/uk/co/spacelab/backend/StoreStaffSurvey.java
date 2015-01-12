@@ -7,10 +7,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -53,26 +56,24 @@ public class StoreStaffSurvey extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	boolean validParam(Map<String, String []> params, String param) {
-		return params.containsKey(param) && params.get(param) != null
-				&& params.get(param).length == 1;
-	}
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		processRequest(request, response);
 	}
-
+	boolean validParam(Map<String, String []> params, String param) {
+		return params.containsKey(param) && params.get(param) != null
+				&& params.get(param).length == 1;
+	}
 	protected void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println(request.getParameterMap());
 		if (!validParam(request.getParameterMap(), "studyid")) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					"malformed data... -_-");
 			return;
 		}
+		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		response.setContentType("text/html;charset=UTF-8");
 
-		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		// Create path components to save the file
 		final String path =
 				"/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
@@ -99,27 +100,27 @@ public class StoreStaffSurvey extends HttpServlet {
 			}
 			new StaffSurveyReader().convert(path + fileName, studyID);
 			// Database.insertInto("asdadsa", "asdf", new String [] {"asdf"});
-//			BufferedReader reader = null;
-//
-//			try {
-//				File file = new File(path + fileName);
-//				file.deleteOnExit();
-//				reader = new BufferedReader(new FileReader(file));
-//
-//				String line;
-//				while ((line = reader.readLine()) != null) {
-//					System.out.println(line);
-//				}
-//
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			} finally {
-//				try {
-//					reader.close();
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			}
+			// BufferedReader reader = null;
+			//
+			// try {
+			// File file = new File(path + fileName);
+			// file.deleteOnExit();
+			// reader = new BufferedReader(new FileReader(file));
+			//
+			// String line;
+			// while ((line = reader.readLine()) != null) {
+			// System.out.println(line);
+			// }
+			//
+			// } catch (IOException e) {
+			// e.printStackTrace();
+			// } finally {
+			// try {
+			// reader.close();
+			// } catch (IOException e) {
+			// e.printStackTrace();
+			// }
+			// }
 			// writer.println("New file " + fileName + " created at " + path);
 			System.out.println("File{0}being uploaded to {1}" + fileName + " "
 					+ path);

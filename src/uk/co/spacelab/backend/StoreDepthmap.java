@@ -109,14 +109,21 @@ public class StoreDepthmap extends FlowUpload {
 			boolean append = false;
 			System.out.println("analysis...");
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
-			String fileCSV, fileDXF;
+			String fileCSV, fileDXF, type, name;
 			Integer studyID;
 			boolean allNew = true;
 			try {
 				fileCSV = UPLOAD_DIR + "/" + paramsJSON.getString("fileidCSV");
 				fileDXF = UPLOAD_DIR + "/" + paramsJSON.getString("fileidDXF");
+				type = paramsJSON.getString("type");
+				if (!depthmapTypeValid(type))
+					throw new MalformedDataException(
+							"Malformed data buddy... -.- (unknown type " + type
+									+ ")");
+				name = paramsJSON.getString("name");
 				studyID = paramsJSON.getInt("studyid");
-			} catch (NullPointerException | JSONException e) {
+			} catch (NullPointerException | JSONException | ParseException
+					| SQLException e) {
 				throw new MalformedDataException("Malformed data buddy... -.-");
 			}
 			float scaleFromInterface = 1000;
@@ -138,7 +145,7 @@ public class StoreDepthmap extends FlowUpload {
 				spaces =
 						Database.selectWhatFromTableWhere(psql, "spaces",
 								"id,alias,plan_min,plan_max", "study_id=?",
-								new String [] {String.valueOf(studyID)});
+								studyID);
 				for (String alias : blockPositions.keySet()) {
 					JSONObject currSpace = null;
 					for (int i = 0; i < spaces.length(); i++) {
@@ -172,16 +179,17 @@ public class StoreDepthmap extends FlowUpload {
 					// throw new InternalException(
 					// "No cells found within limits");
 					int currSpaceID = currSpace.getInt("id");
-					Database.deleteFrom(psql, "depthmaps",
-							"study_id=? AND space_id=? AND name=?",
+					Database.deleteFrom(
+							psql,
+							"depthmaps",
+							"study_id=? AND space_id=? AND analysis_type=?::depthmap_types AND name=?",
 							String.valueOf(studyID),
-							String.valueOf(currSpaceID), "Visilol");
+							String.valueOf(currSpaceID), type, name);
 					Raster r = n.getMeasuresMap();
 
 					System.out.println(currSpaceID);
-
 					int mapID =
-							writeRaster(psql, studyID, currSpaceID, "Visilol",
+							writeRaster(psql, studyID, currSpaceID, type, name,
 									r);
 
 					System.out.println(mapID);
@@ -191,20 +199,8 @@ public class StoreDepthmap extends FlowUpload {
 						System.out.println("Populating band: " + band);
 						populateBand(psql, mapID, band,
 								n.getMeasuresMap().bands.get(band).fa);
-						// pg.getBandAsTIFF("Vis3", band);
 					}
 					System.out.println("Done");
-					// Map<String, RasterBand> rasterBands = r.bands;
-					// for (String s : rasterBands.keySet()) {
-					// RasterBand rb = rasterBands.get(s);
-					// Float [][] data = rb.fa;
-					// for (int i = 0; i < data.length; i++) {
-					// for (int j = 0; j < data[i].length; j++) {
-					// System.out.print(data[i][j]);
-					// }
-					// System.out.println();
-					// }
-					// }
 				}
 				writeBasePoints(psql, studyID, dpm.blockPositions);
 				psql.commit();
@@ -315,6 +311,15 @@ public class StoreDepthmap extends FlowUpload {
 		}
 		// }
 	}
+	private boolean depthmapTypeValid(String type) throws SQLException,
+			ParseException {
+		JSONArray result =
+				Database.customQuery("SELECT * FROM splab_get_depthmap_types() AS type");
+		for (int i = 0; i < result.length(); i++)
+			if (type.equalsIgnoreCase(result.getJSONObject(i).getString("type")))
+				return true;
+		return false;
+	}
 	public DepthMap getDepthMapWithinLimits(DepthMap dpm, String alias,
 			double [] origin, double [] limits) {
 		double [] depthMapOffset = dpm.blockPositions.get(alias);
@@ -342,14 +347,15 @@ public class StoreDepthmap extends FlowUpload {
 				&& y <= limits[3];
 	}
 	private int writeRaster(Connection psql, int studyID, int spaceID,
-			String mapName, Raster raster) throws ClassNotFoundException,
-			SQLException, ParseException {
+			String type, String mapName, Raster raster)
+			throws ClassNotFoundException, SQLException, ParseException {
 		String TABLE_MAP = "depthmaps";
 		String TABLE_BAND_ALIASES = "band_info";
-		Database.insertInto(psql, TABLE_MAP, "name,study_id,space_id,map",
-				"?,?,?,ST_MakeEmptyRaster( ?, ?, ?, ?, ?)", mapName,
-				String.valueOf(studyID), String.valueOf(spaceID),
-				String.valueOf(raster.cellNumX),
+		Database.insertInto(psql, TABLE_MAP,
+				"name,analysis_type,study_id,space_id,map",
+				"?,?::depthmap_types,?,?,ST_MakeEmptyRaster( ?, ?, ?, ?, ?)",
+				mapName, type, String.valueOf(studyID),
+				String.valueOf(spaceID), String.valueOf(raster.cellNumX),
 				String.valueOf(raster.cellNumY), String.valueOf(raster.x),
 				String.valueOf(raster.y + raster.cellNumY * raster.cellW),
 				String.valueOf(raster.cellW));
@@ -366,9 +372,9 @@ public class StoreDepthmap extends FlowUpload {
 		for (String measure : raster.bands.keySet()) {
 			RasterBand b = raster.bands.get(measure);
 			Database.update(psql, TABLE_MAP,
-					"map = ST_AddBand(map, ?::text,? )", "id=?",
-					new String [] {b.dataType, String.valueOf(b.initialValue),
-							String.valueOf(mapID)});
+					"map = ST_AddBand(map, ?::text,NULL::double precision,NULL )", "id=?",
+					b.dataType,
+							mapID);
 
 			result =
 					Database.customQuery(psql, "SELECT * FROM "
@@ -384,6 +390,8 @@ public class StoreDepthmap extends FlowUpload {
 					b.id = newID;
 				}
 			}
+			Database.update(psql, TABLE_MAP,
+					"map = ST_SetBandNoDataValue(map, ?,? )", "id=?", b.id, 0, mapID);
 
 		}
 		for (String measure : raster.bands.keySet()) {
@@ -397,7 +405,6 @@ public class StoreDepthmap extends FlowUpload {
 		}
 		return mapID;
 	}
-
 	public void populateBand(Connection psql, int mapID, String bandAlias,
 			Float [][] fa) throws ParseException, ClassNotFoundException {
 		String TABLE_BAND_ALIASES = "band_info";
@@ -418,6 +425,7 @@ public class StoreDepthmap extends FlowUpload {
 								fa[j][fa[0].length - 1 - i] == null
 										? "NULL"
 										: fa[j][fa[0].length - 1 - i];
+//						System.out.println(fa[j][fa[0].length - 1 - i]);
 					}
 					patch += "]";
 				}

@@ -114,6 +114,12 @@ public class StakeholderReader {
 		JSONArray databaseTeams =
 				Database.selectAllFromTableWhere("teams", "study_id=?",
 						String.valueOf(studyID));
+		JSONArray databaseQuestions =
+				Database.customQuery("SELECT interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
+						+ "(SELECT alias FROM interview_questions "
+						+ "WHERE interview_questions.id=parent_questions.parent_id) AS parent FROM interview_questions JOIN "
+						+ "interview_questions AS parent_questions ON interview_questions.id=parent_questions.id;");
+		// Database.selectAllFromTable("interview_questions");
 		// List<String> databaseTeamsList = new ArrayList<String>();
 		// for (int i = 0; i < databaseTeams.length(); i++)
 		// databaseTeamsList.add(databaseTeams.getString(i));
@@ -149,6 +155,7 @@ public class StakeholderReader {
 		Map<String, Question> questions = new HashMap<String, Question>();
 		for (String key : idQuestion.keySet()) {
 			Question question = idQuestion.get(key);
+			questions.put(question.alias, question);
 			int dotIndex = key.lastIndexOf(".");
 			if (-1 == dotIndex) continue;
 			String parentID = key.substring(0, dotIndex);
@@ -156,7 +163,6 @@ public class StakeholderReader {
 				throw new MalformedDataException("Parent " + parentID
 						+ " of question " + question.alias + " does not exist");
 			question.parent(idQuestion.get(parentID));
-			questions.put(question.alias, question);
 		}
 		String choiceIdentifier = "CHOICE";
 		XSSFRow firstRow = questionSheet.getRow(0);
@@ -174,17 +180,24 @@ public class StakeholderReader {
 				List<String> choices = new ArrayList<String>();
 				Cell f = null, c = null;
 				for (int row = 0; row < questionSheet.getPhysicalNumberOfRows(); row++) {
-					c = questionSheet.getRow(row).getCell(choiceColumn);
-					if (c == null) continue;
-					if (f == null) f = c;
-					String cellValue = c.getStringCellValue().trim();
+					Cell d = questionSheet.getRow(row).getCell(choiceColumn);
+					if (d == null) continue;
+					String cellValue = d.getStringCellValue().trim();
 					if (cellValue.length() < 1) continue;
+					c = d;
+					if (f == null) f = d;
 					choices.add(cellValue);
 				}
-				System.out.println(choices + " " + c + " " + f);
+				// System.out.println(questionRefs);
+				// System.out.println(choices + " " + f + " " + c);
 				if (c != null && f != null)
-					for (String question : questionRefs) {
-						questions.get(question)
+					for (String questionRef : questionRefs) {
+						if (!questions.containsKey(questionRef))
+							throw new MalformedDataException(
+									"Excel file: Choice Question '"
+											+ questionRef
+											+ "' not found in list of questions");
+						questions.get(questionRef)
 								.choices(
 										new int [] {f.getRowIndex(),
 												c.getRowIndex(),
@@ -209,19 +222,58 @@ public class StakeholderReader {
 				for (String alias : questions.keySet()) {
 					Question q = questions.get(alias);
 					JSONObject o = new JSONObject();
-					o.put("alias", alias);
+					String [] theAlias = clearQuestionAlias(alias);
+					String clearAlias = theAlias[0];
+					String clearID = theAlias[1];
+
+					o.put("alias", clearAlias);
+					o.put("id", clearID);
 					o.put("title", q.title);
-					if (q.parent != null) o.put("parent", q.parent.alias);
+					if (q.parent != null) {
+						String [] parentAlias =
+								clearQuestionAlias(q.parent.alias);
+						o.put("parent", parentAlias[0]);
+						o.put("parent_id", parentAlias[1]);
+					}
 					if (q.choices != null) {
 						o.put("choicesReference", new JSONArray(
 								q.choicesReference));
 						o.put("choices", new JSONArray(q.choices));
 					}
+					outerloop : for (int i = 0; i < databaseQuestions.length(); i++) {
+						JSONObject dbQ = databaseQuestions.getJSONObject(i);
+						String dbAlias = dbQ.getString("alias");
+						if (clearAlias.equalsIgnoreCase(dbAlias)) {
+							int breakcounter = 100;
+							Question currentQ = q;
+							JSONObject currentDBQ = dbQ;
+							while (breakcounter > 1) {
+								if (currentQ.parent != null
+										&& !currentDBQ.has("parent"))
+									break outerloop;
+								if (currentQ.parent == null
+										&& currentDBQ.has("parent"))
+									break outerloop;
+								if (currentQ.parent == null
+										&& !currentDBQ.has("parent")) break;
+								if (!currentDBQ
+										.getString("parent")
+										.equals(clearQuestionAlias(currentQ.parent.alias)[0]))
+									break outerloop;
+								currentQ = currentQ.parent;
+								currentDBQ =
+										findDBQ(databaseQuestions,
+												currentDBQ.getInt("parent_id"));
+								breakcounter--;
+							}
+							o.put("prematch", dbAlias);
+							break;
+						}
+					}
 					arr.put(o);
 				}
 			} else {
 				arr = new JSONArray();
-
 				for (String alias : staticData.get(key)) {
 					JSONObject o = new JSONObject();
 					o.put("alias", alias);
@@ -231,7 +283,21 @@ public class StakeholderReader {
 			out.put(key, arr);
 		}
 		out.put("DATABASE_TEAMS", databaseTeams);
+		out.put("DATABASE_QUESTIONS", databaseQuestions);
+
 		return out;
+	}
+	JSONObject findDBQ(JSONArray databaseQuestions, int id) {
+		for (int i = 0; i < databaseQuestions.length(); i++)
+			if (databaseQuestions.getJSONObject(i).getInt("id") == id)
+				return databaseQuestions.getJSONObject(i);
+		return null;
+	}
+	String [] clearQuestionAlias(String questionAlias) {
+		String [] result = questionAlias.split("\\(");
+		result[1] = result[1].split("\\)")[0].trim();
+		result[0] = result[0].trim();
+		return result;
 	}
 	class Question {
 		String alias;
@@ -419,8 +485,8 @@ public class StakeholderReader {
 		List<XSSFDataValidation> dvs = sheet.getDataValidations();
 		for (XSSFDataValidation dv : dvs) {
 			CellRangeAddress [] cral = dv.getRegions().getCellRangeAddresses();
-			System.out.println(dv.getValidationConstraint());
-			System.out.println(dv.getValidationConstraint().getFormula1());
+			// System.out.println(dv.getValidationConstraint());
+			// System.out.println(dv.getValidationConstraint().getFormula1());
 			for (CellRangeAddress cra : cral) {
 				// System.out.println(cra.get);
 			}

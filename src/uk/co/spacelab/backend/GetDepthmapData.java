@@ -38,8 +38,11 @@ public class GetDepthmapData extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 		if (!Util.validParam(request.getParameterMap(), "spaceid")) return;
 		if (!Util.validParam(request.getParameterMap(), "measure")) return;
+		if (!Util.validParam(request.getParameterMap(), "analysis_type"))
+			return;
 		int spaceID = Integer.parseInt(request.getParameter("spaceid"));
 		int bandID = Integer.parseInt(request.getParameter("measure"));
+		String analysis_type = request.getParameter("analysis_type");
 		// String measure = request.getParameter("measure");
 		try {
 			// int bandID =
@@ -56,14 +59,16 @@ public class GetDepthmapData extends HttpServlet {
 							String.valueOf(spaceID), String.valueOf(bandID))
 							.getJSONObject(0).getString("alias");
 			result.put("band", bandName);
+			// String analysis_type = "Essence";
 			JSONObject data =
 					Database.customQuery(
 							"SELECT ST_MetaData(st_band),ST_AsGDALRaster(st_band,'XYZ')"
 									+ ",ST_Count(st_band) FROM "
-									+ "ST_Band((SELECT map FROM depthmaps WHERE space_id=?),"
-									+ "?);", String.valueOf(spaceID),
-							String.valueOf(bandID)).getJSONObject(0);
-			System.out.println(data.getInt("st_count"));
+									+ "ST_Band((SELECT map FROM depthmaps WHERE space_id=? "
+									+ "AND analysis_type=?::depthmap_types AND def=true),"
+									+ "?);", spaceID, analysis_type, bandID)
+							.getJSONObject(0);
+			// System.out.println(data.getInt("st_count"));
 			String [] tileData =
 					new String(
 							hexStringToByteArray(data
@@ -73,9 +78,9 @@ public class GetDepthmapData extends HttpServlet {
 			for (int i = 0; i < tileData.length; i++) {
 				JSONObject tile = new JSONObject();
 				String s = tileData[i];
-				if (s.endsWith("+38")) continue;
-				tile.put("i", i);
 				double v = Double.parseDouble(s.split(" ")[2]);
+				if (v < 0.000000001) continue;
+				tile.put("i", i);
 				if (v > maxV) maxV = v;
 				if (v < minV) minV = v;
 				tile.put("v", v);

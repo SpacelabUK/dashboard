@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.postgresql.util.PSQLException;
 
 import uk.co.spacelab.common.MatrixMath;
 import uk.co.spacelab.dxf.DXFReader;
@@ -539,21 +537,30 @@ public class StorePlans extends FlowUpload {
 								polyString += points[0] + " " + points[1];
 								polyString += "))";
 								// System.out.println(polyString);
-								Database.insertInto(psql, "polygons",
+								// Database.insertInto(psql, "polygons",
+								// "polygon,space_id,functeam,type_id",
+								// "ST_GeomFromText(?),?,?,?", polyString,
+								// spaceID, "func", typeID);
+
+								Database.insertInto(
+										psql,
+										"polygons",
 										"polygon,space_id,functeam,type_id",
-										"ST_GeomFromText(?),?,?,?", polyString,
-										spaceID, "func", typeID);
+										"(ST_Dump(ST_CollectionExtract("
+												+ "ST_MakeValid(ST_GeomFromText(?))"
+												+ ",3))).geom,?,?,?",
+										polyString, spaceID, "func", typeID);
 							}
 							puncturePolys(psql, spaceID, typeID, "func");
 						}
 					}
-					System.out.println("Done");
 					if (psql.isClosed())
 						throw new InternalException(
 								"Connection is already closed");
 					psql.commit();
 					psql.setAutoCommit(true);
 					psql.close();
+					System.out.println("Done importing funcs");
 				} catch (SQLException | ParseException e) {
 					e.printStackTrace();
 				} catch (ClassNotFoundException e) {
@@ -702,18 +709,30 @@ public class StorePlans extends FlowUpload {
 								polyString += ",";
 								polyString += points[0] + " " + points[1];
 								polyString += "))";
-								Database.insertInto(psql, "polygons",
+								// Database.insertInto(psql, "polygons",
+								// "polygon,space_id,functeam,type_id",
+								// "ST_GeomFromText(?),?,?,?", polyString,
+								// String.valueOf(spaceID), "team",
+								// String.valueOf(typeID));
+								Database.insertInto(
+										psql,
+										"polygons",
 										"polygon,space_id,functeam,type_id",
-										"ST_GeomFromText(?),?,?,?", polyString,
-										String.valueOf(spaceID), "team",
-										String.valueOf(typeID));
+										"(ST_Dump(ST_CollectionExtract("
+												+ "ST_MakeValid(ST_GeomFromText(?))"
+												+ ",3))).geom,?,?,?",
+										polyString, spaceID, "team", typeID);
 							}
 							puncturePolys(psql, spaceID, typeID, "team");
 						}
 					}
+					if (psql.isClosed())
+						throw new InternalException(
+								"Connection is already closed");
 					psql.commit();
 					psql.setAutoCommit(true);
 					psql.close();
+					System.out.println("Done importing teams");
 				} catch (SQLException | ParseException e1) {
 					e1.printStackTrace();
 					return;
@@ -855,10 +874,12 @@ public class StorePlans extends FlowUpload {
 				container.children.add(contained);
 				contained.parent = container;
 			}
-			printTree(trunk, 0);
+			// printTree(trunk, 0);
 			flattenTree(trunk, trunk, 0);
-			printTree(trunk, 0);
+			// System.out.println(typeID);
+			// printTree(trunk, 0);
 			for (Tree tree : trunk.children) {
+				if (tree.children.size() == 0) continue;
 				String idArray = "{";
 				int i = 0;
 				for (Tree hole : tree.children) {

@@ -84,7 +84,7 @@ public class Database {
 		}
 	}
 	protected static JSONArray selectWhatFromTableWhere(Connection con,
-			String table, String what, String where, String... args)
+			String table, String what, String where, Object... args)
 			throws SQLException, ParseException {
 		String sql =
 				"SELECT " + what + " FROM " + table + " WHERE " + where + ";";
@@ -284,7 +284,7 @@ public class Database {
 		}
 	}
 	protected static JSONArray update(Connection psql, String table,
-			String toSetString, String where, String [] args)
+			String toSetString, String where, Object... args)
 			throws ClassNotFoundException, SQLException, ParseException {
 		String sql =
 				"UPDATE " + table + " SET " + toSetString + " WHERE " + where;

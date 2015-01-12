@@ -232,13 +232,29 @@ public class Occupancy extends HttpServlet {
 										+ "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
 								obsID, obsID, obsID).getJSONObject(0);
 				out.println(result.getInt((String) result.keys().next()));
+			} else if (type.equals("activities_split")) {
+				JSONObject result =
+						Database.customQuery(
+								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
+								// obsID));
+								"SELECT walking,standing,sitting,count FROM"
+										+ " (SELECT SUM(case when state=1 then 1 else 0 end) "
+										+ "AS sitting, SUM(case when state=2 then 1 else 0 end) "
+										+ "AS standing, SUM(case when state=3 then 1 else 0 end) "
+										+ "AS walking,"
+										+ "COUNT(occupancy.entity_id) FROM occupancy "
+										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+										+ "WHERE observation_id=?) AS walking_prc;",
+								obsID).getJSONObject(0);
+				out.println(result);
 			} else if (type.equals("avg_moving_total")) {
 				JSONObject result =
 						Database.customQuery(
 								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
 								// obsID));
 								"SELECT walking/count::float AS prc_walking FROM"
-										+ " (SELECT SUM(case when state=3 then 1 else 0 end) AS walking,"
+										+ " (SELECT SUM(case when state=3 then 1 else 0 end) "
+										+ "AS walking,"
 										+ "COUNT(occupancy.entity_id) FROM occupancy "
 										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
 										+ "WHERE observation_id=?) AS walking_prc;",
@@ -247,25 +263,27 @@ public class Occupancy extends HttpServlet {
 			} else if (type.equals("avg_moving_spaces")) {
 				JSONArray result =
 						Database.customQuery(
-								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
-								// obsID));
+						// "SELECT COUNT(*) FROM splab_removed_desks(?)",
+						// obsID));
 								"SELECT space_id,walking/count::float AS prc_walking FROM"
-										+ " (SELECT space_id,SUM(case when state=3 then 1 else 0 end) AS walking,"
+										+ " (SELECT space_id,"
+										+ "SUM(case when state=3 then 1 else 0 end) AS walking,"
 										+ "COUNT(occupancy.entity_id) FROM occupancy "
 										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=? GROUP BY snapshots.space_id) AS walking_prc;",
-								obsID);
+										+ "WHERE observation_id=? GROUP BY snapshots.space_id) "
+										+ "AS walking_prc;", obsID);
 				out.println(result);
 			} else if (type.equals("movement_density_total")) {
 				JSONObject result =
 						Database.customQuery(
 								"SELECT "
-										+ " ( SELECT SUM(st_area) FROM splab_polygons_areas WHERE observation_id=?"
-										+ " AND functeam='func' AND type_alias='CIRC-PRI')"
-										+ "/"
 										+ "(SELECT COUNT(occupancy.entity_id) FROM occupancy "
 										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
 										+ "WHERE observation_id=? AND state=3) "
+										+ "/"
+										+ " ( SELECT SUM(st_area) FROM splab_polygons_areas "
+										+ "WHERE observation_id=?"
+										+ " AND functeam='func' AND type_alias='CIRC-PRI')"
 										+ "::float "
 										+ "AS walkin_per_circ_sqm;", obsID,
 								obsID).getJSONObject(0);
@@ -273,13 +291,119 @@ public class Occupancy extends HttpServlet {
 			} else if (type.equals("movement_density_spaces")) {
 				JSONArray result =
 						Database.customQuery(
-								" SELECT splab_polygons_areas.space_id,st_area/walking::float AS sqm_per_walker FROM splab_polygons_areas JOIN "
-										+ "(SELECT space_id,COUNT(occupancy.entity_id) AS walking FROM occupancy "
+								" SELECT splab_polygons_areas.space_id,walking/st_area::float "
+										+ "AS sqm_per_walker FROM splab_polygons_areas JOIN "
+										+ "(SELECT space_id,COUNT(occupancy.entity_id) AS walking "
+										+ "FROM occupancy "
 										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=? AND state=3 GROUP BY snapshots.space_id)"
-										+ " AS walkers ON walkers.space_id=splab_polygons_areas.space_id"
-										+ " WHERE observation_id=? AND functeam='func' AND type_alias='CIRC-PRI'",
+										+ "WHERE observation_id=? AND state=3 "
+										+ "GROUP BY snapshots.space_id) "
+										+ "AS walkers "
+										+ "ON walkers.space_id=splab_polygons_areas.space_id "
+										+ "WHERE observation_id=? AND functeam='func' "
+										+ "AND type_alias='CIRC-PRI'", obsID,
+								obsID);
+				out.println(result);
+			} else if (type.equals("depthmap_stats_polygon")) {
+				JSONArray result =
+						Database.customQuery(
+								" SELECT polygons.id,type_id,ST_Clip(map,ST_Union(polygon)) "
+										+ "FROM depthmaps JOIN polygons "
+										+ "ON depthmaps.space_id=polygons.space_id "
+										+ "WHERE depthmaps.space_id = 259 AND functeam='func' "
+										+ "GROUP BY map,polygons.type_id,polygons.id;",
 								obsID, obsID);
+				out.println(result);
+			} else if (type.equals("depthmap_stats_type")) {
+				JSONArray result =
+						Database.customQuery(
+								" SELECT type_id,ST_Clip(map,ST_Union(polygon)) "
+										+ "FROM depthmaps JOIN polygons "
+										+ "ON depthmaps.space_id=polygons.space_id "
+										+ "WHERE depthmaps.space_id = ? AND functeam='func' "
+										+ "GROUP BY map,polygons.type_id;",
+								obsID, obsID);
+				out.println(result);
+			} else if (type.equals("printer_accessibility_mean_depth")) {
+				int studyID = obsID, bandid = 9, typeID = 33;
+				JSONObject result =
+						Database.customQuery(
+								" SELECT SUM((stats).mean*(stats).count)"
+										+ "/(SUM((stats).count))::real AS mean "
+										+ "FROM (SELECT ST_SummaryStats("
+										+ "ST_Clip(map,ST_Union(polygon))"
+										+ ",?) "
+										+ "AS stats FROM depthmaps JOIN polygons "
+										+ "ON depthmaps.space_id=polygons.space_id "
+										+ "WHERE depthmaps.space_id "
+										+ "IN ((SELECT id FROM spaces WHERE study_id=?)) "
+										+ "AND functeam='func' AND polygons.type_id=? "
+										+ "AND depthmaps.def=TRUE "
+										+ "AND depthmaps.analysis_type=?::depthmap_types "
+										+ "GROUP BY map,polygons.type_id) AS clipped;",
+								bandid, studyID, typeID, "Accessibility")
+								.getJSONObject(0);
+				System.out.println(obsID);
+				out.println(result.getDouble("mean"));
+			} else if (type.equals("teapoint_accessibility_mean_depth")) {
+				int studyID = obsID, bandid = 9, typeID = 43;
+				JSONObject result =
+						Database.customQuery(
+								" SELECT SUM((stats).mean*(stats).count)"
+										+ "/(SUM((stats).count))::real AS mean "
+										+ "FROM (SELECT ST_SummaryStats("
+										+ "ST_Clip(map,ST_Union(polygon))"
+										+ ",?) "
+										+ "AS stats FROM depthmaps JOIN polygons "
+										+ "ON depthmaps.space_id=polygons.space_id "
+										+ "WHERE depthmaps.space_id "
+										+ "IN ((SELECT id FROM spaces WHERE study_id=?)) "
+										+ "AND functeam='func' AND polygons.type_id=? "
+										+ "AND depthmaps.def=TRUE "
+										+ "AND depthmaps.analysis_type=?::depthmap_types "
+										+ "GROUP BY map,polygons.type_id) AS clipped;",
+								bandid, studyID, typeID, "Accessibility")
+								.getJSONObject(0);
+				System.out.println(obsID);
+				out.println(result.getDouble("mean"));
+			} else if (type.equals("study_accessibility_mean")) {
+				int studyID = obsID, bandid = 9;
+				JSONObject result =
+						Database.customQuery(
+								"SELECT SUM((mapstats.stats).mean*(mapstats.stats).count)"
+										+ "/(SUM((mapstats.stats).count))::real AS mean "
+										+ "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+										+ "FROM depthmaps WHERE study_id=? AND def=TRUE "
+										+ "AND analysis_type=?::depthmap_types) AS mapstats;",
+								bandid, studyID, "Accessibility")
+								.getJSONObject(0);
+				System.out.println(result);
+				out.println(result.getDouble((String) result.keys().next()));
+			} else if (type.equals("study_visibility_mean")) {
+				int studyID = obsID, bandid = 9;
+				JSONObject result =
+						Database.customQuery(
+								"SELECT SUM((mapstats.stats).mean*(mapstats.stats).count)"
+										+ "/(SUM((mapstats.stats).count))::real AS mean "
+										+ "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+										+ "FROM depthmaps WHERE study_id=? AND def=TRUE "
+										+ "AND analysis_type=?::depthmap_types) AS mapstats;",
+								bandid, studyID, "Visibility").getJSONObject(0);
+				out.println(result.getDouble((String) result.keys().next()));
+			} else if (type.equals("study_essence_mean")) {
+				int studyID = obsID, bandid = 9;
+				JSONObject result =
+						Database.customQuery(
+								"SELECT SUM((mapstats.stats).mean*(mapstats.stats).count)"
+										+ "/(SUM((mapstats.stats).count))::real AS mean "
+										+ "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+										+ "FROM depthmaps WHERE study_id=? AND def=TRUE "
+										+ "AND analysis_type=?::depthmap_types) AS mapstats;",
+								bandid, studyID, "Essence").getJSONObject(0);
+				out.println(result.getDouble((String) result.keys().next()));
+			} else if (type.equals("depthmap_types")) {
+				JSONArray result =
+						Database.customQuery("SELECT * FROM splab_get_depthmap_types() AS type");
 				out.println(result);
 			} else if (type.equals("study_parts")
 					&& params.containsKey("studyid")

@@ -48,21 +48,27 @@ public class GetSpaceData extends HttpServlet {
 				String geometry = poly.getString("geometry");
 				geometry =
 						geometry.substring("POLYGON((".length(),
-								geometry.length() - 2).replace(")(", " ");
-				String [] pointString = geometry.split(",");
+								geometry.length() - 2);
+				String [] polyz = geometry.split("\\),\\(");
 				JSONArray points = new JSONArray();
-				for (String point : pointString) {
-					String [] coords = point.split(" ");
-					JSONObject p = new JSONObject();
-					double x = Double.parseDouble(coords[0]);
-					double y = Double.parseDouble(coords[1]);
-					if (x < minX) minX = x;
-					if (x > maxX) maxX = x;
-					if (y < minY) minY = y;
-					if (y > maxY) maxY = y;
-					p.put("x", coords[0]);
-					p.put("y", coords[1]);
-					points.put(p);
+				for (String pl : polyz) {
+					String [] pointString = pl.split(",");
+					int counter = 0;
+					for (String point : pointString) {
+						String [] coords = point.split(" ");
+						JSONObject p = new JSONObject();
+						double x = Double.parseDouble(coords[0]);
+						double y = Double.parseDouble(coords[1]);
+						if (x < minX) minX = x;
+						if (x > maxX) maxX = x;
+						if (y < minY) minY = y;
+						if (y > maxY) maxY = y;
+						p.put("t", counter == 0 ? "M" : "L");
+						p.put("x", coords[0]);
+						p.put("y", coords[1]);
+						points.put(p);
+						counter++;
+					}
 				}
 				poly.remove("geometry");
 				poly.put("points", points);

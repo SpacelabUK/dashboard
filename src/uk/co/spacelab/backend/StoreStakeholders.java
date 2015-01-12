@@ -58,23 +58,31 @@ public class StoreStakeholders extends HttpServlet {
 
 	protected void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println(request.getParameterMap());
-		if (!validParam(request.getParameterMap(), "studyid")) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-					"malformed data... -_-");
-			return;
+
+		if (request.getCharacterEncoding() == null) {
+			System.out.println(request.getParameterMap());
+			if (!validParam(request.getParameterMap(), "studyid")) {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+						"malformed data... -_-");
+				return;
+			}
+			response.setContentType("text/json;charset=UTF-8");
+			String fileName = null;
+			if (!validParam(request.getParameterMap(), "fileid"))
+				fileName =
+						FileHandler
+								.uploadFileAndGetAlias(request, "xlsx", 3600);
+			else fileName = request.getParameter("fileid");
+			JSONObject dataIn = null;
+			if (!validParam(request.getParameterMap(), "datain")) {
+				getDataToValidate(request, response, FileHandler.path
+						+ fileName + ".xlsx");
+				return;
+
+			}
+		} else {
+			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 		}
-		response.setContentType("text/json;charset=UTF-8");
-		String fileName = null;
-		if (!validParam(request.getParameterMap(), "fileid"))
-			fileName = FileHandler.uploadFileAndGetAlias(request, "xlsx", 3600);
-		else fileName = request.getParameter("fileid");
-		JSONObject dataIn = null;
-		if (!validParam(request.getParameterMap(), "datain")) {
-			getDataToValidate(request, response, FileHandler.path + fileName
-					+ ".xlsx");
-			return;
-		} else dataIn = new JSONObject(request.getParameter("datain"));
 	}
 	private void getDataToValidate(HttpServletRequest request,
 			HttpServletResponse response, String filePath) throws IOException,
