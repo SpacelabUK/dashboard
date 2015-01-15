@@ -76,22 +76,36 @@ public class StoreStakeholders extends HttpServlet {
 			JSONObject dataIn = null;
 			if (!validParam(request.getParameterMap(), "datain")) {
 				getDataToValidate(request, response, FileHandler.path
-						+ fileName + ".xlsx");
+						+ fileName + ".xlsx", fileName);
 				return;
 
 			}
 		} else {
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
+			int studyID = paramsJSON.getInt("studyid");
+			String fileName = paramsJSON.getString("fileid");
+			JSONObject datain = paramsJSON.getJSONObject("datain");
+			try {
+				new StakeholderReader().convert(FileHandler.path + fileName
+						+ ".xlsx", studyID, datain);
+			} catch (ClassNotFoundException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	private void getDataToValidate(HttpServletRequest request,
-			HttpServletResponse response, String filePath) throws IOException,
-			ServletException {
+			HttpServletResponse response, String filePath, String fileid)
+			throws IOException, ServletException {
 
 		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		try {
 			JSONObject out =
-					new StakeholderReader().getStaticData(filePath, studyID);
+					new StakeholderReader().getStaticData(filePath, fileid,
+							studyID);
 			PrintWriter pw = response.getWriter();
 			pw.print(out.toString());
 		} catch (ClassNotFoundException e) {
