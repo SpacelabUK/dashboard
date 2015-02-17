@@ -150,7 +150,9 @@ public class StoreDepthmap extends FlowUpload {
 					JSONObject currSpace = null;
 					for (int i = 0; i < spaces.length(); i++) {
 						JSONObject space = spaces.getJSONObject(i);
-						if (space.getString("alias").equals(alias)) {
+
+						if (space.getString("alias").equals(
+								alias.split("\\(")[0].trim())) {
 							currSpace = space;
 							break;
 						}
@@ -371,10 +373,11 @@ public class StoreDepthmap extends FlowUpload {
 
 		for (String measure : raster.bands.keySet()) {
 			RasterBand b = raster.bands.get(measure);
-			Database.update(psql, TABLE_MAP,
-					"map = ST_AddBand(map, ?::text,NULL::double precision,NULL )", "id=?",
-					b.dataType,
-							mapID);
+			Database.update(
+					psql,
+					TABLE_MAP,
+					"map = ST_AddBand(map, ?::text,NULL::double precision,NULL )",
+					"id=?", b.dataType, mapID);
 
 			result =
 					Database.customQuery(psql, "SELECT * FROM "
@@ -391,7 +394,8 @@ public class StoreDepthmap extends FlowUpload {
 				}
 			}
 			Database.update(psql, TABLE_MAP,
-					"map = ST_SetBandNoDataValue(map, ?,? )", "id=?", b.id, 0, mapID);
+					"map = ST_SetBandNoDataValue(map, ?,? )", "id=?", b.id, 0,
+					mapID);
 
 		}
 		for (String measure : raster.bands.keySet()) {
@@ -425,7 +429,7 @@ public class StoreDepthmap extends FlowUpload {
 								fa[j][fa[0].length - 1 - i] == null
 										? "NULL"
 										: fa[j][fa[0].length - 1 - i];
-//						System.out.println(fa[j][fa[0].length - 1 - i]);
+						// System.out.println(fa[j][fa[0].length - 1 - i]);
 					}
 					patch += "]";
 				}

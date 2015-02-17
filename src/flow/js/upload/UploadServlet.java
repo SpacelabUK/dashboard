@@ -21,7 +21,7 @@ import java.io.RandomAccessFile;
 public class UploadServlet extends HttpServlet {
 
 	public static final String UPLOAD_DIR =
-			"/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/flowjs/";
+			"/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/flowjs/";
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {

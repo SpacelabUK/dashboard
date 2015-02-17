@@ -187,7 +187,7 @@ public class Database {
 		return result;
 	}
 	protected static JSONArray deleteFrom(Connection psql, String table,
-			String whereString, String... args) throws ClassNotFoundException,
+			String whereString, Object... args) throws ClassNotFoundException,
 			SQLException, ParseException {
 
 		String sql = "DELETE FROM " + table + " WHERE " + whereString + ";";
@@ -245,10 +245,10 @@ public class Database {
 				toSetString, args);
 	}
 	protected static JSONArray update(String table, Map<String, String> toSet,
-			String where, String [] whereArgs) throws ClassNotFoundException,
+			String where, Object [] whereArgs) throws ClassNotFoundException,
 			SQLException, ParseException {
 
-		String [] args = new String [toSet.size() + whereArgs.length];
+		Object [] args = new Object [toSet.size() + whereArgs.length];
 		String toSetString = "";
 		int counter = 0;
 		for (String key : toSet.keySet()) {
@@ -258,7 +258,7 @@ public class Database {
 			args[counter] = val;
 			counter++;
 		}
-		for (String arg : whereArgs) {
+		for (Object arg : whereArgs) {
 			args[counter] = arg;
 			counter++;
 		}
@@ -266,7 +266,7 @@ public class Database {
 	}
 
 	protected static JSONArray update(String table, String toSetString,
-			String where, String [] args) throws ClassNotFoundException,
+			String where, Object [] args) throws ClassNotFoundException,
 			SQLException, ParseException {
 		Connection con = getConnection();
 		String sql =

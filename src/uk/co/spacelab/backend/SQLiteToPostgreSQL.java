@@ -154,12 +154,12 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 					offsety = "0";
 				String point = "(" + offsetx + "," + offsety + ")";
 				String alias = rs.getString("alias");
-				String [] args =
-						new String [] {String.valueOf(studyID), alias,
+				Object [] args =
+						new Object [] {String.valueOf(studyID), alias,
 								rs.getString("spacename"),
 								rs.getString("floorname"),
 								rs.getString("buildingname"), point,
-								rs.getString("displayorder")};
+								rs.getInt("displayorder")};
 				JSONArray spacesInDB =
 						Database.selectWhatFromTableWhere(psql, "spaces",
 								Database.COL.SPACES_ID.toString(),
@@ -173,7 +173,7 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 							"spaces",
 							"observation_offset=CAST(? AS point),display_order=?",
 							"id=?",
-							new String [] {point, rs.getString("displayorder"),
+							new Object [] {point, rs.getInt("displayorder"),
 									String.valueOf(spaceID)});
 					int inSpaceID = rs.getInt("_id");
 					spaceMapper.put(inSpaceID, spaceID);
@@ -248,8 +248,10 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				int inSpaceID = rs.getInt("spaceid");
 				double xpos = rs.getDouble("xpos");
 				double ypos = rs.getDouble("ypos");
-				xpos += spaceOffsetMap.get(inSpaceID)[0];
-				ypos += spaceOffsetMap.get(inSpaceID)[1];
+				if (spaceOffsetMap.containsKey(inSpaceID)) {
+					xpos += spaceOffsetMap.get(inSpaceID)[0];
+					ypos += spaceOffsetMap.get(inSpaceID)[1];
+				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				Object [] args =
 						new Object [] {observationID,
@@ -304,9 +306,13 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 						spaceOffsetMap.get(snapSpaceMapper.get(snapshotID));
 				Date lastedit =
 						new Date((long) (rs.getLong("lasttimestamp") * 1000));
-				double xpos = rs.getDouble("xpos") + spaceOffset[0];
-				double ypos = rs.getDouble("ypos") + spaceOffset[1];
 
+				double xpos = rs.getDouble("xpos");
+				double ypos = rs.getDouble("ypos");
+				if (spaceOffset != null) {
+					xpos += rs.getDouble("xpos") + spaceOffset[0];
+					ypos += rs.getDouble("ypos") + spaceOffset[1];
+				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				int interaction = rs.getInt("interaction");
 				if (-1 != interaction) {

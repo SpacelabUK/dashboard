@@ -379,6 +379,23 @@ public class StakeholderReader {
 		psql.setAutoCommit(true);
 		return nextval;
 	}
+	void addScoreToDB(int studyID, int questionID, int fromTeamID,
+			int toTeamID, float score) throws JSONException,
+			ClassNotFoundException, SQLException, ParseException {
+		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		// int nextval =
+		// Database.getSequenceNextVal(psql, "interview_questions_id_seq")
+		// .getJSONObject(0).getInt("nextval");
+
+		Database.insertInto(psql, "team_team_score",
+				"study_id,question_id,team_id,scored_team_id,mark",
+				"?,?,?,?,?", studyID, questionID, fromTeamID, toTeamID, score);
+
+		psql.commit();
+		psql.setAutoCommit(true);
+		// return voi;
+	}
 	protected Map<String, Question> processQuestions(JSONArray questionsIn)
 			throws ClassNotFoundException, SQLException, ParseException {
 		Map<String, Question> questions = new HashMap<String, Question>();
@@ -568,12 +585,14 @@ public class StakeholderReader {
 		// if (true) return;
 		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
 		int ns = wb.getNumberOfSheets();
-		List<Score> scores = new ArrayList<Score>();
+		List<Score> teamTeamScores = new ArrayList<Score>();
 		List<Quote> comments = new ArrayList<Quote>();
 		Map<String, List<Quote>> issueQuotes =
 				new HashMap<String, List<Quote>>();
 		Map<String, List<Quote>> clientIssueQuotes =
 				new HashMap<String, List<Quote>>();
+		Map<String, Map<String, Map<String, Float>>> teamQuestionScores =
+				new HashMap<String, Map<String, Map<String, Float>>>();
 		for (int i = 0; i < ns; i++) {
 			if (wb.getSheetName(i).equalsIgnoreCase("TEAMS")) {
 			} else if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS")) {
@@ -642,10 +661,13 @@ public class StakeholderReader {
 									(float) sheet.getRow(r).getCell(c)
 											.getNumericCellValue();
 							if (score < 0.01) continue;
-							scores.add(new Score(question,
+							teamTeamScores.add(new Score(question,
 									teamsVertical.get(r), teamsHorizontal
 											.get(c), score, ""));
 						}
+					}
+					for (Score s : teamTeamScores) {
+						System.out.println(s);
 					}
 					// TODO: implement database transfer
 				} else if (firstCellComment.equals("dept/question")) {
@@ -746,8 +768,6 @@ public class StakeholderReader {
 					List<Integer> haveComment = new ArrayList<Integer>();
 					Map<Integer, String> teamsVertical =
 							new HashMap<Integer, String>();
-					Map<String, Map<String, Map<String, Float>>> teamQuestionScores =
-							new HashMap<String, Map<String, Map<String, Float>>>();
 					String currVal = null;
 					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
 						Cell c = sheet.getRow(j).getCell(0);
@@ -864,6 +884,11 @@ public class StakeholderReader {
 					}
 				}
 			}
+		}
+
+		for (Score s : teamTeamScores) {
+			addScoreToDB(studyID, questions.get(s.question).matchID,
+					teams.get(s.from), teams.get(s.to), s.score);
 		}
 	}
 	List<Question> getChildQuestions(Question parent,

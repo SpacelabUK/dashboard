@@ -29,7 +29,7 @@ import org.json.JSONObject;
  */
 @WebServlet("/StoreObservationData")
 @MultipartConfig(
-		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/temp",
+		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/temp",
 		fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StoreObservationData extends HttpServlet {
@@ -91,7 +91,7 @@ public class StoreObservationData extends HttpServlet {
 				Integer.parseInt(request.getParameter("observationid"));
 		// Create path components to save the file
 		// final String path =
-		// "/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
+		// "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/";
 
 		String UPLOAD_DIR = Database.getUploadDirectory();
 		// request.getParameter("destination");

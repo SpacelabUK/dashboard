@@ -20,7 +20,7 @@ import org.json.JSONObject;
  */
 @WebServlet("/StoreStakeholders")
 @MultipartConfig(
-		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/temp",
+		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/temp",
 		fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StoreStakeholders extends HttpServlet {

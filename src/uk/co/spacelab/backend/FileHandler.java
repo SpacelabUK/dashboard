@@ -14,7 +14,7 @@ import javax.servlet.http.Part;
 public class FileHandler {
 
 	public static String path =
-			"/Users/petros/Dropbox/ktp2013/code/Eclipse/SpLab-BackEnd/data/upload/";
+			"/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/";
 
 	private static String getFileName(final Part part) {
 		final String partHeader = part.getHeader("content-disposition");

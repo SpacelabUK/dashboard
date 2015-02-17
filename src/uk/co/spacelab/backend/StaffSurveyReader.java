@@ -64,6 +64,7 @@ public class StaffSurveyReader {
 			QUOTE_QUESTION_ID = "question_id",
 			QUOTE_TEXT = "quote", //
 			QUOTE_PERSON_ID = "person_id", //
+			QUOTE_STUDY_ID = "study_id", //
 			CREATE_TABLE_QUOTES = "create table " + TABLE_QUOTES //
 					+ "(" //
 					+ QUOTE_ID + " integer primary key not null, "//
@@ -90,6 +91,7 @@ public class StaffSurveyReader {
 			SCORE_PERSON_ID = "person_id",
 			SCORE_CHOICE_ID = "choice_id",
 			SCORE_MARK = "mark", //
+			SCORE_STUDY_ID = "study_id", //
 			CREATE_TABLE_SCORES = "create table " + TABLE_SCORES //
 					+ "(" //
 					+ SCORE_QUESTION_ID + " integer not null, " //
@@ -98,11 +100,13 @@ public class StaffSurveyReader {
 					+ SCORE_MARK + " real " //
 					+ ");", //
 			TABLE_STAFF = "staff",
-			STAFF_ID = "id_on_survey",
+			STAFF_ID = "id",
+			STAFF_SURVEY_ID = "survey_id",
+			STAFF_ID_ON_SURVEY = "id_on_survey",
 			STAFF_COMPLETED = "survey_completed", //
 			CREATE_TABLE_STAFF = "create table " + TABLE_STAFF //
 					+ "(" //
-					+ STAFF_ID + " integer not null, " //
+					+ STAFF_ID_ON_SURVEY + " integer not null, " //
 					+ STAFF_COMPLETED + " text not null " //
 					+ ");", //
 			TABLE_TIE_TYPES = "survey_tie_types", //
@@ -310,6 +314,7 @@ public class StaffSurveyReader {
 		// int round = 4;
 		// try {
 		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
 		// db.open(true);
 		// db.exec(CREATE_TABLE_ATTRIBUTES);
 		// db.exec(CREATE_TABLE_QUESTIONS);
@@ -322,54 +327,85 @@ public class StaffSurveyReader {
 		String valueString = "?,?";
 
 		String statement = "";
+		Map<String, Integer> questionMap = new HashMap<String, Integer>();
 		for (String q : simpleQuestions.keySet()) {
 			QuestionType qType = simpleQuestions.get(q);
-			// statement +=
-			// "INSERT INTO " + TABLE_QUESTIONS + " ("
-			// + QUESTION_ALIAS + "," + QUESTION_TYPE_ID
-			// + ") VALUES (\"" + q + "\",\"" + qType
-			// + "\"); ";
 
-			String [] args = new String [] {q, qType.toString()};
-			Database.insertInto(psql, TABLE_QUESTIONS, columnString,
-					valueString, args);
+			JSONArray r =
+					Database.selectWhatFromTableWhere(psql, TABLE_QUESTIONS,
+							QUESTION_ID, "alias=?", q);
+			if (r.length() == 0) {
+				Object [] args = new Object [] {q, qType.toString()};
+				Database.insertInto(psql, TABLE_QUESTIONS, columnString,
+						valueString, args);
+				questionMap.put(
+						q,
+						Database.getSequenceCurrVal(psql,
+								"survey_questions_id_seq").getJSONObject(0)
+								.getInt("currval"));
+			} else questionMap.put(q, r.getJSONObject(0).getInt("id"));
+
 		}
+
 		for (String q : choices.keySet()) {
-			// statement +=
-			// "INSERT INTO " + TABLE_QUESTIONS + " ("
-			// + QUESTION_ALIAS + "," + QUESTION_TYPE_ID
-			// + ") VALUES ( \"" + q + "\",\""
-			// + QuestionType.CHOICE + "\"); ";
+			JSONArray r =
+					Database.selectWhatFromTableWhere(psql, TABLE_QUESTIONS,
+							QUESTION_ID, "alias=?", q);
+			if (r.length() == 0) {
+				Object [] args =
+						new Object [] {q, QuestionType.CHOICE.toString()};
+				Database.insertInto(psql, TABLE_QUESTIONS, columnString,
+						valueString, args);
+				questionMap.put(
+						q,
+						Database.getSequenceCurrVal(psql,
+								"survey_questions_id_seq").getJSONObject(0)
+								.getInt("currval"));
+			} else questionMap.put(q, r.getJSONObject(0).getInt("id"));
 
-			String [] args = new String [] {q, QuestionType.CHOICE.toString()};
-			Database.insertInto(psql, TABLE_QUESTIONS, columnString,
-					valueString, args);
 		}
 
-		JSONArray result = Database.selectAllFromTable(TABLE_QUESTIONS);
+		Database.deleteFrom(psql, TABLE_QUOTES, QUOTE_STUDY_ID + "=?", studyid);
+		Database.deleteFrom(psql, TABLE_SCORES, SCORE_STUDY_ID + "=?", studyid);
+		Database.deleteFrom(psql, TABLE_STAFF, STAFF_SURVEY_ID + "=?", studyid);
+		columnString =
+				STAFF_ID_ON_SURVEY + "," + STAFF_COMPLETED + ","
+						+ STAFF_SURVEY_ID;
+		valueString = "?,?,?";
+		Map<Person, Integer> peopleMap = new HashMap<Person, Integer>();
+		for (Integer i : people.keySet()) {
 
-		// db.exec(statement);
-		// statement = "";
-		// st =
-		// db.prepare("SELECT " + QUESTION_ID + "," + QUESTION_ALIAS
-		// + " FROM " + TABLE_QUESTIONS + ";");
-		// while (st.step()) {
-		for (int j = 0; j < result.length(); j++) {
-
-			JSONObject question = result.getJSONObject(j);
-			int questionID = question.getInt("id");
-			String questionAlias = question.getString("alias");
-			// System.out.println(questionID + " " + questionAlias);
+			JSONArray r =
+					Database.selectWhatFromTableWhere(psql, TABLE_STAFF,
+							STAFF_ID, STAFF_ID_ON_SURVEY + "=? AND "
+									+ STAFF_SURVEY_ID + "=?", people.get(i).ID,
+							studyid);
+			if (r.length() < 1) {
+				Object [] args =
+						new Object [] {people.get(i).ID,
+								people.get(i).completed, studyid};
+				Database.insertInto(psql, TABLE_STAFF, columnString,
+						valueString, args);
+				peopleMap.put(people.get(i),
+						Database.getSequenceCurrVal(psql, "staff_id_seq")
+								.getJSONObject(0).getInt("currval"));
+			} else {
+				peopleMap.put(people.get(i), r.getJSONObject(0).getInt("id"));
+			}
+		}
+		people = null;
+		for (String questionAlias : questionMap.keySet()) {
+			int questionID = questionMap.get(questionAlias);
 			List<String> ch = choices.get(questionAlias);
 
 			// System.out.println(ch);
 			if (ch == null) {
-				for (Integer i : people.keySet())
+				for (Person p : peopleMap.keySet())
+					// if (simpleQuestions.containsKey(questionAlias))
 					switch (simpleQuestions.get(questionAlias)) {
 						case TEXT :
 							String quote =
-									cleanString(people.get(i).answers
-											.get(questionAlias));
+									cleanString(p.answers.get(questionAlias));
 							if (quote.trim().length() != 0) {
 
 								columnString =
@@ -377,54 +413,40 @@ public class StaffSurveyReader {
 												+ "," + QUOTE_PERSON_ID
 												+ ",study_id";
 								valueString = "?,?,?,?";
-								// db.prepare(
-								// "INSERT INTO "
-								// + TABLE_QUOTES
-								// + " ("
-								// + String.format("%s,%s,%s",
-								// QUOTE_QUESTION_ID,
-								// QUOTE_TEXT,
-								// QUOTE_PERSON_ID)
-								// + ") VALUES (" + questionID
-								// + ",\"" + quote + "\"," + i
-								// + "); ").stepThrough()
-								// .dispose();
-
 								Database.insertInto(psql, TABLE_QUOTES,
 										columnString, valueString,
 										String.valueOf(questionID), quote,
-										String.valueOf(i),
+										String.valueOf(peopleMap.get(p)),
 										String.valueOf(studyid));
 							}
 							break;
 						case SCORE :
-							String score =
-									people.get(i).answers.get(questionAlias);
+							String score = p.answers.get(questionAlias);
 							if (score.trim().length() > 0) {
 
+								// if (Database.selectWhatFromTableWhere(
+								// psql,
+								// TABLE_SCORES,
+								// "*",
+								// SCORE_STUDY_ID + "=? AND "
+								// + SCORE_QUESTION_ID + "=? AND "
+								// + SCORE_PERSON_ID + "=?",
+								// new Object [] {studyid, questionID,
+								// peopleMap.get(p)}).length() < 1) {
 								columnString =
 										SCORE_QUESTION_ID + ","
 												+ SCORE_PERSON_ID + ","
 												+ SCORE_MARK + ",study_id";
 								valueString = "?,?,?,?";
-
-								// db.prepare(
-								// "INSERT INTO "
-								// + TABLE_SCORES
-								// + " ("
-								// + String.format("%s,%s,%s",
-								// SCORE_QUESTION_ID,
-								// SCORE_PERSON_ID,
-								// SCORE_MARK)
-								// + ") VALUES (" + questionID
-								// + "," + i + "," + score + "); ")
-								// .stepThrough().dispose();
-
 								Database.insertInto(psql, TABLE_SCORES,
-										columnString, valueString,
-										String.valueOf(questionID), score,
-										String.valueOf(i),
-										String.valueOf(studyid));
+										columnString, valueString, questionID,
+										peopleMap.get(p), score, studyid);
+								// } else Database.update(psql, TABLE_SCORES,
+								// SCORE_MARK + "=?", SCORE_STUDY_ID
+								// + "=? AND " + SCORE_QUESTION_ID
+								// + "=? AND " + SCORE_PERSON_ID
+								// + "=?", score, studyid,
+								// questionID, peopleMap.get(p));
 							}
 
 							break;
@@ -437,79 +459,48 @@ public class StaffSurveyReader {
 
 				columnString = CHOICE_QUESTION_ID + "," + CHOICE_ID;
 				valueString = "?,?";
-				// db.prepare(
-				// "INSERT INTO " + TABLE_CHOICES + " ("
-				// + CHOICE_QUESTION_ID + "," + CHOICE_ID
-				// + ") VALUES (" + questionID + ",\"" + c
-				// + "\"); ").stepThrough().dispose();
 
-				Database.insertInto(psql, TABLE_CHOICES, columnString,
-						valueString, String.valueOf(questionID), c);
+				if (Database.selectWhatFromTableWhere(psql, TABLE_CHOICES,
+						CHOICE_ID,
+						CHOICE_QUESTION_ID + "=? AND " + CHOICE_ID + "=?",
+						new Object [] {questionID, c}).length() < 1)
+					Database.insertInto(psql, TABLE_CHOICES, columnString,
+							valueString, String.valueOf(questionID), c);
 
-				for (Integer i : people.keySet()) {
-					String score =
-							people.get(i).answers.get(questionAlias + "-" + c);
+				for (Person p : peopleMap.keySet()) {
+					String score = p.answers.get(questionAlias + "-" + c);
 					if (score.trim().length() > 0) {
 
+						// if (Database.selectWhatFromTableWhere(
+						// psql,
+						// TABLE_SCORES,
+						// "*",
+						// SCORE_STUDY_ID + "=? AND " + SCORE_QUESTION_ID
+						// + "=? AND " + SCORE_CHOICE_ID
+						// + "=? AND " + SCORE_PERSON_ID + "=?",
+						// new Object [] {studyid, questionID, c,
+						// peopleMap.get(p)}).length() < 1) {
 						columnString =
-								QUOTE_QUESTION_ID + "," + SCORE_PERSON_ID + ","
-										+ SCORE_MARK + "," + SCORE_CHOICE_ID;
-						valueString = "?,?,?,?";
-						// db.prepare(
-						// "INSERT INTO "
-						// + TABLE_SCORES
-						// + " ("
-						// + String.format("%s,%s,%s,%s",
-						// QUOTE_QUESTION_ID,
-						// SCORE_PERSON_ID, SCORE_MARK,
-						// SCORE_CHOICE_ID) + ") VALUES ("
-						// + questionID + "," + i + "," + score
-						// + ",\"" + c + "\"); ").stepThrough()
-						// .dispose();
+								SCORE_QUESTION_ID + "," + SCORE_PERSON_ID + ","
+										+ SCORE_MARK + "," + SCORE_CHOICE_ID
+										+ "," + SCORE_STUDY_ID;
+						valueString = "?,?,?,?,?";
+
 						Database.insertInto(psql, TABLE_SCORES, columnString,
-								valueString, String.valueOf(questionID),
-								String.valueOf(i), score, c);
+								valueString, questionID, peopleMap.get(p),
+								score, c, studyid);
+						// } else Database.update(psql, TABLE_SCORES, SCORE_MARK
+						// + "=?", SCORE_STUDY_ID + "=? AND "
+						// + SCORE_QUESTION_ID + "=? AND "
+						// + SCORE_PERSON_ID + "=? AND " + SCORE_CHOICE_ID
+						// + "=?", score, studyid, questionID,
+						// peopleMap.get(p), c);
 
 					}
 				}
 			}
 		}
-
-		columnString = STAFF_ID + "," + STAFF_COMPLETED + ",survey_id";
-		valueString = "?,?,?";
-		for (Integer i : people.keySet()) {
-			// db.prepare(
-			// "INSERT INTO "
-			// + TABLE_STAFF
-			// + " ("
-			// + String.format("%s,%s", STAFF_ID,
-			// STAFF_COMPLETED) + ") VALUES ("
-			// + people.get(i).ID + ",\""
-			// + people.get(i).completed + "\"); ")
-			// .stepThrough().dispose();
-			String [] args =
-					new String [] {String.valueOf(people.get(i).ID),
-							people.get(i).completed, String.valueOf(studyid)};
-			Database.insertInto(psql, TABLE_STAFF, columnString, valueString,
-					args);
-		}
-		// for (String type : tieTypes) {
-		// db.prepare(
-		// "INSERT INTO "
-		// + TABLE_STAFF
-		// + " ("
-		// + String.format("%s,%s", STAFF_ID,
-		// STAFF_COMPLETED) + ") VALUES ("
-		// + people.get(i).ID + ",\""
-		// + people.get(i).completed + "\"); ")
-		// .stepThrough().dispose();
-		// }
-		// } catch (SQLiteException e) {
-		// e.printStackTrace();
-		// } finally {
-		// // dbFile.deleteOnExit();
-		// if (st != null) st.dispose();
-		// }
+		psql.commit();
 		psql.close();
 	}
 	private boolean areAnswersNumbers(List<String> list) {
