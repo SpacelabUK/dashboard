@@ -40,7 +40,7 @@ public class GetAll extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		try {
 			if (type.equals("devices") || type.equals("projects")
-					|| type.equals("spatial_functions")) {
+					|| type.equals("polygon_types")) {
 				out.println(Database.selectAllFromTable(type));
 			} else if (type.equals("openstudies")) {
 				out.println(Database.selectAllFromTableWhere("studies",

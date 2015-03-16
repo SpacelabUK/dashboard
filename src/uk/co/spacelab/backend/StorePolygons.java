@@ -1,4 +1,4 @@
-	package uk.co.spacelab.backend;
+package uk.co.spacelab.backend;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -80,7 +80,7 @@ public class StorePolygons extends HttpServlet {
 					} else {
 						result =
 								Database.selectAllFromTableWhere(
-										"spatial_functions",
+										"polygon_types",
 										"LOWER(alias) = LOWER(?)", type);
 
 						if (result.length() != 1)

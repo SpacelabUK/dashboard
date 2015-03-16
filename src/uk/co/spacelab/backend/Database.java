@@ -43,7 +43,7 @@ public class Database {
 		SPACES_STUDY_ID("study_id"), //
 		SPACES_ID("id"), //
 		SPACES_ALIAS("alias"),
-		SPATIAL_FUNCTIONS_ALIAS("alias");
+		POLYGON_TYPES_ALIAS("alias");
 		String columnName;
 		COL(String columnName) {
 			this.columnName = columnName;
@@ -53,7 +53,7 @@ public class Database {
 			return columnName;
 		}
 	}
-	static Connection getConnection() throws ClassNotFoundException,
+	public static Connection getConnection() throws ClassNotFoundException,
 			SQLException {
 
 		Class.forName(dbDriver);
@@ -114,6 +114,11 @@ public class Database {
 			// } else {
 			// prep.setNull(i + 1, 0);
 			// }
+//			System.out.println(args[i].getClass());
+			if (args[i] instanceof java.sql.Array) {
+				prep.setArray(i + 1, (java.sql.Array) args[i]);
+				continue;
+			}
 			try {
 				prep.setInt(i + 1, Integer.parseInt(String.valueOf(args[i])));
 			} catch (NumberFormatException ie) {

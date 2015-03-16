@@ -137,14 +137,14 @@ public class StorePlans extends FlowUpload {
 					}
 					try {
 						JSONArray accLayersInDB =
-								Database.selectAllFromTable("spatial_functions");
+								Database.selectAllFromTable("polygon_types");
 						for (JSONObject type : accLayers) {
 							for (int i = 0; i < accLayersInDB.length(); i++) {
 								String dbAlias =
 										accLayersInDB
 												.getJSONObject(i)
 												.getString(
-														Database.COL.SPATIAL_FUNCTIONS_ALIAS
+														Database.COL.POLYGON_TYPES_ALIAS
 																.toString());
 								if (dbAlias.equalsIgnoreCase(type
 										.getString("alias"))) {
@@ -499,23 +499,24 @@ public class StorePlans extends FlowUpload {
 							} else {
 								result =
 										Database.selectAllFromTableWhere(psql,
-												"spatial_functions",
+												"polygon_types",
 												"LOWER(alias) = LOWER(?)", type);
 
 								if (result.length() != 1) {
 									if (appendTypes) {
 										int nextVal =
 												Database.getSequenceNextVal(
-														"spatial_functions_id_seq")
+														"polygon_types_id_seq")
 														.getJSONObject(0)
 														.getInt("nextval");
 										System.out.println(type
 												+ " not found. Appending as "
 												+ nextVal);
 										Database.insertInto(psql,
-												"spatial_functions",
-												"id,alias,name", "?,?,?",
-												nextVal, type, type);
+												"polygon_types",
+												"id,alias,name,type_group",
+												"?,?,?,?", nextVal, type, type,
+												"func");
 										typeID = nextVal;
 									} else throw new MalformedDataException(
 											"no such type (" + type + ") found");

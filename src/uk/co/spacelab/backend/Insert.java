@@ -77,7 +77,7 @@ public class Insert extends HttpServlet {
 								+ paramsJSON.getInt("study_id") + "\"}")));
 			} else if (type.equals("spatial_function")) {
 				out.println(postForTable(request, response,
-						"spatial_functions", paramsJSON));
+						"polygon_types", paramsJSON));
 			} else {
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"unknown request");

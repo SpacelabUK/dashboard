@@ -2,11 +2,13 @@ package uk.co.spacelab.backend.metrics;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,12 +57,19 @@ public class Occupancy extends HttpServlet {
 				new HashMap<String, String []>();
 		knownFunctions.put("no_of_rounds", new String [] {"observation_id"});
 		knownFunctions.put("no_of_desks", new String [] {"observation_id"});
-		knownFunctions.put("no_of_desks_not_empty", new String [] {"observation_id"});
+		knownFunctions.put("no_of_desks_not_empty",
+				new String [] {"observation_id"});
 		knownFunctions.put("no_of_polys_in_func", new String [] {"func_alias",
 				"study_id"});
+		knownFunctions.put("no_of_desks_in_poly_type", new String [] {
+				"type_group", "type_alias", "observation_id"});
+		knownFunctions.put("id_of_poly_types", new String [] {"type_group",
+				"type_alias"});
+		knownFunctions.put("no_of_desks_in_poly_types", new String [] {
+				"type_ids", "observation_id"});
 		try {
 			if (type.equals("devices") || type.equals("projects")
-					|| type.equals("spatial_functions")) {
+					|| type.equals("polygon_types")) {
 				// out.println(Database.selectAllFromTable(type));
 			} else if (type.equals("gross_occupancy")) {
 				int obsID = Integer.parseInt(params.get("obsid")[0]);
@@ -214,7 +224,7 @@ public class Occupancy extends HttpServlet {
 			} else if (knownFunctions.containsKey(type)) {
 				String [] requestArgs = knownFunctions.get(type);
 				Object [] args = new Object [requestArgs.length];
-
+				String prefix = "splab_";
 				String qmString = "";
 				for (int i = 0; i < requestArgs.length; i++) {
 					// System.out.println(requestArgs[i]);
@@ -225,14 +235,46 @@ public class Occupancy extends HttpServlet {
 						return;
 					}
 					if (i != 0) qmString += ",";
-					qmString += requestArgs[i] + " := ?";
 					args[i] = request.getParameter(requestArgs[i]);
+					if (args[i] instanceof String
+							&& ((String) args[i]).startsWith("[")
+							&& ((String) args[i]).endsWith("]")) {
+						qmString += requestArgs[i] + " := ? ";
+
+						// NumberUtils.isNumber(arg0)
+						args[i] =
+								getAsJDBCArray(((String) args[i]).substring(1,
+										((String) args[i]).length() - 2).trim());
+
+					} else qmString += requestArgs[i] + " := ? ";
+					System.out.println(args[i]);
 				}
-				JSONObject result =
-						Database.customQuery(
-								"SELECT * FROM splab_" + type + "(" + qmString
-										+ ")", args).getJSONObject(0);
-				out.println(result.getInt((String) result.keys().next()));
+				System.out.println(qmString);
+				JSONArray result =
+						Database.customQuery("SELECT * FROM " + prefix + type
+								+ "(" + qmString + ")", args);
+				// if (result.length() == 1)
+				// out.println(result.getJSONObject(0).getInt(
+				// (String) result.getJSONObject(0).keys().next()));
+				// else {
+				JSONArray resultOut = new JSONArray();
+				for (int i = 0; i < result.length(); i++) {
+
+					JSONObject in = result.getJSONObject(i);
+					// JSONObject ou = new JSONObject();
+					// Iterator<?> keys = in.keys();
+					// while (keys.hasNext()) {
+					// String key = (String) in.keys().next();
+					// if (key.toLowerCase().startsWith(prefix))
+					// ou.put(key.substring(prefix.length()),
+					// in.get(key));
+					// else
+					// ou.put(key, in.get(key));
+					// }
+					resultOut.put(in.get((String) in.keys().next()));
+				}
+				out.println(resultOut);
+				// }
 				// } else if (type.equals("no_of_rounds")) {
 				// JSONObject result =
 				// Database.customQuery(
@@ -257,7 +299,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions "
+								"WITH all_of_type AS (SELECT id FROM polygon_types "
 										+ "WHERE UPPER(left(alias,length(?)))=?) SELECT "
 										+ "COUNT(polygons.id) FROM polygons JOIN spaces "
 										+ "ON polygons.space_id=spaces.id WHERE functeam='func' "
@@ -329,7 +371,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT SUM(count) FROM (SELECT day_id,round_id,"
 										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
@@ -350,7 +392,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
 										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
@@ -371,7 +413,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
 										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
@@ -392,7 +434,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
 										+ "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
@@ -410,7 +452,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
 										+ "COUNT(entity_id) FROM splab_polygon_occupancy "
@@ -432,7 +474,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
@@ -457,7 +499,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT SUM(count) FROM (SELECT day_id,round_id,"
@@ -483,7 +525,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
@@ -509,7 +551,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
@@ -535,7 +577,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
@@ -558,7 +600,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
@@ -583,7 +625,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
@@ -628,27 +670,27 @@ public class Occupancy extends HttpServlet {
 					out.println("No data present");
 				} else out.print(result
 						.getString((String) result.keys().next()));
-//			} else if (type.equals("no_of_desks")) {
-//				int obsID = Integer.parseInt(params.get("obsid")[0]);
-//				JSONObject result =
-//						Database.customQuery(
-//								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
-//								// obsID));
-//								"SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
-//										+ "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
-//										+ "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
-//								obsID, obsID, obsID).getJSONObject(0);
-//				out.println(result.getInt((String) result.keys().next()));
-//			} else if (type.equals("no_of_desks_not_empty")) {
-//				int obsID = Integer.parseInt(params.get("obsid")[0]);
-//				JSONObject result =
-//						Database.customQuery(
-//								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
-//								// obsID));
-//								"SELECT COUNT(*) FROM splab_per_desk_total_occupancy WHERE"
-//										+ " observation_id=? AND times_found >0;",
-//								obsID).getJSONObject(0);
-//				out.println(result.getInt((String) result.keys().next()));
+				// } else if (type.equals("no_of_desks")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
+				// + "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
+				// + "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
+				// obsID, obsID, obsID).getJSONObject(0);
+				// out.println(result.getInt((String) result.keys().next()));
+				// } else if (type.equals("no_of_desks_not_empty")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT COUNT(*) FROM splab_per_desk_total_occupancy WHERE"
+				// + " observation_id=? AND times_found >0;",
+				// obsID).getJSONObject(0);
+				// out.println(result.getInt((String) result.keys().next()));
 			} else if (type.equals("activities_split")) {
 				int obsID = Integer.parseInt(params.get("obsid")[0]);
 				JSONObject result =
@@ -774,25 +816,29 @@ public class Occupancy extends HttpServlet {
 					response.setStatus(HttpServletResponse.SC_CREATED);
 					out.println("No data present");
 				} else out.println(result.getInt("count"));
-			} else if (type.equals("no_of_desks_cellular")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int typeID = 7;
-				JSONObject result =
-						Database.customQuery(
-								" SELECT COUNT(desks.entity_id) FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
-										+ "occupancy.position, snapshots.space_id FROM occupancy "
-										+ "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 AND splab_removed_desks IS NULL "
-										+ "AND snapshots.observation_id=?) AS desks JOIN polygons "
-										+ "ON polygons.space_id=desks.space_id WHERE functeam='func' AND type_id=? "
-										+ "AND ST_Contains(polygons.polygon,desks.position);",
-								obsID, obsID, typeID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getInt("count"));
+				// } else if (type.equals("no_of_desks_cellular")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int typeID = 7;
+				// JSONObject result =
+				// Database.customQuery(
+				// " SELECT COUNT(desks.entity_id) FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
+				// + "occupancy.position, snapshots.space_id FROM occupancy "
+				// +
+				// "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// +
+				// "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
+				// +
+				// "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 AND splab_removed_desks IS NULL "
+				// + "AND snapshots.observation_id=?) AS desks JOIN polygons "
+				// +
+				// "ON polygons.space_id=desks.space_id WHERE functeam='func' AND type_id=? "
+				// + "AND ST_Contains(polygons.polygon,desks.position);",
+				// obsID, obsID, typeID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getInt("count"));
 			} else if (type.equals("max_cellular_workspace_nia_per_desk")) {
 				int obsID = Integer.parseInt(params.get("obsid")[0]);
 				int typeID = 7;
@@ -1003,7 +1049,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
 										+ "ON polygons.space_id=spaces.id WHERE functeam='func' "
@@ -1023,7 +1069,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString3 = "OTHFCL";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
 										+ "OR UPPER(left(alias,length(?)))=?) "
 										+ "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
@@ -1044,7 +1090,7 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "OTHFCL-STO";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions WHERE "
+								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
 										+ "UPPER(left(alias,length(?)))=?) "
 										+ "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
 										+ "ON polygons.space_id=spaces.id WHERE functeam='func' "
@@ -1383,13 +1429,13 @@ public class Occupancy extends HttpServlet {
 				String typeStartString = "ALT";
 				JSONObject result =
 						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM spatial_functions "
+								"WITH all_of_type AS (SELECT id FROM polygon_types "
 										+ "WHERE UPPER(left(alias,length(?)))=?) "
-										+ "SELECT spatial_functions.alias,SUM(ST_Area(polygon)) "
+										+ "SELECT polygon_types.alias,SUM(ST_Area(polygon)) "
 										+ "FROM polygons JOIN spaces ON polygons.space_id=spaces.id "
-										+ "LEFT JOIN spatial_functions ON polygons.type_id=spatial_functions.id "
+										+ "LEFT JOIN polygon_types ON polygons.type_id=polygon_types.id "
 										+ "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND study_id=? GROUP BY spatial_functions.alias;",
+										+ "AND study_id=? GROUP BY polygon_types.alias;",
 								typeStartString, typeStartString, studyID)
 								.getJSONObject(0);
 				if (result.length() < 1) {
@@ -1676,8 +1722,59 @@ public class Occupancy extends HttpServlet {
 		} catch (NumberFormatException nfe) {
 			System.out
 					.println("Yo dawg, that ain't no number...! Go fetch the developer");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
+	private java.sql.Array getAsJDBCArray(String arr)
+			throws ClassNotFoundException, SQLException {
+		String [] args = arr.split(",");
+		int type = 4; // 0 : string
+		for (String arg : args) {
+			System.out.println(NumberUtils.isNumber(arg.trim()));
+			if (!NumberUtils.isNumber(arg.trim())) {
+				type = 0;
+				break;
+			} else {
+				Number n = NumberUtils.createNumber(arg.trim());
+				System.out.println(n.getClass() + " "
+						+ (n instanceof Integer || n instanceof Long));
+				if (n instanceof Double && type > 1) {
+					type = 1;
+					break;
+				} else if (n instanceof Float && type > 2) {
+					type = 2;
+					break;
+				} else if (n instanceof Long && type > 3) {
+					type = 3;
+					break;
+				} else {
+					type = 4;
+					break;
+				}
+			}
+		}
+		// Database.getConnection().getMetaData().getColumns(null, schema,
+		// tableName, "%");
+		String typeIn = "VARCHAR";
+		switch (type) {
+			case 1 :
+				typeIn = "float8";
+				break;
+			case 2 :
+				typeIn = "float4";
+				break;
+			case 3 :
+				typeIn = "int8";
+				break;
+			case 4 :
+				typeIn = "int4";
+				break;
+		}
+		return Database.getConnection().createArrayOf(typeIn, args);
+	}
+
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
