@@ -57,6 +57,7 @@ public class Occupancy extends HttpServlet {
 				new HashMap<String, String []>();
 		knownFunctions.put("no_of_rounds", new String [] {"observation_id"});
 		knownFunctions.put("no_of_desks", new String [] {"observation_id"});
+		knownFunctions.put("no_of_staff", new String [] {"study_id"});
 		knownFunctions.put("no_of_desks_not_empty",
 				new String [] {"observation_id"});
 		knownFunctions.put("no_of_polys_in_func", new String [] {"func_alias",
@@ -67,6 +68,8 @@ public class Occupancy extends HttpServlet {
 				"type_alias"});
 		knownFunctions.put("no_of_desks_in_poly_types", new String [] {
 				"type_ids", "observation_id"});
+		knownFunctions.put("get_observation_ids", new String [] {"study_id"});
+		knownFunctions.put("get_project_name", new String [] {"study_id"});
 		try {
 			if (type.equals("devices") || type.equals("projects")
 					|| type.equals("polygon_types")) {
@@ -236,20 +239,26 @@ public class Occupancy extends HttpServlet {
 					}
 					if (i != 0) qmString += ",";
 					args[i] = request.getParameter(requestArgs[i]);
+					// System.out.println("args[i]: " + args[i]);
 					if (args[i] instanceof String
 							&& ((String) args[i]).startsWith("[")
 							&& ((String) args[i]).endsWith("]")) {
 						qmString += requestArgs[i] + " := ? ";
 
 						// NumberUtils.isNumber(arg0)
-						args[i] =
-								getAsJDBCArray(((String) args[i]).substring(1,
-										((String) args[i]).length() - 2).trim());
+						String ns =
+								((String) args[i]).split("\\[")[1].split("\\]")[0]
+										.trim();
+
+						// System.out.println(ns);
+						// System.out.println(((String) args[i]).length() - 2);
+						// System.out.println(((String) args[i]).substring(1));
+						args[i] = getAsJDBCArray(ns);
 
 					} else qmString += requestArgs[i] + " := ? ";
-					System.out.println(args[i]);
+					// System.out.println(args[i]);
 				}
-				System.out.println(qmString);
+				// System.out.println(qmString);
 				JSONArray result =
 						Database.customQuery("SELECT * FROM " + prefix + type
 								+ "(" + qmString + ")", args);
@@ -1729,17 +1738,20 @@ public class Occupancy extends HttpServlet {
 	}
 	private java.sql.Array getAsJDBCArray(String arr)
 			throws ClassNotFoundException, SQLException {
+		// System.out.println("aaa");
+		// System.out.println(arr);
 		String [] args = arr.split(",");
 		int type = 4; // 0 : string
 		for (String arg : args) {
-			System.out.println(NumberUtils.isNumber(arg.trim()));
+			// System.out.println(arg);
+			// System.out.println(NumberUtils.isNumber(arg.trim()));
 			if (!NumberUtils.isNumber(arg.trim())) {
 				type = 0;
 				break;
 			} else {
 				Number n = NumberUtils.createNumber(arg.trim());
-				System.out.println(n.getClass() + " "
-						+ (n instanceof Integer || n instanceof Long));
+				// System.out.println(n.getClass() + " "
+				// + (n instanceof Integer || n instanceof Long));
 				if (n instanceof Double && type > 1) {
 					type = 1;
 					break;
@@ -1757,7 +1769,7 @@ public class Occupancy extends HttpServlet {
 		}
 		// Database.getConnection().getMetaData().getColumns(null, schema,
 		// tableName, "%");
-		String typeIn = "VARCHAR";
+		String typeIn = "text";
 		switch (type) {
 			case 1 :
 				typeIn = "float8";

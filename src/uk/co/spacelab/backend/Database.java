@@ -60,7 +60,7 @@ public class Database {
 		return DriverManager.getConnection(dbName, user, pass);
 	}
 	protected static JSONArray selectAllFromTableWhere(Connection con,
-			String table, String where, String... args) throws SQLException,
+			String table, String where, Object... args) throws SQLException,
 			ParseException {
 		return selectWhatFromTableWhere(con, table, "*", where, args);
 	}
@@ -217,7 +217,7 @@ public class Database {
 			return expandResultSet(rs);
 		} catch (PSQLException e) {
 			if (!e.getLocalizedMessage().startsWith("No results"))
-				e.printStackTrace();
+				throw e;
 			return new JSONArray("[{result:success}]");
 		}
 	}

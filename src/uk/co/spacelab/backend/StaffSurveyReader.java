@@ -9,8 +9,10 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +23,7 @@ import uk.co.spacelab.fileio.FileIO;
 
 public class StaffSurveyReader {
 	private enum QuestionType {
-		TEXT, SCORE, CHOICE, ATTRIBUTE;
+		TEXT, SCORE, CHOICE, ATTRIBUTE, TIESCORE;
 	}
 
 	private static String IN_COL_ID = "id", IN_COL_NAME = "name",
@@ -109,25 +111,26 @@ public class StaffSurveyReader {
 					+ STAFF_ID_ON_SURVEY + " integer not null, " //
 					+ STAFF_COMPLETED + " text not null " //
 					+ ");", //
-			TABLE_TIE_TYPES = "survey_tie_types", //
-			TIE_TYPE_TYPE_ID = "id", //
-			TIE_TYPE_NAME = "name", //
-			CREATE_TABLE_TIE_TYPES = "create table " + TABLE_TIE_TYPES //
-					+ "(" //
-					+ TIE_TYPE_TYPE_ID + " integer not null, " //
-					+ TIE_TYPE_NAME + " text not null " //
-					+ ");", //
+			// TABLE_TIE_TYPES = "survey_tie_types", //
+			// TIE_TYPE_TYPE_ID = "id", //
+			// TIE_TYPE_NAME = "name", //
+			// CREATE_TABLE_TIE_TYPES = "create table " + TABLE_TIE_TYPES //
+			// + "(" //
+			// + TIE_TYPE_TYPE_ID + " integer not null, " //
+			// + TIE_TYPE_NAME + " text not null " //
+			// + ");", //
 			TABLE_TIES = "staff_ties", //
-			TIE_FROM = "from", //
-			TIE_TO = "to", //
-			TIE_TYPE_ID = "type_id", //
-			TIE_WEIGHT = "weight", //
+			TIE_FROM = "from_staff_id", //
+			TIE_TO = "to_staff_id", //
+			TIE_QUESTION_ID = "question_id", //
+			TIE_SCORE = "score", //
+			TIE_STUDY_ID = "study_id", //
 			CREATE_TABLE_TIES = "create table " + TABLE_TIES //
 					+ "(" //
-					+ TIE_FROM + " integer not null, " //
-					+ TIE_TO + " integer not null, " //
-					+ TIE_TYPE_ID + " integer not null, " //
-					+ TIE_WEIGHT + " integer not null " //
+					+ TIE_FROM + " bigint not null, " //
+					+ TIE_TO + " bigint not null, " //
+					+ TIE_QUESTION_ID + " bigint not null, " //
+					+ TIE_SCORE + " real not null " //
 					+ ");";
 
 	public void convert(String inFile, Integer studyid)
@@ -192,44 +195,55 @@ public class StaffSurveyReader {
 		}
 
 		String [] tieHead = tieHeader.split(" ");
-		List<String> tieTypes = new ArrayList<String>();
+		List<String> tieQuestions = new ArrayList<String>();
+		List<Integer> ignore = new ArrayList<Integer>();
 		Map<Integer, String> tieProps = new HashMap<Integer, String>();
+		int fromCol = -1, toCol = -1, ownerCol = -1;
 		for (int i = 0; i < tieHead.length; i++) {
-			if (!tieHead[i].trim().equalsIgnoreCase("from")
-					&& !tieHead[i].trim().equalsIgnoreCase("to")
-					&& !tieHead[i].trim().equalsIgnoreCase("ownernode"))
-				tieTypes.add(tieHead[i]);
+			// if (!tieHead[i].trim().equalsIgnoreCase("from")
+			// && !tieHead[i].trim().equalsIgnoreCase("to")
+			// && !tieHead[i].trim().equalsIgnoreCase("ownernode"))
+			//
+			// else {
+			// if (tieHead[i].trim().equalsIgnoreCase(
+			// "relationship_set_people_you_interact_with")) {
+			// ignore.add(i);
+			// continue;
+			// }
+			if (tieHead[i].trim().equalsIgnoreCase("from"))
+				fromCol = i;
+			else if (tieHead[i].trim().equalsIgnoreCase("to"))
+				toCol = i;
+			else if (tieHead[i].trim().equalsIgnoreCase("ownernode"))
+				ownerCol = i;
+			else tieQuestions.add(tieHead[i]);
+
 			tieProps.put(i, tieHead[i]);
-			// else
 		}
 		for (String line : tiesIn) {
-			// System.out.println(line);
 			String [] tie = line.substring(1, line.length() - 1).split("\" \"");
 			int from = -1, to = -1;
+			from = Integer.parseInt(tie[fromCol]);
+			to = Integer.parseInt(tie[toCol]);
 			for (int i = 0; i < tie.length; i++) {
-				String tieProp = tieProps.get(i);
-				if (tieHead[i].trim().equalsIgnoreCase("from"))
-					from = Integer.parseInt(tie[i]);
-				else if (tieHead[i].trim().equalsIgnoreCase("to"))
-					to = Integer.parseInt(tie[i]);
-			}
-			for (int i = 0; i < tie.length; i++) {
-				if (!tieHead[i].trim().equals("from")
-						&& !tieHead[i].trim().equalsIgnoreCase("to")
-						&& !tieHead[i].trim().equalsIgnoreCase("ownernode")) {
-					Tie t = new Tie();
-					t.from = from;
-					t.to = to;
-					t.typeID = tieTypes.indexOf(tieProps.get(i));
-					t.weight = Integer.parseInt(tie[i]);
-					ties.add(t);
+				if (i == fromCol || i == toCol || i == ownerCol) continue;
+				Tie t = null;
+				for (Tie nt : ties)
+					if (from == nt.from && to == nt.to && i == nt.question) {
+						t = nt;
+						break;
+					}
+				if (t == null) {
+					t = new Tie(from, to, i);
+					if (!ignore.contains(i)) ties.add(t);
 				}
+				t.score = Float.parseFloat(tie[i]);
 
 			}
 		}
-		for (Tie tie : ties)
-			System.out.println(tie.from + " " + tie.to + " " + tie.typeID + " "
-					+ tie.weight);
+		// for (Tie tie : ties)
+		// System.out.println(tie.from + " " + tie.to + " " + tie.typeID + " "
+		// + tie.weight);
 		// System.out.println(answerStrings);
 		// if (true) return;
 
@@ -290,6 +304,9 @@ public class StaffSurveyReader {
 						: QuestionType.TEXT);
 			}
 		}
+		for (String s : tieQuestions) {
+			simpleQuestions.put(s, QuestionType.TIESCORE);
+		}
 		for (String question : simpleQuestions.keySet()) {
 			System.out.println(question);
 		}
@@ -325,7 +342,7 @@ public class StaffSurveyReader {
 
 		String columnString = QUESTION_ALIAS + "," + QUESTION_TYPE_ID;
 		String valueString = "?,?";
-
+		System.out.println("-- adding questions");
 		String statement = "";
 		Map<String, Integer> questionMap = new HashMap<String, Integer>();
 		for (String q : simpleQuestions.keySet()) {
@@ -347,6 +364,7 @@ public class StaffSurveyReader {
 
 		}
 
+		System.out.println("-- adding choices");
 		for (String q : choices.keySet()) {
 			JSONArray r =
 					Database.selectWhatFromTableWhere(psql, TABLE_QUESTIONS,
@@ -365,6 +383,7 @@ public class StaffSurveyReader {
 
 		}
 
+		Database.deleteFrom(psql, TABLE_TIES, TIE_STUDY_ID + "=?", studyid);
 		Database.deleteFrom(psql, TABLE_QUOTES, QUOTE_STUDY_ID + "=?", studyid);
 		Database.deleteFrom(psql, TABLE_SCORES, SCORE_STUDY_ID + "=?", studyid);
 		Database.deleteFrom(psql, TABLE_STAFF, STAFF_SURVEY_ID + "=?", studyid);
@@ -372,6 +391,8 @@ public class StaffSurveyReader {
 				STAFF_ID_ON_SURVEY + "," + STAFF_COMPLETED + ","
 						+ STAFF_SURVEY_ID;
 		valueString = "?,?,?";
+
+		System.out.println("-- adding people");
 		Map<Person, Integer> peopleMap = new HashMap<Person, Integer>();
 		for (Integer i : people.keySet()) {
 
@@ -394,6 +415,8 @@ public class StaffSurveyReader {
 			}
 		}
 		people = null;
+
+		System.out.println("-- matching people to questions");
 		for (String questionAlias : questionMap.keySet()) {
 			int questionID = questionMap.get(questionAlias);
 			List<String> ch = choices.get(questionAlias);
@@ -500,6 +523,54 @@ public class StaffSurveyReader {
 				}
 			}
 		}
+		System.out.println("-- matching ties to people, questions");
+		// int counter = 0;
+		for (Tie t : ties) {
+			int qID = questionMap.get(tieProps.get(t.question));
+			int fromID = -1, toID = -1;
+			for (Person p : peopleMap.keySet()) {
+				if (p.ID == t.from) {
+					fromID = peopleMap.get(p);
+					if (toID != -1) {
+						break;
+					}
+				}
+				if (p.ID == t.to) {
+					toID = peopleMap.get(p);
+					if (fromID != -1) {
+						break;
+					}
+				}
+			}
+			if (fromID == -1 || toID == -1) continue;
+			columnString =
+					TIE_FROM + "," + TIE_TO + "," + TIE_QUESTION_ID + ","
+							+ TIE_SCORE + "," + TIE_STUDY_ID;
+			valueString = "?,?,?,?,?";
+			// TODO update this with UPSERT when introduced in Postgres. If we
+			// accept that there will never be duplicates in the file this won't
+			// be necessary...
+
+			try {
+				// if (Database.selectAllFromTableWhere(
+				// psql,
+				// TABLE_TIES,
+				// TIE_FROM + " = ? AND " + TIE_TO + " = ? AND "
+				// + TIE_QUESTION_ID, fromID, toID, qID).length() == 0)
+				Database.insertInto(psql, TABLE_TIES, columnString,
+						valueString, fromID, toID, qID, t.score, studyid);
+				// else Database.update(psql, TABLE_TIES, TABLE_TIES, TIE_FROM +
+				// " = ? AND " + TIE_TO + " = ? AND "
+				// + TIE_QUESTION_ID, fromID, toID, qID);
+			} catch (org.postgresql.util.PSQLException e) {
+				System.out.println(t.from + " " + t.to + " " + t.question);
+				e.printStackTrace();
+				psql.close();
+				return;
+			}
+			// if (counter > 15000) break;
+			// counter++;
+		}
 		psql.commit();
 		psql.close();
 	}
@@ -530,7 +601,18 @@ public class StaffSurveyReader {
 
 	}
 	class Tie {
-		int from, to, weight, typeID;
+		int from, to, question;
+		float score;
+		Tie(int from, int to, int question) {
+			this.from = from;
+			this.to = to;
+			this.question = question;
+		}
+		@Override
+		public boolean equals(Object o) {
+			Tie t = (Tie) o;
+			return from == t.from && to == t.to && question == t.question;
+		}
 	}
 	class Person {
 		int ID;
