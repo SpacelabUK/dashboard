@@ -25,7 +25,7 @@ import org.json.JSONObject;
 		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StoreStakeholders extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+	private static final String inputFileType = "xlsx";
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -59,6 +59,7 @@ public class StoreStakeholders extends HttpServlet {
 	protected void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
+		response.setContentType("text/json;charset=UTF-8");
 		if (request.getCharacterEncoding() == null) {
 			System.out.println(request.getParameterMap());
 			if (!validParam(request.getParameterMap(), "studyid")) {
@@ -66,17 +67,16 @@ public class StoreStakeholders extends HttpServlet {
 						"malformed data... -_-");
 				return;
 			}
-			response.setContentType("text/json;charset=UTF-8");
 			String fileName = null;
 			if (!validParam(request.getParameterMap(), "fileid"))
 				fileName =
-						FileHandler
-								.uploadFileAndGetAlias(request, "xlsx", 3600);
+						FileHandler.uploadFileAndGetAlias(request,
+								inputFileType, 3600);
 			else fileName = request.getParameter("fileid");
 			JSONObject dataIn = null;
 			if (!validParam(request.getParameterMap(), "datain")) {
 				getDataToValidate(request, response, FileHandler.path
-						+ fileName + ".xlsx", fileName);
+						+ fileName + "." + inputFileType, fileName);
 				return;
 
 			}
@@ -87,7 +87,7 @@ public class StoreStakeholders extends HttpServlet {
 			JSONObject datain = paramsJSON.getJSONObject("datain");
 			try {
 				new StakeholderReader().convert(FileHandler.path + fileName
-						+ ".xlsx", studyID, datain);
+						+ "." + inputFileType, studyID, datain);
 			} catch (ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

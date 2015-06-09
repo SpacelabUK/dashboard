@@ -184,9 +184,8 @@ public class StoreDepthmap extends FlowUpload {
 					Database.deleteFrom(
 							psql,
 							"depthmaps",
-							"study_id=? AND space_id=? AND analysis_type=?::depthmap_types AND name=?",
-							String.valueOf(studyID),
-							String.valueOf(currSpaceID), type, name);
+							"study_id=? AND space_id=? AND analysis_type=?::depthmap_types",
+							studyID, currSpaceID, type);
 					Raster r = n.getMeasuresMap();
 
 					System.out.println(currSpaceID);
@@ -400,8 +399,7 @@ public class StoreDepthmap extends FlowUpload {
 		}
 		for (String measure : raster.bands.keySet()) {
 			Database.deleteFrom(psql, TABLE_BAND_ALIASES,
-					"space_id=? AND alias=?", String.valueOf(spaceID),
-					String.valueOf(measure));
+					"map_id=? AND alias=?", mapID, measure);
 			RasterBand b = raster.bands.get(measure);
 			Database.insertInto(psql, TABLE_BAND_ALIASES,
 					"band_id,alias,map_id,space_id", "?,?,?,?", b.id, measure,

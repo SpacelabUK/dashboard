@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" ng-app="Dashboard">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Dashboard</title>
+
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="css/dashboard.css">
+<link rel="stylesheet" type="text/css" href="css/white.css">
+<link rel="stylesheet" type="text/css"
+  href="css/angular-gridster.min.css">
+<style type="text/css">
+/* .btn-outline {
+	background-color: transparent;
+	color: inherit;
+} */
+</style>
+<!--
+  <link rel="stylesheet" type="text/css" href="css/themes/green.css">
+  <link rel="stylesheet" type="text/css" href="css/themes/red.css">
+  -->
+
+<!--<script type="text/javascript" src="lib/flow.min.js" defer></script>-->
+<script type="text/javascript" src="lib/d3.min.js" defer></script>
+<script type="text/javascript" src="lib/d3.layout.cloud.js" defer></script>
+<script type="text/javascript" src="lib/angular.min.js"></script>
+<script type="text/javascript" src="lib/angular-cookies.js" defer></script>
+<script type="text/javascript" src="lib/angular-ui-router.min.js" defer></script>
+<script type="text/javascript" src="lib/angular-file-upload.min.js"
+  defer></script>
+<script type="text/javascript" src="lib/angular-d3.js" defer></script>
+<script type="text/javascript" src="lib/ng-flow-standalone.min.js" defer></script>
+<script type="text/javascript" src="lib/ng-bootstrap-tpls.min.js" defer></script>
+<script type="text/javascript" src="lib/jquery.min.js" defer></script>
+<script type="text/javascript" src="lib/xlsx.full.min.js" defer></script>
+<script type="text/javascript" src="lib/angular-gridster.min.js" defer></script>
+<script type="text/javascript" src="bootstrap.js" defer></script>
+<script type="text/javascript" src="util/HTTPFactory.js" defer></script>
+<script type="text/javascript" src="confirmModal.js" defer></script>
+<script type="text/javascript"
+  src="studies/observation/setRoundModel.js" defer></script>
+<script type="text/javascript" src="studies/study.js" defer></script>
+<script type="text/javascript" src="studies/observation/observation.js"
+  defer></script>
+<script type="text/javascript" src="studies/study.compare.js" defer></script>
+<script type="text/javascript" src="studies/plans/addPlans.js" defer></script>
+<script type="text/javascript" src="studies/addPolygons.js" defer></script>
+<script type="text/javascript" src="studies/addDepthmap.js" defer></script>
+<script type="text/javascript" src="studies/addStaffSurvey.js" defer></script>
+<script type="text/javascript" src="studies/addStakeholders.js" defer></script>
+<!--  <script type="text/javascript" src="lib/d3-wordcloud-decorator.js" defer></script>
+<script type="text/javascript" src="lib/wordcloud-directive.js" defer></script> -->
+<script type="text/javascript" src="charts.js" defer></script>
+
+</head>
+<body ng-controller="MasterCtrl">
+  <div id="page-wrapper" ng-class="{'active': toggle}" ng-cloak>
+
+    <!-- Sidebar -->
+
+    <div id="sidebar-wrapper" class="no-print">
+      <ul class="sidebar">
+        <li class="sidebar-main">
+          <a href="#" ng-click="toggleSidebar()">
+            Dashboard <span
+              class="menu-icon glyphicon glyphicon-transfer"></span>
+          </a>
+        </li>
+        <li class="sidebar-title separator">
+          <span>PROJECTS</span>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="studies">
+            Open Studies<span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="projects">
+            Projects<span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="devices">
+            Devices <span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="spatialfunctions">
+            Functions <span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+        <li class="sidebar-title">
+          <span>OBSERVATIONS</span>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="observationssetup">
+            Setup <span class="menu-icon fa fa-tachometer"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="observationsprogress">
+            Progress <span class="menu-icon fa fa-tasks"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
+          <a href="#">
+            Settings <span class="menu-icon fa fa-cogs"></span>
+          </a>
+        </li>
+        <li class="sidebar-title separator">
+          <span>APPLICATIONS</span>
+        </li>
+        <li class="sidebar-list">
+          <a ui-sref="state1">
+            Forums <span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <div class="col-xs-4">
+          <a href="https://github.com/Ehesp/Responsive-Dashboard"
+            target="_blank"> Github </a>
+        </div>
+        <div class="col-xs-4">
+          <a href="#" target="_blank"> About </a>
+        </div>
+        <div class="col-xs-4">
+          <a href="#"> Support </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- End Sidebar -->
+    <div id="content-wrapper">
+      <div class="page-content">
+        <!-- <ng-view ></ng-view>-->
+        <div ui-view></div>
+        <!--<mainpage style="width:100%"></mainpage>-->
+      </div>
+      <!-- End Page Content -->
+    </div>
+    <!-- End Content Wrapper -->
+  </div>
+  <!-- End Page Wrapper -->
+</body>
+</html>

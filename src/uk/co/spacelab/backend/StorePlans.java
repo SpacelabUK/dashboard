@@ -348,11 +348,12 @@ public class StorePlans extends FlowUpload {
 												.toPlainString() + ")";
 						try {
 							String aliasToMatch = spaceMap.get(alias);
+							System.out.println(studyID);
+							System.out.println(aliasToMatch);
 							JSONArray foundSpaces =
 									Database.selectAllFromTableWhere("spaces",
-											"study_id=? AND alias=?",
-											String.valueOf(studyID),
-											aliasToMatch);
+											"study_id=? AND alias=?", studyID,
+											alias);
 							String newFileName = studyID + "_" + alias + ".csv";
 							FileIO.saveStrings(PLANS_DIR + newFileName,
 									block.getAsCSV());
@@ -367,17 +368,26 @@ public class StorePlans extends FlowUpload {
 							if (aliasToMatch.equals("*")) {
 								// alias is new
 								if (foundSpaces.length() != 0)
-									throw new MalformedDataException("Space "
-											+ aliasToMatch + " already exists");
+									Database.update(
+											"spaces",
+											"plan_min=CAST(? AS point), "
+													+ "plan_max=CAST(? AS point), "
+													+ "plan_path=?",
+											"study_id=? AND alias=?",
+											new Object [] {minPoint, maxPoint,
+													newFileName, studyID, alias});
+								// throw new MalformedDataException("Space "
+								// + aliasToMatch + " already exists");
 								// TODO: CHECK WHAT DO TO FOR OVERWRITES
-								Database.insertInto(
-										psql,
-										"spaces",
-										"study_id,alias,plan_path,"
-												+ "plan_min,plan_max",
-										"?,?,?,CAST(? AS point),CAST(? AS point)",
-										String.valueOf(studyID), alias,
-										newFileName, minPoint, maxPoint);
+								else Database
+										.insertInto(
+												psql,
+												"spaces",
+												"study_id,alias,plan_path,"
+														+ "plan_min,plan_max",
+												"?,?,?,CAST(? AS point),CAST(? AS point)",
+												studyID, alias, newFileName,
+												minPoint, maxPoint);
 							} else {
 								if (foundSpaces.length() != 1)
 									throw new MalformedDataException("Space "
@@ -401,8 +411,21 @@ public class StorePlans extends FlowUpload {
 					}
 				}
 			}
+			JSONArray accSpaces = new JSONArray();
 			if (paramsJSON.has("accSpaces")) {
-				JSONArray accSpaces = paramsJSON.getJSONArray("accSpaces");
+				JSONArray acsp = paramsJSON.getJSONArray("accSpaces");
+				for (int i = 0; i < acsp.length(); i++) {
+					accSpaces.put(acsp.get(i));
+				}
+			}
+			if (paramsJSON.has("teamSpaces")) {
+				JSONArray acsp = paramsJSON.getJSONArray("teamSpaces");
+				for (int i = 0; i < acsp.length(); i++) {
+					accSpaces.put(acsp.get(i));
+				}
+			}
+
+			if (accSpaces.length() > 0) {
 				if (blockz == null) {
 					Map<String, String> selectedSpaces =
 							new HashMap<String, String>(accSpaces.length());
@@ -469,12 +492,17 @@ public class StorePlans extends FlowUpload {
 						int spaceID = result.getJSONObject(0).getInt("id");
 
 						String functeam =
-								cleanName.substring(lastDashIndex + 1).trim();
-						if (!functeam.equalsIgnoreCase("ACC")) continue;
+								cleanName.substring(lastDashIndex + 1).trim()
+										.toLowerCase();
+						// System.out.println("functeam: " + functeam);
+						if (!functeam.equals("acc") && !functeam.equals("team"))
+							continue;
+						if (functeam.equals("acc")) functeam = "func";
+
 						if (!append) {
 							Database.deleteFrom(psql, "polygons",
-									"space_id=? AND functeam=?",
-									String.valueOf(spaceID), "func");
+									"space_id=? AND functeam=?", spaceID,
+									functeam);
 						}
 						GeometryLayer.Polyline [] allPolys = block.plines;
 						Map<String, List<GeometryLayer.Polyline>> typeMap =
@@ -490,10 +518,21 @@ public class StorePlans extends FlowUpload {
 											type,
 											new ArrayList<GeometryLayer.Polyline>());
 								typeMap.get(type).add(p);
+							} else if (p.layer.toUpperCase().startsWith(
+									DXFReader.generalIdentifier + "TEAM-")) {
+								String type =
+										p.layer.substring(DXFReader.generalIdentifier
+												.length() + "TEAM-".length());
+								if (!typeMap.containsKey(type))
+									typeMap.put(
+											type,
+											new ArrayList<GeometryLayer.Polyline>());
+								typeMap.get(type).add(p);
 							}
 						}
 						for (String type : typeMap.keySet()) {
 							Integer typeID;
+							System.out.println("type: " + type);
 							if (typeIDMap.containsKey(type)) {
 								typeID = typeIDMap.get(type);
 							} else {
@@ -501,7 +540,6 @@ public class StorePlans extends FlowUpload {
 										Database.selectAllFromTableWhere(psql,
 												"polygon_types",
 												"LOWER(alias) = LOWER(?)", type);
-
 								if (result.length() != 1) {
 									if (appendTypes) {
 										int nextVal =
@@ -516,7 +554,7 @@ public class StorePlans extends FlowUpload {
 												"polygon_types",
 												"id,alias,name,type_group",
 												"?,?,?,?", nextVal, type, type,
-												"func");
+												functeam);
 										typeID = nextVal;
 									} else throw new MalformedDataException(
 											"no such type (" + type + ") found");
@@ -550,9 +588,9 @@ public class StorePlans extends FlowUpload {
 										"(ST_Dump(ST_CollectionExtract("
 												+ "ST_MakeValid(ST_GeomFromText(?))"
 												+ ",3))).geom,?,?,?",
-										polyString, spaceID, "func", typeID);
+										polyString, spaceID, functeam, typeID);
 							}
-							puncturePolys(psql, spaceID, typeID, "func");
+							puncturePolys(psql, spaceID, typeID, functeam);
 						}
 					}
 					if (psql.isClosed())
@@ -561,7 +599,9 @@ public class StorePlans extends FlowUpload {
 					psql.commit();
 					psql.setAutoCommit(true);
 					psql.close();
-					System.out.println("Done importing funcs");
+					System.out.println("Done importing polygon types");
+					if (psql.isClosed())
+						System.out.println("Connection closed");
 				} catch (SQLException | ParseException e) {
 					e.printStackTrace();
 				} catch (ClassNotFoundException e) {
@@ -569,179 +609,185 @@ public class StorePlans extends FlowUpload {
 				}
 			}
 
-			if (paramsJSON.has("teamSpaces")) {
-				JSONArray teamSpaces = paramsJSON.getJSONArray("teamSpaces");
-
-				if (blockz == null) {
-					Map<String, String> selectedSpaces =
-							new HashMap<String, String>(teamSpaces.length());
-					for (int i = 0; i < teamSpaces.length(); i++) {
-						JSONObject space = teamSpaces.getJSONObject(i);
-						selectedSpaces.put(space.getString("alias"),
-								space.getString("match"));
-					}
-					DXFReader dxf = new DXFReader();
-					dxf.addData(FileIO.loadStrings(fileName));
-					List<String []> entities = dxf.breakDXFEntities(dxf.ent);
-					Map<String, String> spaceMap =
-							new HashMap<String, String>();
-					for (String [] ent : entities) {
-						if (ent[0].equals("INSERT"))
-							if (ent[2].startsWith(DXFReader.generalIdentifier)) {
-								String alias =
-										ent[2].substring(
-												DXFReader.generalIdentifier
-														.length()).split("\\(")[0]
-												.trim();
-								if (selectedSpaces.containsKey(alias))
-									spaceMap.put(alias,
-											selectedSpaces.get(alias));
-							}
-					}
-					blockz =
-							getBlocks(dxf.breakDXFEntities(dxf.blk),
-									MatrixMath.getIdentity(), scale);
-				}
-
-				Connection psql;
-				try {
-					Map<String, Integer> typeIDMap =
-							new HashMap<String, Integer>();
-
-					psql = Database.getConnection();
-					psql.setAutoCommit(false);
-					boolean append = true;
-					for (String s : blockz.keySet()) {
-						if (!s.startsWith(DXFReader.generalIdentifier))
-							continue;
-						GeometryLayer block = blockz.get(s);
-						String cleanName =
-								s.substring(
-										DXFReader.generalIdentifier.length())
-										.split("\\(")[0];
-						int lastDashIndex = cleanName.lastIndexOf("-");
-						if (lastDashIndex == -1) continue;
-						String alias =
-								cleanName.substring(0, lastDashIndex).trim();
-
-						JSONArray result = null;
-						result =
-								Database.selectAllFromTableWhere(
-										psql,
-										"spaces",
-										"study_id = ? AND LOWER(alias) = LOWER(?)",
-										String.valueOf(studyID), alias);
-
-						if (result.length() != 1)
-							throw new JSONException("no such space (" + alias
-									+ ") found");
-						int spaceID = result.getJSONObject(0).getInt("id");
-						String functeam =
-								cleanName.substring(lastDashIndex + 1).trim();
-						if (!functeam.equalsIgnoreCase("TEAM")) continue;
-
-						if (!append) {
-							Database.deleteFrom(psql, "polygons",
-									"space_id=? AND functeam=?",
-									String.valueOf(spaceID), "team");
-						}
-
-						GeometryLayer.Polyline [] allPolys = block.plines;
-						Map<String, List<GeometryLayer.Polyline>> typeMap =
-								new HashMap<String, List<GeometryLayer.Polyline>>();
-						for (GeometryLayer.Polyline p : allPolys) {
-							if (p.layer.toUpperCase().startsWith(
-									DXFReader.generalIdentifier + "TEAM-")) {
-								String type =
-										p.layer.substring(DXFReader.generalIdentifier
-												.length() + "TEAM-".length());
-								if (!typeMap.containsKey(type))
-									typeMap.put(
-											type,
-											new ArrayList<GeometryLayer.Polyline>());
-								typeMap.get(type).add(p);
-							}
-						}
-						for (String type : typeMap.keySet()) {
-							boolean allowNew = true;
-							Integer typeID;
-							if (typeIDMap.containsKey(type)) {
-								typeID = typeIDMap.get(type);
-							} else {
-								result =
-										Database.selectAllFromTableWhere(
-												psql,
-												"teams",
-												"study_id=? AND LOWER(alias) = LOWER(?)",
-												String.valueOf(studyID), type);
-
-								if (result.length() != 1) {
-									if (allowNew) {
-										int nextVal =
-												Database.getSequenceNextVal(
-														psql, "teams_id_seq")
-														.getJSONObject(0)
-														.getInt("nextval");
-										Database.insertInto(psql, "teams",
-												"id,study_id,alias", "?,?,?",
-												String.valueOf(nextVal),
-												String.valueOf(studyID), type);
-										typeID = nextVal;
-										typeIDMap.put(type, typeID);
-									} else {
-										throw new MalformedDataException(
-												"no such type (" + type
-														+ ") found");
-									}
-								} else typeID =
-										result.getJSONObject(0).getInt("id");
-							}
-							List<GeometryLayer.Polyline> polys =
-									typeMap.get(type);
-							for (int k = 0; k < polys.size(); k++) {
-								double [] points = polys.get(k).vF;
-								String polyString = "POLYGON((";
-								for (int n = 0; n < points.length; n += 3) {
-									double x = points[n];
-									double y = points[n + 1];
-									if (n != 0) polyString += ",";
-									polyString += x + " " + y;
-								}
-								polyString += ",";
-								polyString += points[0] + " " + points[1];
-								polyString += "))";
-								// Database.insertInto(psql, "polygons",
-								// "polygon,space_id,functeam,type_id",
-								// "ST_GeomFromText(?),?,?,?", polyString,
-								// String.valueOf(spaceID), "team",
-								// String.valueOf(typeID));
-								Database.insertInto(
-										psql,
-										"polygons",
-										"polygon,space_id,functeam,type_id",
-										"(ST_Dump(ST_CollectionExtract("
-												+ "ST_MakeValid(ST_GeomFromText(?))"
-												+ ",3))).geom,?,?,?",
-										polyString, spaceID, "team", typeID);
-							}
-							puncturePolys(psql, spaceID, typeID, "team");
-						}
-					}
-					if (psql.isClosed())
-						throw new InternalException(
-								"Connection is already closed");
-					psql.commit();
-					psql.setAutoCommit(true);
-					psql.close();
-					System.out.println("Done importing teams");
-				} catch (SQLException | ParseException e1) {
-					e1.printStackTrace();
-					return;
-				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			// if (paramsJSON.has("teamSpaces")) {
+			// JSONArray teamSpaces = paramsJSON.getJSONArray("teamSpaces");
+			//
+			// if (blockz == null) {
+			// Map<String, String> selectedSpaces =
+			// new HashMap<String, String>(teamSpaces.length());
+			// for (int i = 0; i < teamSpaces.length(); i++) {
+			// JSONObject space = teamSpaces.getJSONObject(i);
+			// selectedSpaces.put(space.getString("alias"),
+			// space.getString("match"));
+			// }
+			// DXFReader dxf = new DXFReader();
+			// dxf.addData(FileIO.loadStrings(fileName));
+			// List<String []> entities = dxf.breakDXFEntities(dxf.ent);
+			// Map<String, String> spaceMap =
+			// new HashMap<String, String>();
+			// for (String [] ent : entities) {
+			// if (ent[0].equals("INSERT"))
+			// if (ent[2].startsWith(DXFReader.generalIdentifier)) {
+			// String alias =
+			// ent[2].substring(
+			// DXFReader.generalIdentifier
+			// .length()).split("\\(")[0]
+			// .trim();
+			// if (selectedSpaces.containsKey(alias))
+			// spaceMap.put(alias,
+			// selectedSpaces.get(alias));
+			// }
+			// }
+			// blockz =
+			// getBlocks(dxf.breakDXFEntities(dxf.blk),
+			// MatrixMath.getIdentity(), scale);
+			// }
+			//
+			// Connection psql;
+			// try {
+			// Map<String, Integer> typeIDMap =
+			// new HashMap<String, Integer>();
+			//
+			// psql = Database.getConnection();
+			// psql.setAutoCommit(false);
+			// boolean append = true;
+			// for (String s : blockz.keySet()) {
+			// if (!s.startsWith(DXFReader.generalIdentifier))
+			// continue;
+			// GeometryLayer block = blockz.get(s);
+			// String cleanName =
+			// s.substring(
+			// DXFReader.generalIdentifier.length())
+			// .split("\\(")[0];
+			// int lastDashIndex = cleanName.lastIndexOf("-");
+			// if (lastDashIndex == -1) continue;
+			// String alias =
+			// cleanName.substring(0, lastDashIndex).trim();
+			//
+			// JSONArray result = null;
+			// result =
+			// Database.selectAllFromTableWhere(
+			// psql,
+			// "spaces",
+			// "study_id = ? AND LOWER(alias) = LOWER(?)",
+			// String.valueOf(studyID), alias);
+			//
+			// if (result.length() != 1)
+			// throw new JSONException("no such space (" + alias
+			// + ") found");
+			// int spaceID = result.getJSONObject(0).getInt("id");
+			// String functeam =
+			// cleanName.substring(lastDashIndex + 1).trim();
+			// if (!functeam.equalsIgnoreCase("TEAM")) continue;
+			//
+			// if (!append) {
+			// Database.deleteFrom(psql, "polygons",
+			// "space_id=? AND functeam=?",
+			// String.valueOf(spaceID), "team");
+			// }
+			//
+			// GeometryLayer.Polyline [] allPolys = block.plines;
+			// Map<String, List<GeometryLayer.Polyline>> typeMap =
+			// new HashMap<String, List<GeometryLayer.Polyline>>();
+			// for (GeometryLayer.Polyline p : allPolys) {
+			// if (p.layer.toUpperCase().startsWith(
+			// DXFReader.generalIdentifier + "TEAM-")) {
+			// String type =
+			// p.layer.substring(DXFReader.generalIdentifier
+			// .length() + "TEAM-".length());
+			// if (!typeMap.containsKey(type))
+			// typeMap.put(
+			// type,
+			// new ArrayList<GeometryLayer.Polyline>());
+			// typeMap.get(type).add(p);
+			// }
+			// }
+			// for (String type : typeMap.keySet()) {
+			// boolean allowNew = true;
+			// Integer typeID;
+			// if (typeIDMap.containsKey(type)) {
+			// typeID = typeIDMap.get(type);
+			// } else {
+			// // result =
+			// // Database.selectAllFromTableWhere(
+			// // psql,
+			// // "teams",
+			// // "study_id=? AND LOWER(alias) = LOWER(?)",
+			// // String.valueOf(studyID), type);
+			// result =
+			// Database.selectAllFromTableWhere(psql,
+			// "polygon_types",
+			// "LOWER(alias) = LOWER(?)", type);
+			//
+			// if (result.length() != 1) {
+			// if (allowNew) {
+			// int nextVal =
+			// Database.getSequenceNextVal(
+			// psql, "teams_id_seq")
+			// .getJSONObject(0)
+			// .getInt("nextval");
+			// Database.insertInto(psql, "teams",
+			// "id,study_id,alias", "?,?,?",
+			// String.valueOf(nextVal),
+			// String.valueOf(studyID), type);
+			// typeID = nextVal;
+			// typeIDMap.put(type, typeID);
+			// } else {
+			// throw new MalformedDataException(
+			// "no such type (" + type
+			// + ") found");
+			// }
+			// } else typeID =
+			// result.getJSONObject(0).getInt("id");
+			// }
+			// List<GeometryLayer.Polyline> polys =
+			// typeMap.get(type);
+			// for (int k = 0; k < polys.size(); k++) {
+			// double [] points = polys.get(k).vF;
+			// String polyString = "POLYGON((";
+			// for (int n = 0; n < points.length; n += 3) {
+			// double x = points[n];
+			// double y = points[n + 1];
+			// if (n != 0) polyString += ",";
+			// polyString += x + " " + y;
+			// }
+			// polyString += ",";
+			// polyString += points[0] + " " + points[1];
+			// polyString += "))";
+			// // Database.insertInto(psql, "polygons",
+			// // "polygon,space_id,functeam,type_id",
+			// // "ST_GeomFromText(?),?,?,?", polyString,
+			// // String.valueOf(spaceID), "team",
+			// // String.valueOf(typeID));
+			// Database.insertInto(
+			// psql,
+			// "polygons",
+			// "polygon,space_id,functeam,type_id",
+			// "(ST_Dump(ST_CollectionExtract("
+			// + "ST_MakeValid(ST_GeomFromText(?))"
+			// + ",3))).geom,?,?,?",
+			// polyString, spaceID, "team", typeID);
+			// }
+			// puncturePolys(psql, spaceID, typeID, "team");
+			// }
+			// }
+			// if (psql.isClosed())
+			// throw new InternalException(
+			// "Connection is already closed");
+			// psql.commit();
+			// psql.setAutoCommit(true);
+			// psql.close();
+			// System.out.println("Done importing teams");
+			// if (psql.isClosed())
+			// System.out.println("Connection closed");
+			// } catch (SQLException | ParseException e1) {
+			// e1.printStackTrace();
+			// return;
+			// } catch (ClassNotFoundException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
+			// }
+			// }
 		}
 		System.out.println("Done importing");
 	}
@@ -849,21 +895,36 @@ public class StorePlans extends FlowUpload {
 				int id1 = polyIDs.get(i);
 				for (int j = i + 1; j < polyIDs.size(); j++) {
 					int id2 = polyIDs.get(j);
-					if (Database
-							.customQuery(
+					// if (Database
+					// .customQuery(
+					// psql,
+					// "SELECT splab_poly_contains_not_equals(?,?) AS contains",
+					// String.valueOf(id1), String.valueOf(id2))
+					// .getJSONObject(0).getString("contains")
+					// .equalsIgnoreCase("t")) {
+					// contains.add(new SimpleEntry<Integer, Integer>(id1,
+					// id2));
+					// } else if (Database
+					// .customQuery(
+					// psql,
+					// "SELECT splab_poly_contains_not_equals(?,?) AS contains",
+					// String.valueOf(id2), String.valueOf(id1))
+					// .getJSONObject(0).getString("contains")
+					// .equalsIgnoreCase("t")) {
+					// contains.add(new SimpleEntry<Integer, Integer>(id2,
+					// id1));
+					// }
+					String containsCheck =
+							Database.customQuery(
 									psql,
-									"SELECT splab_poly_contains_not_equals(?,?) AS contains",
+									"SELECT splab_poly_contains_or_equals(?,?) AS contains",
 									String.valueOf(id1), String.valueOf(id2))
-							.getJSONObject(0).getString("contains")
-							.equalsIgnoreCase("t")) {
+									.getJSONObject(0).getString("contains");
+					if (containsCheck.equalsIgnoreCase("e")) {
+						Database.deleteFrom(psql, "polygons", "id=?", id2);
+					} else if (containsCheck.equalsIgnoreCase("c1")) {
 						contains.add(new SimpleEntry<Integer, Integer>(id1, id2));
-					} else if (Database
-							.customQuery(
-									psql,
-									"SELECT splab_poly_contains_not_equals(?,?) AS contains",
-									String.valueOf(id2), String.valueOf(id1))
-							.getJSONObject(0).getString("contains")
-							.equalsIgnoreCase("t")) {
+					} else if (containsCheck.equalsIgnoreCase("c2")) {
 						contains.add(new SimpleEntry<Integer, Integer>(id2, id1));
 					}
 				}
@@ -893,7 +954,7 @@ public class StorePlans extends FlowUpload {
 						"SELECT splab_puncture_poly(?,?::integer[])",
 						String.valueOf(tree.id), idArray);
 			}
-		} catch (SQLException | ParseException e) {
+		} catch (SQLException | ParseException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

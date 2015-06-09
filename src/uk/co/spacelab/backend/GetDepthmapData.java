@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.postgresql.util.PSQLException;
 
 /**
  * Servlet implementation class GetDepthmapData
@@ -117,9 +116,9 @@ public class GetDepthmapData extends HttpServlet {
 			// .getJSONObject(0).getString("st_asbinary")));
 			// "SELECT * FROM spaces;"));
 
-		} catch (PSQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// } catch (PSQLException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

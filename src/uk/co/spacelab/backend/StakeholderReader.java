@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.ss.usermodel.Cell;
@@ -26,10 +27,18 @@ import org.apache.poi.ss.util.AreaReference;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import static uk.co.spacelab.backend.Constants.DEBUG;
 
 public class StakeholderReader {
-
+	private static final String TABLE_TEAM_TIES = "interview_team_ties",
+			TABLE_ISSUES = "interview_issues",
+			TABLE_CLIENT_ISSUES = "interview_client_issues",
+			TABLE_INTERVIEW_QUOTES = "interview_quotes",
+			TABLE_INTERVIEW_QUOTE_ISSUES = "interview_quote_issues",
+			TABLE_INTERVIEW_QUESTION_CHOICE_SCORE = "interview_team_question_choice_score",
+			TABLE_INTERVIEW_QUESTIONS = "interview_questions",
+			TABLE_INTERVIEW_POSSIBLE_CHOICES = "interview_possible_choices";
 	Map<String, String> validations = new HashMap<String, String>();
 	// protected JSONObject initialValidation(String filename, int studyID)
 	// throws FileNotFoundException, IOException, ClassNotFoundException,
@@ -116,15 +125,22 @@ public class StakeholderReader {
 			if (!staticData.containsKey(name))
 				throw new MalformedDataException(name + " named range missing");
 		Map<String, String> nameFormulas = getNamesFormulas(wb, requiredNames);
-
+		Connection psql = Database.getConnection();
 		JSONArray databaseTeams =
-				Database.selectAllFromTableWhere("teams", "study_id=?",
+				Database.selectAllFromTableWhere(psql, "teams", "study_id=?",
 						String.valueOf(studyID));
+		JSONArray databaseIssues =
+				Database.selectAllFromTable(psql, TABLE_ISSUES);
+		JSONArray databaseClientIssues =
+				Database.selectAllFromTableWhere(psql, TABLE_CLIENT_ISSUES,
+						"study_id=?", String.valueOf(studyID));
 		JSONArray databaseQuestions =
-				Database.customQuery("SELECT interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
-						+ "(SELECT alias FROM interview_questions "
-						+ "WHERE interview_questions.id=parent_questions.parent_id) AS parent FROM interview_questions JOIN "
-						+ "interview_questions AS parent_questions ON interview_questions.id=parent_questions.id;");
+				Database.customQuery(
+						psql,
+						"SELECT interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
+								+ "(SELECT alias FROM interview_questions "
+								+ "WHERE interview_questions.id=parent_questions.parent_id) AS parent FROM interview_questions JOIN "
+								+ "interview_questions AS parent_questions ON interview_questions.id=parent_questions.id;");
 		// Database.selectAllFromTable("interview_questions");
 		// List<String> databaseTeamsList = new ArrayList<String>();
 		// for (int i = 0; i < databaseTeams.length(); i++)
@@ -308,6 +324,40 @@ public class StakeholderReader {
 						}
 					}
 				}
+			} else if (key.equalsIgnoreCase("ISSUE_LIST")) {
+				for (String alias : staticData.get(key)) {
+					JSONObject o = new JSONObject();
+					o.put("alias", alias);
+					arr.put(o);
+					for (int i = 0; i < databaseIssues.length(); i++) {
+						String issueDB =
+								databaseIssues.getJSONObject(i).getString(
+										"alias");
+						if (issueDB.equalsIgnoreCase(alias)) {
+							o.put("prematchproperty", "id");
+							o.put("prematch", issueDB);
+
+							break;
+						}
+					}
+				}
+			} else if (key.equalsIgnoreCase("CLIENT_ISSUE_LIST")) {
+				for (String alias : staticData.get(key)) {
+					JSONObject o = new JSONObject();
+					o.put("alias", alias);
+					arr.put(o);
+					for (int i = 0; i < databaseClientIssues.length(); i++) {
+						String issueDB =
+								databaseClientIssues.getJSONObject(i)
+										.getString("alias");
+						if (issueDB.equalsIgnoreCase(alias)) {
+							o.put("prematchproperty", "id");
+							o.put("prematch", issueDB);
+
+							break;
+						}
+					}
+				}
 			} else {
 				for (String alias : staticData.get(key)) {
 					JSONObject o = new JSONObject();
@@ -319,6 +369,7 @@ public class StakeholderReader {
 		}
 		out.put("DATABASE_TEAMS", databaseTeams);
 		out.put("DATABASE_QUESTIONS", databaseQuestions);
+		out.put("DATABASE_ISSUES", databaseIssues);
 		out.put("fileid", fileid);
 		return out;
 	}
@@ -365,35 +416,34 @@ public class StakeholderReader {
 	int addQuestionToDB(String question, Integer parentID)
 			throws JSONException, ClassNotFoundException, SQLException,
 			ParseException {
-		Connection psql = Database.getConnection();
-		psql.setAutoCommit(false);
-		int nextval =
-				Database.getSequenceNextVal(psql, "interview_questions_id_seq")
-						.getJSONObject(0).getInt("nextval");
-		if (parentID != null)
-			Database.insertInto(psql, "interview_questions", "alias,parent_id",
-					"?,?", question, parentID);
-		else Database.insertInto(psql, "interview_questions",
-				"alias,parent_id", "?,NULL", question);
-		psql.commit();
-		psql.setAutoCommit(true);
+		int nextval = -1;
+		try (Connection psql = Database.getConnection()) {
+			psql.setAutoCommit(false);
+			nextval =
+					Database.getSequenceNextVal(psql,
+							"interview_questions_id_seq").getJSONObject(0)
+							.getInt("nextval");
+			if (parentID != null)
+				Database.insertInto(psql, "interview_questions",
+						"alias,parent_id", "?,?", question, parentID);
+			else Database.insertInto(psql, "interview_questions",
+					"alias,parent_id", "?,NULL", question);
+			psql.commit();
+			psql.setAutoCommit(true);
+		}
 		return nextval;
 	}
-	void addScoreToDB(int studyID, int questionID, int fromTeamID,
-			int toTeamID, float score) throws JSONException,
+	void addScoreToDB(Connection psql, int studyID, int questionID,
+			int fromTeamID, int toTeamID, float score) throws JSONException,
 			ClassNotFoundException, SQLException, ParseException {
-		Connection psql = Database.getConnection();
-		psql.setAutoCommit(false);
 		// int nextval =
 		// Database.getSequenceNextVal(psql, "interview_questions_id_seq")
 		// .getJSONObject(0).getInt("nextval");
 
-		Database.insertInto(psql, "team_team_score",
-				"study_id,question_id,team_id,scored_team_id,mark",
-				"?,?,?,?,?", studyID, questionID, fromTeamID, toTeamID, score);
+		Database.insertInto(psql, TABLE_TEAM_TIES,
+				"study_id,question_id,team_from,team_to,score", "?,?,?,?,?",
+				studyID, questionID, fromTeamID, toTeamID, score);
 
-		psql.commit();
-		psql.setAutoCommit(true);
 		// return voi;
 	}
 	protected Map<String, Question> processQuestions(JSONArray questionsIn)
@@ -467,12 +517,13 @@ public class StakeholderReader {
 				}
 				if (breakcounter < 1) return null;
 				// int
-				System.out.println(validQuestions);
+				// System.out.println(validQuestions);
 				for (int i = validQuestions.size() - 1; i >= 0; i--) {
+					Question qq = questions.get(validQuestions.get(i));
 					String clearQ =
 							clearQuestionAlias(validQuestions.get(i))[0];
 					if (parentID != null)
-						Database.insertInto(psql, "interview_questions",
+						Database.insertInto(psql, TABLE_INTERVIEW_QUESTIONS,
 								"alias,parent_id", "?,?", clearQ, parentID);
 					else Database.insertInto(psql, "interview_questions",
 							"alias,parent_id", "?,NULL", clearQ);
@@ -480,11 +531,19 @@ public class StakeholderReader {
 							Database.getSequenceCurrVal(psql,
 									"interview_questions_id_seq")
 									.getJSONObject(0).getInt("currval");
+					if (qq.choices != null) {
+						for (String choice : qq.choices)
+							Database.insertInto(psql,
+									TABLE_INTERVIEW_POSSIBLE_CHOICES,
+									"question_id,choice", "?,?", currval,
+									choice);
+					}
 					parentID = currval;
 					questions.put(validQuestions.get(i), new Question(
 							validQuestions.get(i)).matchID(parentID));
 				}
 			}
+
 		}
 		psql.commit();
 		psql.setAutoCommit(true);
@@ -494,12 +553,13 @@ public class StakeholderReader {
 			throws ClassNotFoundException, SQLException, ParseException {
 		Map<String, Integer> teams = new HashMap<String, Integer>();
 		Map<String, JSONObject> teamsJSON = new HashMap<String, JSONObject>();
+		Map<String, String> teamNames = new HashMap<String, String>();
 		for (int i = 0; i < teamsIn.length(); i++) {
 			JSONObject q = teamsIn.getJSONObject(i);
 			if (q.optString("match").equals("*")) {
 				// is new
 				System.out.println(q.getString("alias") + " is new");
-				teams.put(q.getString("alias"), -1);
+				teams.put(q.getString("alias").toUpperCase(), -1);
 
 			} else if (q.optString("match").equals("-")) {
 				// ignore this
@@ -507,11 +567,13 @@ public class StakeholderReader {
 				continue;
 			} else if (q.has("match")) {
 				JSONObject match = q.getJSONObject("match");
-				teams.put(q.getString("alias"), match.getInt("id"));
+				teams.put(q.getString("alias").toUpperCase(),
+						match.getInt("id"));
 			}
 			teamsJSON.put(q.getString("alias"), q);
+			teamNames.put(q.getString("alias").toUpperCase(),
+					q.getString("alias"));
 		}
-		System.out.println(teams);
 		Connection psql = Database.getConnection();
 		psql.setAutoCommit(false);
 		for (String team : teams.keySet()) {
@@ -522,8 +584,8 @@ public class StakeholderReader {
 				int breakcounter = 100;
 				Integer parentID = null;
 				while (breakcounter > 1) {
-					if (teamsJSON.get(q).has("parent")) {
-						q = teamsJSON.get(q).getString("parent");
+					if (teamsJSON.get(teamNames.get(q)).has("parent")) {
+						q = teamsJSON.get(teamNames.get(q)).getString("parent");
 						if (!teams.containsKey(q))
 							throw new MalformedDataException("Parent '" + q
 									+ "' missing");
@@ -562,6 +624,80 @@ public class StakeholderReader {
 
 		return teams;
 	}
+
+	Map<String, Integer> processIssues(JSONArray dataIn)
+			throws ClassNotFoundException, SQLException, ParseException {
+		Map<String, Integer> issues = new HashMap<String, Integer>();
+		// List<String> issues = new ArrayList<String>();
+		Map<String, JSONObject> issuesJSON = new HashMap<String, JSONObject>();
+		for (int i = 0; i < dataIn.length(); i++) {
+			JSONObject q = dataIn.getJSONObject(i);
+			if (q.optString("match").equals("*")) {
+				// is new
+				System.out.println(q.getString("alias") + " is new");
+				issues.put(q.getString("alias"), -1);
+
+			} else if (q.optString("match").equals("-")) {
+				// ignore this
+				System.out.println(q.getString("alias") + " to be ingored");
+				continue;
+			} else if (q.has("match")) {
+				JSONObject match = q.getJSONObject("match");
+				issues.put(q.getString("alias"), match.getInt("id"));
+			}
+			issuesJSON.put(q.getString("alias"), q);
+		}
+		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		for (String issue : issues.keySet()) {
+			if (issues.get(issue) == -1) {
+				List<String> validIssues = new ArrayList<String>();
+				String q = issue;
+				validIssues.add(q);
+				int breakcounter = 100;
+				String groupID = null;
+				// while (breakcounter > 1) {
+				if (issuesJSON.get(q).has("group"))
+					groupID = issuesJSON.get(q).getString("group");
+
+				// q = issuesJSON.get(q).getString("group");
+				// if (!issues.containsKey(q))
+				// throw new MalformedDataException("Group '" + q
+				// + "' missing");
+				// if (issues.get(q) == -1)
+				// validIssues.add(q);
+				// else {
+				// groupID = issues.get(q);
+				// break;
+				// }
+				// } else {
+				// break;
+				// }
+				// breakcounter--;
+				// }
+				// if (breakcounter < 1) return null;
+				// for (int i = validIssues.size() - 1; i >= 0; i--) {
+				// String clearQ = validIssues.get(i);
+				if (groupID != null)
+					Database.insertInto(psql, TABLE_ISSUES,
+							"alias,issue_group", "?,?", issue, groupID);
+				else Database.insertInto(psql, TABLE_ISSUES,
+						"alias,issue_group", "?,NULL", issue);
+				int currval =
+						Database.getSequenceCurrVal(psql,
+								"interview_issues_id_seq").getJSONObject(0)
+								.getInt("currval");
+				// parentID = currval;
+				issues.put(issue, currval);
+				// }
+			}
+		}
+		psql.commit();
+		psql.setAutoCommit(true);
+
+		return issues;
+	}
+
 	protected void convert(String fileName, int studyID,
 			JSONObject staticDataJSON) throws ClassNotFoundException,
 			SQLException, IOException, ParseException {
@@ -572,40 +708,50 @@ public class StakeholderReader {
 				processQuestions(staticDataJSON.getJSONArray("questions"));
 		Map<String, Integer> teams =
 				processTeams(staticDataJSON.getJSONArray("teams"), studyID);
-		List<String> issues = new ArrayList<String>();
-		for (int i = 0; i < staticDataJSON.getJSONArray("issues").length(); i++)
-			issues.add(staticDataJSON.getJSONArray("issues").getJSONObject(i)
-					.getString("alias"));
-		List<String> clientIssues = new ArrayList<String>();
-		for (int i = 0; i < staticDataJSON.getJSONArray("client_issues")
-				.length(); i++)
-			clientIssues.add(staticDataJSON.getJSONArray("client_issues")
-					.getJSONObject(i).getString("alias"));
 
+		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		Map<String, Integer> issues =
+				processIssues(staticDataJSON.getJSONArray("issues"));
+		// List<String> issues = new ArrayList<String>();
+		// for (int i = 0; i < staticDataJSON.getJSONArray("issues").length();
+		// i++) {
+		// String alias =
+		// staticDataJSON.getJSONArray("issues").getJSONObject(i)
+		// .getString("alias");
+		// // Database.selectAllFromTableWhere(TABLE_ISSUES, "alias=?", alias);
+		// issues.add(alias);
+		// }
+		Map<String, Integer> clientIssues = new HashMap<String, Integer>();
+		// List<String> clientIssues = new ArrayList<String>();
+		// for (int i = 0; i < staticDataJSON.getJSONArray("client_issues")
+		// .length(); i++)
+		// clientIssues.add(staticDataJSON.getJSONArray("client_issues")
+		// .getJSONObject(i).getString("alias"));
+
+		psql.commit();
+		psql.setAutoCommit(true);
 		// if (true) return;
 		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
 		int ns = wb.getNumberOfSheets();
 		List<Score> teamTeamScores = new ArrayList<Score>();
 		List<Quote> comments = new ArrayList<Quote>();
-		Map<String, List<Quote>> issueQuotes =
-				new HashMap<String, List<Quote>>();
-		Map<String, List<Quote>> clientIssueQuotes =
-				new HashMap<String, List<Quote>>();
 		Map<String, Map<String, Map<String, Float>>> teamQuestionScores =
 				new HashMap<String, Map<String, Map<String, Float>>>();
 		for (int i = 0; i < ns; i++) {
 			if (wb.getSheetName(i).equalsIgnoreCase("TEAMS")) {
 			} else if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS")) {
+			} else if (wb.getSheetName(i).equalsIgnoreCase("ISSUES")) {
 			} else {
 				XSSFSheet sheet = wb.getSheetAt(i);
 				XSSFRow firstRow = sheet.getRow(0);
-				System.out.println(sheet.getSheetName());
+				// System.out.println("Sheet " + sheet.getSheetName());
 				if (sheet.getRow(0) == null
 						|| sheet.getRow(0).getCell(0) == null
 						|| sheet.getRow(0).getCell(0).getCellComment() == null)
 					continue;
-				System.out.println(" "
-						+ firstRow.getCell(0).getCellComment().getString());
+				// System.out.println("Comment: "
+				// + firstRow.getCell(0).getCellComment().getString());
 				String firstCellComment =
 						firstRow.getCell(0).getCellComment().getString()
 								.getString();
@@ -629,7 +775,8 @@ public class StakeholderReader {
 					for (int j = 0; j < firstRow.getPhysicalNumberOfCells(); j++) {
 						if (firstRow.getCell(j) == null) continue;
 						String cellVal =
-								firstRow.getCell(j).getStringCellValue().trim();
+								firstRow.getCell(j).getStringCellValue().trim()
+										.toUpperCase();
 						if (teams.containsKey(cellVal))
 							// if
 							// (staticData.get("DEPARTMENT_LIST").containsKey(
@@ -641,22 +788,31 @@ public class StakeholderReader {
 					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
 						Cell c = sheet.getRow(j).getCell(0);
 						if (c == null) continue;
-						String cellVal = c.getStringCellValue().trim();
-						if (cellVal.length() < 1
+						String cellVal =
+								c.getStringCellValue().trim().toUpperCase();
+						if (cellVal != null && cellVal.length() < 1
 						// || staticData.get("DEPARTMENT_LIST")
-								|| teams.containsKey(cellVal)) continue;
+								|| !teams.containsKey(cellVal)) continue;
 						teamsVertical.put(j, cellVal);
 						// Database.insertInto(table, columnString, args)
 					}
 					for (Integer r : teamsVertical.keySet()) {
-						if (sheet.getRow(r).getCell(commentsColumn) != null) {
+						if (commentsColumn != -1
+								&& sheet.getRow(r).getCell(commentsColumn) != null) {
 							String comment =
 									sheet.getRow(r).getCell(commentsColumn)
 											.getStringCellValue();
-							comments.add(new Quote(question, teamsVertical
-									.get(r), comment));
+							comments.add(new Quote(questions.get(question),
+									teamsVertical.get(r), comment));
 						}
 						for (Integer c : teamsHorizontal.keySet()) {
+							if (teamsVertical.get(r).equalsIgnoreCase(
+									teamsHorizontal.get(c))) {
+								continue;
+							}
+							if (sheet.getRow(r) == null
+									|| sheet.getRow(r).getCell(c) == null)
+								continue;
 							float score =
 									(float) sheet.getRow(r).getCell(c)
 											.getNumericCellValue();
@@ -666,16 +822,14 @@ public class StakeholderReader {
 											.get(c), score, ""));
 						}
 					}
-					for (Score s : teamTeamScores) {
-						System.out.println(s);
-					}
-					// TODO: implement database transfer
 				} else if (firstCellComment.equals("dept/question")) {
 					Map<Integer, String> teamsVertical =
 							new HashMap<Integer, String>();
 					String currVal = null;
 					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
-						Cell c = sheet.getRow(j).getCell(0);
+						Row rr = sheet.getRow(j);
+						if (null == rr) continue;
+						Cell c = rr.getCell(0);
 						if (c == null) {
 							if (currVal != null) teamsVertical.put(j, currVal);
 							continue;
@@ -685,7 +839,10 @@ public class StakeholderReader {
 							if (currVal != null) teamsVertical.put(j, currVal);
 							continue;
 						}
-						if (!teams.containsKey(cellVal)) continue;
+						// System.out.println(j+" " + cellVal+" " +
+						// teams.containsKey(cellVal.toUpperCase()));
+						if (!teams.containsKey(cellVal.toUpperCase()))
+							continue;
 						teamsVertical.put(j, cellVal);
 						currVal = cellVal;
 					}
@@ -723,27 +880,33 @@ public class StakeholderReader {
 							Cell c = sheet.getRow(row).getCell(currCell);
 							if (c == null) continue;
 							String cellVal = c.getStringCellValue().trim();
+							// System.out.println(cellVal);
 							if (cellVal.length() < 1) continue;
 							Quote qt =
-									new Quote(question, teamsVertical.get(row),
-											cellVal);
+									new Quote(questions.get(question),
+											teamsVertical.get(row), cellVal);
 							comments.add(qt);
 							if (sheet.getRow(row).getCell(flagColumn) != null
-									&& sheet.getRow(row).getCell(flagColumn)
-											.getNumericCellValue() - 1 < 0.001)
+									&& Math.abs(sheet.getRow(row)
+											.getCell(flagColumn)
+											.getNumericCellValue() - 1) < 0.001)
 								qt.flag = true;
 							for (Integer col : issueCols) {
 								Cell c1 = sheet.getRow(row).getCell(col);
 								if (c1 == null) continue;
 								String cellVal1 =
 										c1.getStringCellValue().trim();
-								if (cellVal1.length() < 1
-										|| !issues.contains(cellVal1))
+								// if (cellVal1.length() > 0)
+								// System.out.println(cellVal1 + " "
+								// + issues.get(cellVal1));
+								if (null == cellVal1 || cellVal1.length() < 1
+										|| !issues.containsKey(cellVal1))
 									continue;
-								if (!issueQuotes.containsKey(cellVal1))
-									issueQuotes.put(cellVal1,
-											new ArrayList<Quote>());
-								issueQuotes.get(cellVal1).add(qt);
+								qt.addIssue(issues.get(cellVal1));
+								// if (!issueQuotes.containsKey())
+								// issueQuotes.put(cellVal1,
+								// new ArrayList<Quote>());
+								// issueQuotes.get(cellVal1).add(qt);
 							}
 							for (Integer col : clientIssueCols) {
 								Cell c1 = sheet.getRow(row).getCell(col);
@@ -751,26 +914,42 @@ public class StakeholderReader {
 								String cellVal1 =
 										c1.getStringCellValue().trim();
 								if (cellVal1.length() < 1
-										|| !clientIssues.contains(cellVal1))
+										|| !clientIssues.containsKey(cellVal1))
 									continue;
-								if (!clientIssueQuotes.containsKey(cellVal1))
-									clientIssueQuotes.put(cellVal1,
-											new ArrayList<Quote>());
-								clientIssueQuotes.get(cellVal1).add(qt);
+								qt.addClientIssue(clientIssues.get(cellVal1));
+								// if (!clientIssueQuotes.containsKey(cellVal1))
+								// clientIssueQuotes.put(cellVal1,
+								// new ArrayList<Quote>());
+								// clientIssueQuotes.get(cellVal1).add(qt);
 							}
-
 						}
 					}
-					// TODO: implement database transfer
+					// for (String issue : issueQuotes.keySet()) {
+					// System.out.println(issue);
+					// for (Quote qt : issueQuotes.get(issue)) {
+					// System.out.println(qt.quote);
+					// }
+					// }
+					// for (String issue : clientIssueQuotes.keySet()) {
+					// System.out.println(issue);
+					// for (Quote qt : issueQuotes.get(issue)) {
+					// System.out.println(qt.quote);
+					// }
+					// }
 				} else if (firstCellComment.equals("question/choice")) {
 					Map<Integer, String> parentQuestionsVertical =
 							new HashMap<Integer, String>();
 					List<Integer> haveComment = new ArrayList<Integer>();
 					Map<Integer, String> teamsVertical =
 							new HashMap<Integer, String>();
-					String currVal = null;
+					String tVal = null;
+					String qVal = null;
 					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
-						Cell c = sheet.getRow(j).getCell(0);
+						Row rr = sheet.getRow(j);
+						if (null == rr) continue;
+						Cell c = rr.getCell(0);
+
+						System.out.println("Row: " + j);
 
 						boolean hasComment =
 								(sheet.getRow(j + 1) != null
@@ -780,34 +959,39 @@ public class StakeholderReader {
 										.equalsIgnoreCase("COMMENTS")));
 						if (hasComment) haveComment.add(j);
 						if (c == null) {
-							if (currVal != null)
-								parentQuestionsVertical.put(j, currVal);
+							if (qVal != null)
+								parentQuestionsVertical.put(j, qVal);
 							continue;
 						}
 						String cellVal = c.getStringCellValue().trim();
 						if (cellVal.length() < 1) {
-							if (currVal != null)
-								parentQuestionsVertical.put(j, currVal);
+							if (qVal != null)
+								parentQuestionsVertical.put(j, qVal);
 							continue;
 						}
 						if (!questions.containsKey(cellVal)) continue;
-						parentQuestionsVertical.put(j, cellVal);
-						currVal = cellVal;
+						String nqVal = cellVal;
 
 						c = sheet.getRow(j).getCell(1);
 						if (c == null) {
-							if (currVal != null) teamsVertical.put(j, currVal);
+							if (tVal != null) teamsVertical.put(j, tVal);
 							continue;
 						}
 						cellVal = c.getStringCellValue().trim();
+
 						if (cellVal.length() < 1) {
-							if (currVal != null) teamsVertical.put(j, currVal);
+							if (tVal != null) teamsVertical.put(j, tVal);
 							continue;
 						}
-						if (!teams.containsKey(cellVal)) continue;
-						teamsVertical.put(j, cellVal);
-						currVal = cellVal;
+						if (!teams.containsKey(cellVal.toUpperCase()))
+							continue;
 
+						parentQuestionsVertical.put(j, nqVal);
+						qVal = nqVal;
+						teamsVertical.put(j, cellVal);
+						tVal = cellVal;
+
+						System.out.println(cellVal);
 						if (hasComment) j++;
 					}
 					List<String> possibleChoices = new ArrayList<String>();
@@ -826,7 +1010,11 @@ public class StakeholderReader {
 							String q = parentQuestionsVertical.get(row);
 							String currTeam = teamsVertical.get(row);
 							if (!questions.containsKey(q)) continue;
-							if (!teams.containsKey(currTeam)) continue;
+							// FIXME fix this below (it was supposed to be
+							// checked earlier)
+							if (null == currTeam) continue;
+							if (!teams.containsKey(currTeam.toUpperCase()))
+								continue;
 							List<Question> children =
 									getChildQuestions(questions.get(q),
 											questions);
@@ -844,17 +1032,27 @@ public class StakeholderReader {
 												.getStringCellValue().trim();
 								if (cv.length() > 0) {
 									Quote qt =
-											new Quote(actualQuestion.alias,
-													currTeam, cv);
+											new Quote(actualQuestion, currTeam,
+													cv);
 									comments.add(qt);
 									// System.out.println(qt);
 								}
 							}
 							float score = 0;
-							if (sheet.getRow(row).getCell(col) != null)
-								score =
-										(float) sheet.getRow(row).getCell(col)
-												.getNumericCellValue();
+							if (sheet.getRow(row).getCell(col) != null) {
+								try {
+									score =
+											(float) sheet.getRow(row)
+													.getCell(col)
+													.getNumericCellValue();
+								} catch (java.lang.IllegalStateException e) {
+									String cellVal =
+											sheet.getRow(row).getCell(col)
+													.getStringCellValue();
+									if (NumberUtils.isNumber(cellVal))
+										score = Float.parseFloat(cellVal);
+								}
+							}
 							if (score < 0.001) continue;
 							if (!teamQuestionScores.containsKey(currTeam))
 								teamQuestionScores
@@ -885,11 +1083,59 @@ public class StakeholderReader {
 				}
 			}
 		}
-
+		psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		Database.deleteFrom(psql, TABLE_TEAM_TIES, "study_id=?", studyID);
 		for (Score s : teamTeamScores) {
-			addScoreToDB(studyID, questions.get(s.question).matchID,
+			addScoreToDB(psql, studyID, questions.get(s.question).matchID,
 					teams.get(s.from), teams.get(s.to), s.score);
 		}
+		Database.customQueryNoResult(psql, "DELETE FROM "
+				+ TABLE_INTERVIEW_QUOTE_ISSUES
+				+ " WHERE quote_id IN (SELECT id FROM "
+				+ TABLE_INTERVIEW_QUOTES + " WHERE study_id=?)", studyID);
+		Database.deleteFrom(psql, TABLE_INTERVIEW_QUOTES, "study_id=?", studyID);
+		for (Quote q : comments) {
+			Database.insertInto(psql, TABLE_INTERVIEW_QUOTES,
+					"study_id,question_id,quote,flag", "?,?,?,?", studyID,
+					q.question.matchID, q.quote, q.flag ? 1 : 0);
+			int currval =
+					Database.getSequenceCurrVal(psql, "interview_quotes_id_seq")
+							.getJSONObject(0).getInt("currval");
+			if (q.issues != null) for (Integer issue : q.issues) {
+				// System.out.println(issue);
+				Database.insertInto(psql, TABLE_INTERVIEW_QUOTE_ISSUES,
+						"quote_id,issue_id", "?,?", currval, issue);
+			}
+		}
+		Database.deleteFrom(psql, TABLE_INTERVIEW_QUESTION_CHOICE_SCORE,
+				"study_id=?", studyID);
+		for (String team : teamQuestionScores.keySet()) {
+			Integer teamID = teams.get(team.toUpperCase());
+			System.out.println(team + " " + teamID);
+			for (String questionAlias : teamQuestionScores.get(team).keySet()) {
+				Question question = questions.get(questionAlias);
+				// System.out.println(questionAlias);
+				Map<String, Float> scores =
+						teamQuestionScores.get(team).get(questionAlias);
+				for (String choice : scores.keySet()) {
+					// System.out.println(choice);
+					if (!question.choices.contains(choice)) continue;
+					Float score = scores.get(choice);
+
+					Database.insertInto(psql,
+							TABLE_INTERVIEW_QUESTION_CHOICE_SCORE,
+							"study_id,question_id,team_id,choice,score",
+							"?,?,?,?,?", studyID, question.matchID, teamID,
+							choice, score);
+				}
+			}
+
+		}
+		System.out.println("Comitting...");
+		psql.commit();
+		System.out.println("Done!");
+		psql.setAutoCommit(true);
 	}
 	List<Question> getChildQuestions(Question parent,
 			Map<String, Question> questions) {
@@ -899,9 +1145,12 @@ public class StakeholderReader {
 		return children;
 	}
 	class Quote {
-		String question, from, quote;
+		String from, quote;
+		Question question;
 		boolean flag;
-		Quote(String question, String from, String quote) {
+		private List<Integer> issues;
+		private List<Integer> clientIssues;
+		Quote(Question question, String from, String quote) {
 			this.question = question;
 			this.from = from;
 			this.quote = quote;
@@ -911,7 +1160,15 @@ public class StakeholderReader {
 			return this;
 		}
 		public String toString() {
-			return "?: " + question + ", T: " + from + " !:" + quote;
+			return "?: " + question.alias + ", T: " + from + " !:" + quote;
+		}
+		private void addIssue(Integer issue) {
+			if (issues == null) issues = new ArrayList<Integer>();
+			issues.add(issue);
+		}
+		private void addClientIssue(Integer issue) {
+			if (clientIssues == null) clientIssues = new ArrayList<Integer>();
+			clientIssues.add(issue);
 		}
 	}
 	class Score {
@@ -963,7 +1220,9 @@ public class StakeholderReader {
 			if (row == -1) {
 				// whole column
 				for (int i = 0; i < sheet.getPhysicalNumberOfRows(); i++) {
-					c = sheet.getRow(i).getCell(cr.getCol());
+					Row rr = sheet.getRow(i);
+					if (rr == null) continue;
+					c = rr.getCell(cr.getCol());
 					if (c != null) cells.add(c.getStringCellValue().trim());
 				}
 				continue;

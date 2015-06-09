@@ -131,16 +131,16 @@ public class SetRoundModel extends HttpServlet {
 				// );
 				// $results->execute ();
 				Connection psql = Database.getConnection();
-				out.println(Database.insertInto(psql, "date_round_matrices",
-						columnString, valueString, values));
+				Database.insertInto(psql, "date_round_matrices", columnString,
+						valueString, values);
 				psql.close();
 				// echo print_r ( $results->fetch () );
 				// $row = $results->fetch ();
 				// $modelid = $row ['id'];
 				Map<String, String> toSet = new HashMap<String, String>();
 				toSet.put("time_model_table", type);
-				out.println(Database.update("observations", toSet, "id=?",
-						new String [] {observationid}));
+				Database.update("observations", toSet, "id=?",
+						new String [] {observationid});
 				// $query = 'UPDATE observations SET
 				// time_model_table=:modeltable
 				// WHERE observation_id=:observationid;';

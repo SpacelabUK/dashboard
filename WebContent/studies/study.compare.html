@@ -1,0 +1,264 @@
+
+<div class="main-container" style="font-family: Apercu">
+
+  <!-- Header Bar -->
+
+  <div class="row header">
+    <div class="col-xs-12">
+      <div class="meta pull-left">
+        <div class="page">{{projectname}}</div>
+        <div class="breadcrumb-links">Home / Studies /
+          {{projectname}}</div>
+      </div>
+      <div class="user pull-right">
+        <div class="item dropdown">
+          <a href="#" class="dropdown-toggle"> </a>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li class="dropdown-header">Joe Bloggs</li>
+            <li class="divider"></li>
+            <li class="link">
+              <a href="#"> Profile </a>
+            </li>
+            <li class="link">
+              <a href="#"> Menu Item </a>
+            </li>
+            <li class="link">
+              <a href="#"> Menu Item </a>
+            </li>
+            <li class="divider"></li>
+            <li class="link">
+              <a href="#"> Logout </a>
+            </li>
+          </ul>
+        </div>
+        <div class="item dropdown">
+          <a href="#" class="dropdown-toggle">
+            <i class="fa fa-bell-o"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li class="dropdown-header">Notifications</li>
+            <li class="divider"></li>
+            <li>
+              <a href="#">Server Down!</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Header Bar -->
+
+  <!-- Main Content -->
+  <div class="row alerts-container" data-ng-controller="AlertsCtrl"
+    data-ng-show="alerts.length">
+    <div class="col-xs-12">
+      <alert data-ng-repeat="alert in alerts" type="{{alert.type}}"
+        close="closeAlert($index)">{{alert.msg}}</alert>
+    </div>
+  </div>
+  <div class="row">
+    <div gridster="gridsterOpts">
+      <ul>
+        <li gridster-item="lal" style="text-align: center">
+          <h4>Minimum Occupancy</h4>
+          <responsive-doughnut-chart style="display: block;height:75%"
+            parts="minOccupancyValues" labels="minOccupancyLabels"
+            title="'Average Occupancy'" show-text="true"
+            show-only-first="true"></responsive-doughnut-chart>
+        </li>
+        <li gridster-item="lal1" style="text-align: center">
+          <h4>Average Occupancy</h4>
+          <responsive-doughnut-chart style="display: block;height:75%"
+            parts="avgOccupancyValues" labels="avgOccupancyLabels"
+            title="'Average Occupancy'" show-text="true"
+            show-only-first="true"></responsive-doughnut-chart>
+        </li>
+        <li gridster-item="lal2" style="text-align: center">
+          <h4>Maximum Occupancy</h4>
+          <responsive-doughnut-chart style="display: block;height:75%"
+            parts="maxOccupancyValues" labels="maxOccupancyLabels"
+            title="'Average Occupancy'" show-text="true"
+            show-only-first="true"></responsive-doughnut-chart>
+        </li>
+        <li gridster-item="lil" style="text-align: center">
+          <h4>Occupancy through the week</h4>
+          <responsive-line-chart parts="occPerRound"></responsive-line-chart>
+        </li>
+        <li gridster-item="lel" style="text-align: center">
+          <div class="widget" style="height: 100%">
+            <div class="widget-body" style="padding: 10px">
+              <div class="widget-icon green pull-left">
+                <i class="fa fa-users"></i>
+              </div>
+              <div class="widget-content pull-left">
+                <div class="title">{{staff}}</div>
+                <div class="comment">Staff</div>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </li>
+        <li gridster-item="lel1" style="text-align: center">
+          <div class="widget" style="height: 100%">
+            <div class="widget-body" style="padding: 10px">
+              <div class="widget-icon blue pull-left"
+                style="width: 60px; height: 60px">
+                <i class="fa fa-desktop"></i>
+              </div>
+              <div class="widget-content pull-left">
+                <div class="title">{{desks}}</div>
+                <div class="comment">Desks</div>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </li>
+        <li gridster-item="lel2" style="text-align: center">
+          <div class="widget" style="height: 100%">
+            <div class="widget-body" style="padding: 10px">
+              <div class="widget-icon orange pull-left">
+                <i class="fa fa-tasks"></i>
+              </div>
+              <div class="widget-content pull-left">
+                <div class="title">{{spaces}}</div>
+                <div class="comment">Floors</div>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </li>
+        <li gridster-item="lel3" style="text-align: center">
+          <div class="widget" style="height: 100%">
+            <div class="widget-body" style="padding: 10px">
+              <div class="widget-icon red pull-left">
+                <i class="fa fa-building"></i>
+              </div>
+              <div class="widget-content pull-left">
+                <div class="title">{{buildings}}</div>
+                <div class="comment">Buildings</div>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </li>
+        <li gridster-item="item" ng-repeat="item in standardItems"
+          style="border: 1px solid #ddd"></li>
+
+      </ul>
+    </div>
+  </div>
+  <!-- <div class="row">
+    <div class="col-lg-3 col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon green pull-left">
+            <i class="fa fa-users"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{staff}}</div>
+            <div class="comment">Staff</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon blue pull-left">
+            <i class="fa fa-desktop"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{desks}}</div>
+            <div class="comment">Desks</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="col-lg-3 col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon orange pull-left">
+            <i class="fa fa-tasks"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{spaces}}</div>
+            <div class="comment">Floors</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer visible-xs"></div>
+    <div class="col-lg-3 col-md-6 col-xs-12">
+      <div class="widget">
+        <div class="widget-body">
+          <div class="widget-icon red pull-left">
+            <i class="fa fa-building"></i>
+          </div>
+          <div class="widget-content pull-left">
+            <div class="title">{{buildings}}</div>
+            <div class="comment">Buildings</div>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="widget" style="text-align: center">
+        <br>
+        <h4>Minimum Occupancy</h4>
+        <doughnut-chart parts="minOccupancyValues"
+          labels="minOccupancyLabels" show-text="true"
+          show-only-first="true"></doughnut-chart>
+
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="widget" style="text-align: center">
+        <br>
+        <h4>Average Occupancy</h4>
+        <doughnut-chart parts="avgOccupancyValues"
+          labels="avgOccupancyLabels" show-text="true"
+          show-only-first="true"></doughnut-chart>
+
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="widget" style="text-align: center">
+        <br>
+        <h4>Maximum Occupancy</h4>
+        <doughnut-chart parts="maxOccupancyValues"
+          labels="maxOccupancyLabels" show-text="true"
+          show-only-first="true"></doughnut-chart>
+
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="widget" style="text-align: center">
+        <br>
+        <h4>Occupancy through the week</h4>
+        <simple-line-chart parts="occPerRound"></simple-line-chart>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="widget" style="text-align: center">
+        <br>
+        <h4>Word Cloud</h4>
+        <wordle parts="wordleData"></wordle>
+        <wordcloud words="words"> </wordcloud>
+      </div>
+    </div>
+  </div> -->
+  <!-- End Main Content -->
+
+</div>

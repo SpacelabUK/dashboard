@@ -1,0 +1,112 @@
+
+<head>
+<style>
+.highlight {
+	background-color: #F4A460;
+}
+
+.disabled {
+	background-color: #eee;
+	color: #ccc;
+}
+</style>
+</head>
+<body style="width: 1024px;">
+
+  <!-- Header Bar -->
+
+  <div class="row header">
+    <div class="col-xs-12">
+      <div class="meta pull-left">
+        <div class="page">Plan data handling</div>
+        <div class="breadcrumb-links">Home / Plan data handling</div>
+      </div>
+    </div>
+  </div>
+  <!-- End Header Bar 
+
+  <div class="row">
+    <div class="col-lg-12">
+      <p>
+        Match the {{types}} found in the file with the ones found in the
+        database. First select one in the first list "In the file" and
+        then select the corresponding one in the second list to be
+        matched with in the database. <br>
+        <br> If the {{type}} in the file is new and has no match on
+        the database click on "{{capitalize(type)}} is new." <br>
+        <br> If any of the {{types}} in the file should not go in
+        the database click on "Ignore {{type}}"
+      </p>
+    </div>
+  </div>
+  <br>-->
+  <div class="row">
+    <div class="col-lg-12">
+      <span>Uploaded file contains these elements:</span><br> <br>
+      <div class="text-center" ng-disabled="{{dataType.ignored}}"
+        ng-repeat="dataType in dataTypes">
+        <span>{{dataType.name}} ({{dataType.spaces.length}}
+          spaces)</span><br>
+        <a class="btn" ng-disabled="{{!dataType.canBeNew}}"
+          ng-class="dataType.state == 'new' ? 'btn-primary' : ''"
+          ng-click="setState(dataType,'new')">New</a>
+        <a class="btn" ng-disabled="{{dataType.canBeNew}}"
+          ng-class="dataType.state == 'overwrite' ? 'btn-primary' : ''"
+          ng-click="setState(dataType,'overwrite')">Overwrite</a>
+        <a class="btn"
+          ng-class="dataType.state == 'ignored' ? 'btn-primary' : ''"
+          ng-click="setState(dataType,'ignored')">Ignore</a>
+        <a class="btn" ng-disabled="{{true}}"
+          ng-class="dataType.state == 'refine' ? 'btn-primary' : ''"
+          ng-click="setState(dataType,'refine'); dataType.refine();">Refine</a>
+        <br> <br>
+      </div>
+      <div class="widget">
+        <div class="widget-body medium">
+          <!-- 
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Matches</th>
+                  <th>Valid</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-class="(element.selected) ? 'highlight' : ''"
+                  ng-click="selectFrom(element)"
+                  ng-repeat="element in fromElements | orderBy:inFilePredicate:reverse | filter:searchElementsInFile">
+                  <td>{{element.alias}}</td>
+                  <td>{{getElementMatch(element)}}</td>
+                  <td><span
+                    ng-class="(element.match) ? 'text-success' : 'text-danger'"><i
+                      class="fa"
+                      ng-class="(element.match) ? 'fa-check' : 'fa-warning'"
+                      tooltip="{{getValidityTooltip(element)}}"></i></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div> -->
+        </div>
+        <div class="widget-footer">
+          <a class="btn pull-right" ng-click="selectedElementIgnore()"
+            href="#" onclick="return false;">Ignore {{type}}</a>
+          <a class="btn pull-right" ng-click="selectedElementIsNew()"
+            href="#" onclick="return false;">{{capitalize(type)}} is
+            new</a>
+          <a class="btn pull-right" ng-click="reset()" href="#"
+            onclick="return false;">Reset</a>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <button class="btn btn-sm btn-info pull-right" ng-click="attach()"
+        ng-disabled="dataInvalid()">Attach</button>
+
+    </div>
+  </div>
+</body>

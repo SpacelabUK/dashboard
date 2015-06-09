@@ -1,0 +1,149 @@
+
+<head>
+<title>Observation setup</title>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<link rel="stylesheet" href="study/plans/setup.css" />
+<style>
+.highlight {
+	background-color: #F4A460;
+}
+</style>
+</head>
+<body style="width: 1024px;">
+
+  <!-- Header Bar -->
+
+  <div class="row header">
+    <div class="col-xs-12">
+      <div class="meta pull-left">
+        <div class="page">Attach poylgons</div>
+        <div class="breadcrumb-links">Home / Attach polygons</div>
+        <!-- <br> <span>Complete all fields and press submit at
+          the end. A quick validation is done on-the-fly and a more
+          thorough one after submitting</span> -->
+      </div>
+    </div>
+  </div>
+  <!-- End Header Bar -->
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="widget">
+            <div class="widget-body">
+              <form action="upload_file.php" method="post"
+                enctype="multipart/form-data">
+                <input type="file" name="file" id="file"
+                  nv-file-select="" uploader="uploader"> <br>
+                <br>
+
+                <textarea id="foundobjects" class="faketextbox" rows="0"
+                  ng-model="searchcomment" readonly></textarea>
+                <input id="dxfstore" type="hidden" name="dxf"></input>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="widget">
+            <div class="widget-title">
+              <i class="fa fa-tasks"></i> Spaces <input type="text"
+                placeholder="Search"
+                class="form-control input-sm pull-right"
+                ng-model="search" />
+            </div>
+            <div class="widget-body medium no-padding">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      ng-repeat="space in foundspaces | orderBy:predicate:reverse | filter:search"
+                      ng-class="(space.selected) ? 'highlight' : ''"
+                      ng-click="selectOnlySpace(space)">
+                      <td>{{space.name}}</td>
+                      <td><span
+                        ng-class="(space.uploaded) ? 'text-success' : ''"><i
+                          class="fa"
+                          ng-class="(space.uploaded) ? 'fa-check' : ''"></i></span>
+                        <!-- 
+                    <span class="text-success"><i
+                      class="fa fa-check"></i></span>--></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="widget-footer">
+              <a class="btn pull-right" ng-click="selectAllSpaces()"
+                href="#" onclick="return false;">Select all</a>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="widget">
+            <div class="widget-title">
+              <i class="fa fa-tasks"></i>Existing Spaces <input
+                type="text" placeholder="Search"
+                class="form-control input-sm pull-right"
+                ng-model="search" />
+            </div>
+            <div class="widget-body medium no-padding">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Layer</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-class="(layer.selected) ? 'highlight' : ''"
+                      ng-click="selectLayer(layer)"
+                      ng-repeat="layer in selectedSpaceLayers | orderBy:layerpredicate:reverse | filter:search"">
+                      <td>{{layer.name}}</td>
+                      <td><span
+                        ng-class="(layer.uploaded) ? 'text-success' : ''"><i
+                          class="fa"
+                          ng-class="(layer.uploaded) ? 'fa-check' : ''"></i></span>
+                        <!-- 
+                    <span class="text-success"><i
+                      class="fa fa-check"></i></span>--></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="widget-footer">
+              <a class="btn pull-right"
+                ng-click="deleteSelectedSpaces(study)" href="#"
+                onclick="return false;">Delete selected</a>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <plan-viewer class="col-lg-12" polys="data"></plan-viewer>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <button class="btn btn-sm btn-info pull-right" ng-click="addDXF(study)"
+        ng-disabled="noSelectedSpaces()">Attach</button>
+
+    </div>
+  </div>
+</body>

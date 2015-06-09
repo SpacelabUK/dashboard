@@ -22,7 +22,6 @@ import org.json.JSONObject;
 public class SQLiteToPostgreSQL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static String dbDriver = "org.sqlite.JDBC";
-
 	public static JSONObject getSpaces(int observationID, String sqliteFile)
 			throws ClassNotFoundException {
 
@@ -136,15 +135,15 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 			Map<Integer, double []> spaceOffsetMap =
 					new HashMap<Integer, double []>();
 			ResultSet rs = statement.executeQuery("SELECT * FROM spaces");
+			Connection psql = Database.getConnection();
+			psql.setAutoCommit(false);
 			int studyID =
-					Database.customQuery(
+					Database.customQuery(psql,
 							"SELECT study_id FROM observations WHERE id=?",
 							String.valueOf(observationID)).getJSONObject(0)
 							.getInt("study_id");
-			Connection psql = Database.getConnection();
 
 			System.out.println("Spaces");
-			psql.setAutoCommit(false);
 			while (rs.next()) {
 				String offsetx = rs.getString("offsetx");
 				String offsety = rs.getString("offsety");
@@ -170,6 +169,7 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 							spacesInDB.getJSONObject(0).getInt(
 									Database.COL.SPACES_ID.toString());
 					Database.update(
+							psql,
 							"spaces",
 							"observation_offset=CAST(? AS point),display_order=?",
 							"id=?",
@@ -192,48 +192,91 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 
 			System.out.println("Snapshots");
 			if (!append) {
-				JSONArray snaps =
-						Database.selectAllFromTableWhere("snapshots",
-								"observation_id=?",
-								String.valueOf(observationID));
-				for (int i = 0; i < snaps.length(); i++)
-					Database.deleteFrom(psql, "occupancy", "snapshot_id=?",
-							String.valueOf(snaps.getJSONObject(i).getInt("id")));
-				Database.deleteFrom(psql, "snapshots", "observation_id=?",
-						String.valueOf(observationID));
+				JSONArray rounds =
+						Database.selectAllFromTableWhere(psql,
+								Database.TABLE_OBSERVATION_ROUNDS,
+								"observation_id=?", observationID);
+				for (int j = 0; j < rounds.length(); j++) {
+					int roundid = rounds.getJSONObject(j).getInt("id");
+					JSONArray snaps =
+							Database.selectAllFromTableWhere(psql,
+									Database.TABLE_OBSERVATION_SNAPSHOTS,
+									"round_id=?", roundid);
+					for (int i = 0; i < snaps.length(); i++)
+						Database.deleteFrom(
+								psql,
+								"occupancy",
+								"snapshot_id=?",
+								String.valueOf(snaps.getJSONObject(i).getInt(
+										"id")));
+					Database.deleteFrom(psql,
+							Database.TABLE_OBSERVATION_SNAPSHOTS, "round_id=?",
+							roundid);
+				}
+				Database.deleteFrom(psql, "observation_rounds",
+						"observation_id=?", observationID);
 			}
-			columnString =
-					"observation_id,day_id,round_id,space_id,start_time,end_time";
-			valueString =
-					"?,?,?,?,CAST(? AS timestamp without time zone),CAST(? AS timestamp without time zone)";
+			columnString = "round_id,space_id";
+			valueString = "?,?";
+			String colStringRounds =
+					"observation_id,day_no,round_no,start_timestamp,end_timestamp";
+			String valStringRounds =
+					"?,?,?,CAST(? AS timestamp with time zone),CAST(? AS timestamp with time zone)";
 			DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 			Map<Integer, Integer> snapMapper = new HashMap<Integer, Integer>();
 			Map<Integer, Integer> snapSpaceMapper =
 					new HashMap<Integer, Integer>();
 			rs = statement.executeQuery("SELECT * FROM snapshots");
+			Map<Integer, Map<Integer, Integer>> knownRounds =
+					new HashMap<Integer, Map<Integer, Integer>>();
 			while (rs.next()) {
 				int inSpaceID = rs.getInt("spaceid");
-				Date start =
-						new Date(
-								(long) (rs.getLong("startunixtimestamp") * 1000));
-				Date end =
-						new Date((long) (rs.getLong("endunixtimestamp") * 1000));
+				int dayNumber = rs.getInt("dayid");
+				int roundNumber = rs.getInt("roundid");
+				int newVal = -1;
+				if (!knownRounds.containsKey(dayNumber)) {
+					knownRounds.put(dayNumber, new HashMap<Integer, Integer>());
+				}
+				if (!knownRounds.get(dayNumber).containsKey(roundNumber)) {
+					Date start =
+							new Date(
+									(long) (rs.getLong("startunixtimestamp") * 1000));
+					Date end =
+							new Date(
+									(long) (rs.getLong("endunixtimestamp") * 1000));
+
+					Object [] args =
+							new Object [] {observationID, dayNumber,
+									roundNumber, df.format(start),
+									df.format(end)};
+					Database.insertInto(psql,
+							Database.TABLE_OBSERVATION_ROUNDS, colStringRounds,
+							valStringRounds, args);
+					newVal =
+							Database.getSequenceCurrVal(psql,
+									"observation_rounds_id_seq")
+									.getJSONObject(0).getInt("currval");
+					knownRounds.get(dayNumber).put(roundNumber, newVal);
+				} else newVal = knownRounds.get(dayNumber).get(roundNumber);
+
+				if (newVal == -1) {
+					// TODO throw proper error
+					psql.close();
+					throw new RuntimeException();
+				}
 				Object [] args =
-						new Object [] {observationID, rs.getInt("dayid"),
-								rs.getInt("roundid"),
-								spaceMapper.get(inSpaceID), df.format(start),
-								df.format(end)};
-				Database.insertInto(psql, "snapshots", columnString,
-						valueString, args);
-				int newVal =
-						Database.getSequenceCurrVal(psql, "snapshots_id_seq")
+						new Object [] {newVal, spaceMapper.get(inSpaceID)};
+				Database.insertInto(psql, Database.TABLE_OBSERVATION_SNAPSHOTS,
+						columnString, valueString, args);
+				newVal =
+						Database.getSequenceCurrVal(psql,
+								"observation_snapshots_id_seq")
 								.getJSONObject(0).getInt("currval");
 				int inSnapID = rs.getInt("_id");
 				snapMapper.put(inSnapID, newVal);
 				snapSpaceMapper.put(inSnapID, inSpaceID);
 			}
 			// psql.commit();
-
 			System.out.println("Predefined");
 			if (!append) {
 				Database.deleteFrom(psql, "predefined", "observation_id=?",
@@ -254,11 +297,9 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				Object [] args =
-						new Object [] {observationID,
-								rs.getString("originalid"),
-								spaceMapper.get(inSpaceID),
-								rs.getString("type"), rs.getString("state"),
-								rs.getString("interaction"),
+						new Object [] {observationID, rs.getInt("originalid"),
+								spaceMapper.get(inSpaceID), rs.getInt("type"),
+								rs.getInt("state"), rs.getInt("interaction"),
 								rs.getString("angle"), xpos, ypos,
 								rs.getString("systemcomment")};
 				Database.insertInto(psql, "predefined", columnString,
@@ -300,18 +341,19 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 									.getJSONObject(0).getInt("nextval");
 					idMapper.put(id, newID);
 				}
-
-				int snapshotID = snapMapper.get(rs.getInt("snapshotid"));
+				int inSnapId = rs.getInt("snapshotid");
 				double [] spaceOffset =
-						spaceOffsetMap.get(snapSpaceMapper.get(snapshotID));
+						spaceOffsetMap.get(snapSpaceMapper.get(inSnapId));
 				Date lastedit =
 						new Date((long) (rs.getLong("lasttimestamp") * 1000));
 
 				double xpos = rs.getDouble("xpos");
 				double ypos = rs.getDouble("ypos");
 				if (spaceOffset != null) {
-					xpos += rs.getDouble("xpos") + spaceOffset[0];
-					ypos += rs.getDouble("ypos") + spaceOffset[1];
+					xpos += spaceOffset[0];
+					ypos += spaceOffset[1];
+					// xpos += rs.getDouble("xpos") + spaceOffset[0];
+					// ypos += rs.getDouble("ypos") + spaceOffset[1];
 				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				int interaction = rs.getInt("interaction");
@@ -327,9 +369,10 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 						interaction = i;
 					}
 				}
+				int snapshotID = snapMapper.get(inSnapId);
 				Object [] args =
 						new Object [] {rs.getString("type"),
-								rs.getString("state"), rs.getString("flagbit"),
+								rs.getString("state"), rs.getInt("flagbit"),
 								interaction, rs.getString("angle"), xpos, ypos,
 								df.format(lastedit),
 								rs.getString("usercomment"),
@@ -350,7 +393,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 		} catch (SQLException e) {
 			// if the error message is "out of memory",
 			// it probably means no database file is found
-			System.err.println(e.getMessage());
+			// System.err.println(e.getMessage());
+			e.printStackTrace();
 			return;
 		} catch (ParseException e) {
 			// connection close failed.

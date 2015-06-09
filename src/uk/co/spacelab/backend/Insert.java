@@ -76,8 +76,8 @@ public class Insert extends HttpServlet {
 						new JSONObject("{study_id : \""
 								+ paramsJSON.getInt("study_id") + "\"}")));
 			} else if (type.equals("spatial_function")) {
-				out.println(postForTable(request, response,
-						"polygon_types", paramsJSON));
+				out.println(postForTable(request, response, "polygon_types",
+						paramsJSON));
 			} else {
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"unknown request");
@@ -109,7 +109,7 @@ public class Insert extends HttpServlet {
 			values[counter] = params.getString(key);
 			counter++;
 		}
-		System.out.println(Database.insertInto(table, columnString, values));
+		Database.insertInto(table, columnString, values);
 		return new JSONArray("[{result:success}]");
 	}
 }

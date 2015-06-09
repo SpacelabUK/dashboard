@@ -46,7 +46,8 @@ public class GetObservationData extends HttpServlet {
 									+ "ST_X(position) AS cx,ST_Y(position) AS cy,angle,user_comment",
 							"snapshot_id=?", String.valueOf(snapshotID));
 			int spaceID =
-					Database.selectWhatFromTableWhere("snapshots", "space_id",
+					Database.selectWhatFromTableWhere(
+							Database.TABLE_OBSERVATION_SNAPSHOTS, "space_id",
 							"id=?", String.valueOf(snapshotID))
 							.getJSONObject(0).getInt("space_id");
 			JSONObject spaceLimits =

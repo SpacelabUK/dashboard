@@ -1,5 +1,6 @@
 package uk.co.spacelab.backend.metrics;
 
+import java.awt.SystemTray;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.DatabaseMetaData;
@@ -11,6 +12,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,6 +27,12 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.Util;
+
+import javax.naming.InitialContext;
+
+import java.sql.*;
+
+import javax.sql.*;
 
 /**
  * Servlet implementation class Occupancy
@@ -40,6 +49,12 @@ public class Occupancy extends HttpServlet {
 		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Setup our connection pool when this servlet is started. Note that this
+	 * servlet must be started before any other servlet that tries to use our
+	 * database connections.
+	 */
+
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
@@ -55,39 +70,150 @@ public class Occupancy extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		Map<String, String []> knownFunctions =
 				new HashMap<String, String []>();
-		knownFunctions.put("no_of_ties_outside_team", new String [] {"study_id",
+		knownFunctions.put("activity_in_polygon_types", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits"});
+		knownFunctions.put("activity_in_polygon_types_per_type", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits"});
+		knownFunctions.put("activity_in_poly_types_per_round", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits"});
+		knownFunctions.put("activity_max_in_polygon_types_per_type",
+				new String [] {"observation_id", "polygon_type_ids",
+						"entity_states", "entity_types", "entity_flag_bits"});
+		knownFunctions.put("activity_min_in_polygon_types_per_type",
+				new String [] {"observation_id", "polygon_type_ids",
+						"entity_states", "entity_types", "entity_flag_bits"});
+		knownFunctions.put("avg_question_mark", new String [] {"study_id",
 				"question_id"});
-		knownFunctions.put("no_of_responders_with_ties_outside_team", new String [] {"study_id",
-		"question_id"});
+
+		knownFunctions.put("avg_ties_in_team", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("avg_ties_outside_team", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("avg_possible_ties_in_team",
+				new String [] {"study_id"});
+		knownFunctions.put("avg_possible_ties_outside_team",
+				new String [] {"study_id"});
+
+		knownFunctions.put("total_ties_in_team", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("total_ties_outside_team", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("avg_possible_ties_in_team",
+				new String [] {"study_id"});
+		knownFunctions.put("avg_possible_ties_outside_team",
+				new String [] {"study_id"});
+
+		knownFunctions.put("avg_ties_in_floor", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("avg_ties_outside_floor", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("avg_possible_ties_in_floor",
+				new String [] {"study_id"});
+		knownFunctions.put("avg_possible_ties_outside_floor",
+				new String [] {"study_id"});
+
+		knownFunctions.put("avg_depthmap_value_of_poly_type", new String [] {
+				"type_ids", "depthmap_ids", "band_alias"});
+		knownFunctions.put("avg_depthmap_value_per_poly_type", new String [] {
+				"type_ids", "depthmap_ids", "band_alias"});
+		knownFunctions.put("avg_depthmap_value", new String [] {"depthmap_ids",
+				"band_alias"});
+		knownFunctions.put("max_depthmap_value", new String [] {"depthmap_ids",
+				"band_alias"});
+		knownFunctions.put("min_depthmap_value", new String [] {"depthmap_ids",
+				"band_alias"});
+		knownFunctions.put("avg_depthmap_value_per_building", new String [] {
+				"depthmap_ids", "band_alias"});
+		knownFunctions.put("all_team_ids", new String [] {"study_id"});
 		knownFunctions.put("get_observation_ids", new String [] {"study_id"});
 		knownFunctions.put("get_project_name", new String [] {"study_id"});
 		knownFunctions.put("gross_occupancy", new String [] {"observation_id"});
+
+		knownFunctions.put("groups_of_people_in_poly_types_avg", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits", "groups::text []"});
+		knownFunctions.put("groups_of_people_in_poly_types_max", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits", "groups::text []"});
+		knownFunctions.put("groups_of_people_in_poly_types_min", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits", "groups::text []"});
+
 		knownFunctions.put("id_of_poly_types", new String [] {"type_group",
 				"type_alias"});
-		knownFunctions.put("id_of_question", new String [] {"question_alias"});
+		knownFunctions.put("id_of_interview_question", new String [] {
+				"parent_alias", "question_alias"});
+		knownFunctions.put("id_of_interview_issue",
+				new String [] {"issue_alias"});
+		knownFunctions.put("id_of_flag", new String [] {"flag_name"});
+		knownFunctions.put("id_of_staff_question",
+				new String [] {"question_alias"});
+		knownFunctions.put("id_of_staff_questions",
+				new String [] {"question_aliases"});
+		knownFunctions.put("id_of_depthmaps", new String [] {"study_id",
+				"depthmap_type"});
+		knownFunctions.put("ids_of_questions_in_group",
+				new String [] {"question_group"});
 		knownFunctions.put("max_desk_occupancy",
 				new String [] {"observation_id"});
 		knownFunctions.put("min_desk_occupancy",
 				new String [] {"observation_id"});
 		knownFunctions.put("nia_of_poly_type_group", new String [] {"study_id",
 				"poly_type_group"});
+		knownFunctions.put("nia_of_poly_type_group_per_building",
+				new String [] {"study_id", "poly_type_group"});
+		knownFunctions.put("nia_of_poly_type_group_per_space", new String [] {
+				"study_id", "poly_type_group"});
+		knownFunctions.put("nia_of_poly_types", new String [] {"type_ids",
+				"study_id"});
+		knownFunctions.put("nia_per_poly_type", new String [] {"study_id",
+				"type_ids"});
+		knownFunctions.put("nia_of_poly_types_per_building", new String [] {
+				"type_ids", "study_id"});
+		knownFunctions.put("nia_of_poly_types_per_space", new String [] {
+				"type_ids", "study_id"});
+		knownFunctions.put("no_of_staff_ties_outside_team", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("no_of_responders_with_ties_outside_team",
+				new String [] {"study_id", "question_id"});
 		knownFunctions.put("no_of_rounds", new String [] {"observation_id"});
 		knownFunctions.put("no_of_buildings", new String [] {"study_id"});
 		knownFunctions.put("no_of_desks", new String [] {"observation_id"});
-		knownFunctions.put("no_of_staff", new String [] {"study_id"});
+		knownFunctions.put("no_of_desks_per_building",
+				new String [] {"observation_id"});
+		knownFunctions.put("no_of_desks_per_space",
+				new String [] {"observation_id"});
+		knownFunctions.put("no_of_desks_not_empty",
+				new String [] {"observation_id"});
+		{
+			// to be removed
+			knownFunctions.put("no_of_desks_in_poly_type", new String [] {
+					"type_group", "type_alias", "observation_id"});
+		}
+		knownFunctions.put("no_of_desks_in_poly_types", new String [] {
+				"type_ids", "observation_id"});
+		knownFunctions.put("no_of_desks_per_polygon_type", new String [] {
+				"observation_id", "type_ids"});
 		knownFunctions.put("no_of_people_activity", new String [] {
+				"observation_id", "states", "types", "flag_bits"});
+		knownFunctions.put("no_of_people_activity_breakdown", new String [] {
+				"observation_id", "activity_ids"});
+		knownFunctions.put("no_of_people_activity_per_round", new String [] {
+				"observation_id", "activity_ids"});
+		knownFunctions.put("no_of_people_activity_per_building", new String [] {
+				"observation_id", "activity_ids"});
+		knownFunctions.put("no_of_people_activity_per_space", new String [] {
 				"observation_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting", new String [] {
 				"observation_id", "activity_ids"});
-		knownFunctions.put("no_of_desks_not_empty",
-				new String [] {"observation_id"});
+		knownFunctions.put("no_of_people_activity_interacting_per_building",
+				new String [] {"observation_id", "activity_ids"});
+		knownFunctions.put("no_of_people_activity_interacting_per_space",
+				new String [] {"observation_id", "activity_ids"});
 		knownFunctions.put("no_of_polys_in_func", new String [] {"func_alias",
-				"study_id"});
-		knownFunctions.put("no_of_desks_in_poly_type", new String [] {
-				"type_group", "type_alias", "observation_id"});
-		knownFunctions.put("no_of_desks_in_poly_types", new String [] {
-				"type_ids", "observation_id"});
-		knownFunctions.put("nia_of_poly_types", new String [] {"type_ids",
 				"study_id"});
 		knownFunctions.put("no_of_polys_in_poly_types", new String [] {
 				"study_id", "type_ids"});
@@ -95,16 +221,83 @@ public class Occupancy extends HttpServlet {
 				"study_id", "question_id"});
 		knownFunctions.put("no_of_responders_per_tie_question", new String [] {
 				"study_id", "question_id"});
+		knownFunctions
+				.put("no_of_responders_for_choice_question_and_choices",
+						new String [] {"study_id", "question_id",
+								"choice_ids::text []"});
 		knownFunctions.put("no_of_unique_contacts_per_question", new String [] {
 				"study_id", "question_id"});
-		knownFunctions.put("no_of_staff_ties_per_question_with_scores",
+		knownFunctions.put("no_of_staff", new String [] {"study_id"});
+		knownFunctions.put("no_of_staff_replies_per_choice", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_replies_within_marks", new String [] {
+				"study_id", "question_id", "mark_over", "mark_under"});
+		knownFunctions.put("no_of_staff_quotes_per_tag", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_replies_per_choice_multi_q",
+				new String [] {"study_id", "question_ids"});
+		knownFunctions.put("no_of_interview_ties_directional_team_to_team",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_directional_team_to_team",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_directional_team_to_team_scored",
+				new String [] {"study_id", "question_id", "score_over",
+						"score_under"});
+
+		knownFunctions.put(
+				"no_of_unique_undir_staff_ties_outside_team_of_score",
+				new String [] {"study_id", "question_id", "lower_limit",
+						"upper_limit"});
+		knownFunctions.put(
+				"no_of_unique_undir_staff_ties_within_team_of_score",
+				new String [] {"study_id", "question_id", "lower_limit",
+						"upper_limit"});
+		knownFunctions.put("no_of_possible_staff_ties_outside_team",
+				new String [] {"study_id"});
+		knownFunctions.put("no_of_possible_staff_ties_within_team",
+				new String [] {"study_id"});
+
+		knownFunctions.put("no_of_staff_ties_of_question_and_scores",
 				new String [] {"study_id", "question_id", "scores"});
+		knownFunctions.put("no_of_staff_ties_of_question_per_score",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_outside_team_per_score",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_within_team_per_score",
+				new String [] {"study_id", "question_id"});
+
+		knownFunctions.put("no_of_staff_ties_outside_team_per_team",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_within_team_per_team",
+				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_possible_staff_ties_outside_team_per_team",
+				new String [] {"study_id"});
+		knownFunctions.put("no_of_possible_staff_ties_within_team_per_team",
+				new String [] {"study_id"});
+
 		knownFunctions.put("occupancy_of_poly_types", new String [] {
 				"observation_id", "type_ids"});
+		knownFunctions.put("occupancy_frequency_grouped", new String [] {
+				"observation_id", "groups::text []"});
+		knownFunctions.put("poly_types_names", new String [] {"poly_type_ids"});
+		knownFunctions.put("possible_choices_in_question",
+				new String [] {"question_id"});
+		knownFunctions.put("question_names", new String [] {"question_ids"});
+		knownFunctions.put("quotes_under_issue", new String [] {"study_id",
+				"issue_id"});
+		knownFunctions.put("quotes_under_issue_flagged", new String [] {
+				"study_id", "issue_id"});
+		knownFunctions.put("sum_of_interview_choice_scores", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("team_names", new String [] {"team_ids"});
 		knownFunctions.put("utilisation_of_poly_types", new String [] {
 				"observation_id", "type_ids"});
 		knownFunctions.put("utilisation_activity_of_poly_types", new String [] {
 				"observation_id", "type_ids", "states"});
+		knownFunctions.put("no_of_people_per_round", new String [] {
+				"observation_id", "states"});
+		knownFunctions.put("round_times", new String [] {"observation_id"});
+
 		try {
 			if (type.equals("devices") || type.equals("projects")
 					|| type.equals("polygon_types")) {
@@ -144,14 +337,147 @@ public class Occupancy extends HttpServlet {
 				// "SELECT * FROM splab_min_occupancy(?)", obsID)
 				// .getJSONObject(0);
 				// out.println(result.getInt((String) result.keys().next()));
-			} else if (type.equals("total_occ_per_round")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-								"SELECT day_id,round_id,count FROM splab_total_occupancy_per_round"
-										+ " WHERE " + "observation_id=?", obsID);
+			} else if (knownFunctions.containsKey(type)) {
+				String [] requestArgs = knownFunctions.get(type);
+				Object [] args = new Object [requestArgs.length];
+				String prefix = "splab_";
+				String qmString = "";
+
+				Connection con = Database.getConnection();
+
+				for (int i = 0; i < requestArgs.length; i++) {
+					String argType = null;
+					String [] st = requestArgs[i].split("::");
+					if (st.length > 1) {
+						requestArgs[i] = st[0];
+						argType = st[1];
+					}
+
+					// System.out.println(requestArgs[i]);
+					if (params == null
+							|| !Util.validParam(params, requestArgs[i])) {
+						response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+								"missing data from request... -_-");
+						return;
+					}
+					if (i != 0) qmString += ",";
+					args[i] = request.getParameter(requestArgs[i]);
+					// System.out.println("args[i]: " + args[i]);
+					if (args[i] instanceof String
+							&& ((String) args[i]).startsWith("[")
+							&& ((String) args[i]).endsWith("]")) {
+						qmString += requestArgs[i] + " := ? ";
+
+						// NumberUtils.isNumber(arg0)
+						String ns =
+								((String) args[i]).split("\\[")[1].split("\\]")[0]
+										.trim();
+
+						// System.out.println(ns);
+						// System.out.println(((String) args[i]).length() - 2);
+						// System.out.println(((String) args[i]).substring(1));
+						args[i] = getAsJDBCArray(con, ns, argType);
+
+					} else qmString += requestArgs[i] + " := ? ";
+					// System.out.println(args[i]);
+				}
+				// System.out.println(qmString);
+				String sql =
+						"SELECT * FROM " + prefix + type + "(" + qmString + ")";
+				// System.out.println(type);
+
+				// if (type.equals("occupancy_frequency_grouped")) {
+				// System.out.println(sql);
+				// for (Object o : args)
+				// System.out.println(o.toString());
+				// }
+
+				// Connection psql = getConnection();
+				// JSONArray result = Database.customQuery(psql, sql, args);
+				// freeConnection(psql);
+
+				// }
+				JSONArray result = Database.customQuery(con, sql, args);
+				con.close();
+
+				// if (result.length() == 1)
+				// out.println(result.getJSONObject(0).getInt(
+				// (String) result.getJSONObject(0).keys().next()));
+				// else {
+				JSONArray resultOut = new JSONArray();
+				// if
+				// (type.equalsIgnoreCase("id_of_depthmaps"))
+				// System.out.println(result);
+				if (result.length() == 0
+						|| (result.length() == 1 && result.getJSONObject(0)
+								.keySet().size() == 0)) {
+					JSONObject errorObj = new JSONObject();
+					errorObj.put("error", "no data");
+					response.setStatus(201);
+					resultOut.put(errorObj);
+				} else {
+
+					for (int i = 0; i < result.length(); i++) {
+
+						JSONObject in = result.getJSONObject(i);
+						// JSONObject ou = new JSONObject();
+						// Iterator<?> keys = in.keys();
+						// while (keys.hasNext()) {
+						// String key = (String) in.keys().next();
+						// if (key.toLowerCase().startsWith(prefix))
+						// ou.put(key.substring(prefix.length()),
+						// in.get(key));
+						// else
+						// ou.put(key, in.get(key));
+						// }
+						if (in.keySet().size() != 0)
+							resultOut.put(in.get((String) in.keys().next()));
+					}
+				}
+				out.println(resultOut);
+				// }
+				// } else if (type.equals("no_of_rounds")) {
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(*) FROM splab_no_of_rounds(?)",
+				// obsID).getJSONObject(0);
 				// out.println(result.getInt((String) result.keys().next()));
-				out.println(result);
+				// } else if (type.equals("no_of_meeting_rooms")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int typeID = 2;
+				// String functeam = "func";
+				// Integer studyID = obsID;
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(polygons.id) FROM polygons "
+				// + "LEFT JOIN spaces ON polygons.space_id=spaces.id "
+				// + "WHERE functeam=? AND type_id=? AND study_id=?;",
+				// functeam, typeID, studyID).getJSONObject(0);
+				// out.println(result.getInt((String) result.keys().next()));
+				// } else if (type.equals("no_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// Integer studyID = obsID;
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types "
+				// + "WHERE UPPER(left(alias,length(?)))=?) SELECT "
+				// + "COUNT(polygons.id) FROM polygons JOIN spaces "
+				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND study_id=?;", typeStartString,
+				// typeStartString, studyID).getJSONObject(0);
+				// out.println(result.getInt((String) result.keys().next()));
+			} else if (type.length() > 0) {
+
+				// } else if (type.equals("total_occ_per_round")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT day_id,round_id,count FROM splab_total_occupancy_per_round"
+				// + " WHERE " + "observation_id=?", obsID);
+				// // out.println(result.getInt((String) result.keys().next()));
+				// out.println(result);
 			} else if (type.equals("occ_per_space_and_round_prc")) {
 				int obsID = Integer.parseInt(params.get("obsid")[0]);
 				JSONArray spaces =
@@ -221,536 +547,465 @@ public class Occupancy extends HttpServlet {
 										+ " WHERE " + "observation_id=?", obsID);
 				// out.println(result.getInt((String) result.keys().next()));
 				out.println(result);
-			} else if (type.equals("get_quotes")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-								"SELECT quote FROM survey_quotes WHERE study_id=?",
-								obsID);
-				Map<String, Integer> map = new HashMap<String, Integer>();
-				for (int i = 0; i < result.length(); i++) {
-					String quote = result.getJSONObject(i).getString("quote");
-					String [] words =
-							quote.replaceAll("[^a-zA-Z ]", "").toLowerCase()
-									.split("\\s+");
-					for (String word : words) {
-						if (!map.containsKey(word)) map.put(word, 0);
-						map.put(word, map.get(word) + 1);
-					}
-				}
-				List<Integer> sizes = new ArrayList<Integer>();
-				JSONArray collated = new JSONArray();
-				for (String word : map.keySet()) {
-					int sz = map.get(word);
-					if (!sizes.contains(sz)) sizes.add(sz);
-				}
-				Collections.sort(sizes);
-				if (sizes.size() > 5)
-					sizes = sizes.subList(sizes.size() - 5, sizes.size());
-				for (String word : map.keySet()) {
-					int key = map.get(word);
-					if (sizes.contains(key)) {
-						JSONObject o = new JSONObject();
-						o.put("text", word);
-						o.put("size", key);
-
-						collated.put(o);
-					}
-				}
-				// out.println(result.getInt((String) result.keys().next()));
-				out.println(collated);
-			} else if (knownFunctions.containsKey(type)) {
-				String [] requestArgs = knownFunctions.get(type);
-				Object [] args = new Object [requestArgs.length];
-				String prefix = "splab_";
-				String qmString = "";
-				for (int i = 0; i < requestArgs.length; i++) {
-					// System.out.println(requestArgs[i]);
-					if (params == null
-							|| !Util.validParam(params, requestArgs[i])) {
-						response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-								"missing data from request... -_-");
-						return;
-					}
-					if (i != 0) qmString += ",";
-					args[i] = request.getParameter(requestArgs[i]);
-					// System.out.println("args[i]: " + args[i]);
-					if (args[i] instanceof String
-							&& ((String) args[i]).startsWith("[")
-							&& ((String) args[i]).endsWith("]")) {
-						qmString += requestArgs[i] + " := ? ";
-
-						// NumberUtils.isNumber(arg0)
-						String ns =
-								((String) args[i]).split("\\[")[1].split("\\]")[0]
-										.trim();
-
-						// System.out.println(ns);
-						// System.out.println(((String) args[i]).length() - 2);
-						// System.out.println(((String) args[i]).substring(1));
-						args[i] = getAsJDBCArray(ns);
-
-					} else qmString += requestArgs[i] + " := ? ";
-					// System.out.println(args[i]);
-				}
-				// System.out.println(qmString);
-				JSONArray result =
-						Database.customQuery("SELECT * FROM " + prefix + type
-								+ "(" + qmString + ")", args);
-				// if (result.length() == 1)
-				// out.println(result.getJSONObject(0).getInt(
-				// (String) result.getJSONObject(0).keys().next()));
-				// else {
-				JSONArray resultOut = new JSONArray();
-				for (int i = 0; i < result.length(); i++) {
-
-					JSONObject in = result.getJSONObject(i);
-					// JSONObject ou = new JSONObject();
-					// Iterator<?> keys = in.keys();
-					// while (keys.hasNext()) {
-					// String key = (String) in.keys().next();
-					// if (key.toLowerCase().startsWith(prefix))
-					// ou.put(key.substring(prefix.length()),
-					// in.get(key));
-					// else
-					// ou.put(key, in.get(key));
-					// }
-					resultOut.put(in.get((String) in.keys().next()));
-				}
-				out.println(resultOut);
+				// } else if (type.equals("get_quotes")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT quote FROM survey_quotes WHERE study_id=?",
+				// obsID);
+				// Map<String, Integer> map = new HashMap<String, Integer>();
+				// for (int i = 0; i < result.length(); i++) {
+				// String quote = result.getJSONObject(i).getString("quote");
+				// String [] words =
+				// quote.replaceAll("[^a-zA-Z ]", "").toLowerCase()
+				// .split("\\s+");
+				// for (String word : words) {
+				// if (!map.containsKey(word)) map.put(word, 0);
+				// map.put(word, map.get(word) + 1);
 				// }
-				// } else if (type.equals("no_of_rounds")) {
+				// }
+				// List<Integer> sizes = new ArrayList<Integer>();
+				// JSONArray collated = new JSONArray();
+				// for (String word : map.keySet()) {
+				// int sz = map.get(word);
+				// if (!sizes.contains(sz)) sizes.add(sz);
+				// }
+				// Collections.sort(sizes);
+				// if (sizes.size() > 5)
+				// sizes = sizes.subList(sizes.size() - 5, sizes.size());
+				// for (String word : map.keySet()) {
+				// int key = map.get(word);
+				// if (sizes.contains(key)) {
+				// JSONObject o = new JSONObject();
+				// o.put("text", word);
+				// o.put("size", key);
+				//
+				// collated.put(o);
+				// }
+				// }
+				// // out.println(result.getInt((String) result.keys().next()));
+				// out.println(collated);
+				// } else if (type.equals("occupancy_of_meeting_rooms")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// JSONObject result =
 				// Database.customQuery(
-				// "SELECT COUNT(*) FROM splab_no_of_rounds(?)",
+				// "SELECT COUNT(*) FROM (SELECT DISTINCT polygon_id,snapshot_id "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id=2 AND observation_id=?) AS temp;",
 				// obsID).getJSONObject(0);
-				// out.println(result.getInt((String) result.keys().next()));
-				// } else if (type.equals("no_of_meeting_rooms")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int typeID = 2;
-				// String functeam = "func";
-				// Integer studyID = obsID;
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT COUNT(polygons.id) FROM polygons "
-				// + "LEFT JOIN spaces ON polygons.space_id=spaces.id "
-				// + "WHERE functeam=? AND type_id=? AND study_id=?;",
-				// functeam, typeID, studyID).getJSONObject(0);
-				// out.println(result.getInt((String) result.keys().next()));
-				// } else if (type.equals("no_of_alternative_spaces")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// Integer studyID = obsID;
-				// String typeStartString = "ALT";
-				// JSONObject result =
-				// Database.customQuery(
-				// "WITH all_of_type AS (SELECT id FROM polygon_types "
-				// + "WHERE UPPER(left(alias,length(?)))=?) SELECT "
-				// + "COUNT(polygons.id) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id IN (SELECT id FROM all_of_type) "
-				// + "AND study_id=?;", typeStartString,
-				// typeStartString, studyID).getJSONObject(0);
-				// out.println(result.getInt((String) result.keys().next()));
-			} else if (type.equals("occupancy_of_meeting_rooms")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(*) FROM (SELECT DISTINCT polygon_id,snapshot_id "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id=2 AND observation_id=?) AS temp;",
-								obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("max_occupancy_of_meeting_rooms")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT MAX(count) FROM (SELECT day_id,round_id,COUNT(polygon_id) "
-										+ "FROM (SELECT DISTINCT ON (polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id=2 AND observation_id=?) AS temp "
-										+ "GROUP BY day_id,round_id) AS temp2;",
-								obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("utilisation_of_meeting_rooms")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id=2 AND observation_id=?;",
-								obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("min_occupancy_of_meeting_rooms")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT MIN(count) FROM (SELECT day_id,round_id,COUNT(polygon_id) "
-										+ "FROM (SELECT DISTINCT ON (polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id=2 AND observation_id=?) AS temp "
-										+ "GROUP BY day_id,round_id) AS temp2;",
-								obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("occupancy_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=?) "
-										+ "SELECT SUM(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString,
-								typeStartString, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("max_occupancy_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString,
-								typeStartString, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("min_occupancy_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString,
-								typeStartString, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("utilisation_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=?) "
-										+ "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?;",
-								typeStartString, typeStartString, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("max_utilisation_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id "
-										+ "FROM all_of_type) AND observation_id=? GROUP BY "
-										+ "day_id,round_id) AS t2;",
-								typeStartString, typeStartString, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("min_utilisation_of_alternative_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id "
-										+ "FROM all_of_type) AND observation_id=? GROUP BY "
-										+ "day_id,round_id) AS t2;",
-								typeStartString1, typeStartString1,
-								typeStartString2, typeStartString2,
-								typeStartString3, typeStartString3, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("occupancy_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT SUM(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString1,
-								typeStartString1, typeStartString2,
-								typeStartString2, typeStartString3,
-								typeStartString3, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("max_occupancy_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString1,
-								typeStartString1, typeStartString2,
-								typeStartString2, typeStartString3,
-								typeStartString3, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("min_occupancy_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
-										+ "(polygon_id,day_id,round_id) * "
-										+ "FROM splab_polygon_occupancy WHERE functeam='func' "
-										+ "AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
-										+ "AS temp2;", typeStartString1,
-								typeStartString1, typeStartString2,
-								typeStartString2, typeStartString3,
-								typeStartString3, obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("utilisation_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND observation_id=?;",
-								typeStartString1, typeStartString1,
-								typeStartString2, typeStartString2,
-								typeStartString3, typeStartString3, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("max_utilisation_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MAX(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id "
-										+ "FROM all_of_type) AND observation_id=? GROUP BY "
-										+ "day_id,round_id) AS t2;",
-								typeStartString1, typeStartString1,
-								typeStartString2, typeStartString2,
-								typeStartString3, typeStartString3, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("min_utilisation_of_shared_facilities")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				String typeStartString1 = "MTG";
-				String typeStartString2 = "ALT";
-				String typeStartString3 = "OTHFCL";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-										+ "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-										+ "OR UPPER(left(alias,length(?)))=?) "
-										+ "SELECT MIN(count) FROM (SELECT day_id,round_id,"
-										+ "COUNT(entity_id) FROM splab_polygon_occupancy "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id "
-										+ "FROM all_of_type) AND observation_id=? GROUP BY "
-										+ "day_id,round_id) AS t2;",
-								typeStartString1, typeStartString1,
-								typeStartString2, typeStartString2,
-								typeStartString3, typeStartString3, obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out
-						.println(result.getInt((String) result.keys().next()));
-
-			} else if (type.equals("no_of_buildings")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(*) FROM splab_buildings(?)",
-								obsID).getJSONObject(0);
-				out.println(result.getInt((String) result.keys().next()));
-				// } else if (type.equals("project_name")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT * FROM splab_project_name(?)", obsID)
-				// .getJSONObject(0);
-				// // System.out.println(result);
-				// out.print(result.getString((String) result.keys().next()));
-				// } else if (type.equals("no_of_staff")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT COUNT(*) FROM splab_all_staff(?)",
-				// obsID).getJSONObject(0);
-				// // System.out.println(result);
 				// if (result.length() < 1) {
 				// response.setStatus(HttpServletResponse.SC_CREATED);
 				// out.println("No data present");
-				// } else out.print(result
-				// .getString((String) result.keys().next()));
-				// } else if (type.equals("no_of_desks")) {
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("max_occupancy_of_meeting_rooms")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// JSONObject result =
 				// Database.customQuery(
-				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
-				// // obsID));
-				// "SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
-				// + "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
-				// + "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
-				// obsID, obsID, obsID).getJSONObject(0);
-				// out.println(result.getInt((String) result.keys().next()));
-				// } else if (type.equals("no_of_desks_not_empty")) {
+				// "SELECT MAX(count) FROM (SELECT day_id,round_id,COUNT(polygon_id) "
+				// + "FROM (SELECT DISTINCT ON (polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id=2 AND observation_id=?) AS temp "
+				// + "GROUP BY day_id,round_id) AS temp2;",
+				// obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("utilisation_of_meeting_rooms")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// JSONObject result =
 				// Database.customQuery(
-				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
-				// // obsID));
-				// "SELECT COUNT(*) FROM splab_per_desk_total_occupancy WHERE"
-				// + " observation_id=? AND times_found >0;",
+				// "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
+				// +
+				// "WHERE functeam='func' AND type_id=2 AND observation_id=?;",
+				// obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("min_occupancy_of_meeting_rooms")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT MIN(count) FROM (SELECT day_id,round_id,COUNT(polygon_id) "
+				// + "FROM (SELECT DISTINCT ON (polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id=2 AND observation_id=?) AS temp "
+				// + "GROUP BY day_id,round_id) AS temp2;",
+				// obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("occupancy_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// + "UPPER(left(alias,length(?)))=?) "
+				// + "SELECT SUM(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString,
+				// typeStartString, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("max_occupancy_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// + "UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MAX(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString,
+				// typeStartString, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("min_occupancy_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// + "UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MIN(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString,
+				// typeStartString, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("utilisation_of_alternative_spaces"))
+				// {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// + "UPPER(left(alias,length(?)))=?) "
+				// + "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
+				// +
+				// "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?;",
+				// typeStartString, typeStartString, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("max_utilisation_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString = "ALT";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// + "UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MAX(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(entity_id) FROM splab_polygon_occupancy "
+				// + "WHERE functeam='func' AND type_id IN (SELECT id "
+				// + "FROM all_of_type) AND observation_id=? GROUP BY "
+				// + "day_id,round_id) AS t2;",
+				// typeStartString, typeStartString, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("min_utilisation_of_alternative_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MIN(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(entity_id) FROM splab_polygon_occupancy "
+				// + "WHERE functeam='func' AND type_id IN (SELECT id "
+				// + "FROM all_of_type) AND observation_id=? GROUP BY "
+				// + "day_id,round_id) AS t2;",
+				// typeStartString1, typeStartString1,
+				// typeStartString2, typeStartString2,
+				// typeStartString3, typeStartString3, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("occupancy_of_shared_facilities")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT SUM(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString1,
+				// typeStartString1, typeStartString2,
+				// typeStartString2, typeStartString3,
+				// typeStartString3, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("max_occupancy_of_shared_facilities"))
+				// {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MAX(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString1,
+				// typeStartString1, typeStartString2,
+				// typeStartString2, typeStartString3,
+				// typeStartString3, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("min_occupancy_of_shared_facilities"))
+				// {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MIN(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(polygon_id) FROM (SELECT DISTINCT ON "
+				// + "(polygon_id,day_id,round_id) * "
+				// + "FROM splab_polygon_occupancy WHERE functeam='func' "
+				// + "AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?) AS temp GROUP BY day_id,round_id) "
+				// + "AS temp2;", typeStartString1,
+				// typeStartString1, typeStartString2,
+				// typeStartString2, typeStartString3,
+				// typeStartString3, obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if (type.equals("utilisation_of_shared_facilities")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT COUNT(entity_id) FROM splab_polygon_occupancy "
+				// +
+				// "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND observation_id=?;",
+				// typeStartString1, typeStartString1,
+				// typeStartString2, typeStartString2,
+				// typeStartString3, typeStartString3, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("max_utilisation_of_shared_facilities")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MAX(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(entity_id) FROM splab_polygon_occupancy "
+				// + "WHERE functeam='func' AND type_id IN (SELECT id "
+				// + "FROM all_of_type) AND observation_id=? GROUP BY "
+				// + "day_id,round_id) AS t2;",
+				// typeStartString1, typeStartString1,
+				// typeStartString2, typeStartString2,
+				// typeStartString3, typeStartString3, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+				//
+				// } else if
+				// (type.equals("min_utilisation_of_shared_facilities")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// String typeStartString1 = "MTG";
+				// String typeStartString2 = "ALT";
+				// String typeStartString3 = "OTHFCL";
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// +
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// + "OR UPPER(left(alias,length(?)))=?) "
+				// + "SELECT MIN(count) FROM (SELECT day_id,round_id,"
+				// + "COUNT(entity_id) FROM splab_polygon_occupancy "
+				// + "WHERE functeam='func' AND type_id IN (SELECT id "
+				// + "FROM all_of_type) AND observation_id=? GROUP BY "
+				// + "day_id,round_id) AS t2;",
+				// typeStartString1, typeStartString1,
+				// typeStartString2, typeStartString2,
+				// typeStartString3, typeStartString3, obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out
+				// .println(result.getInt((String) result.keys().next()));
+
+				// } else if (type.equals("no_of_buildings")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(*) FROM splab_buildings(?)",
 				// obsID).getJSONObject(0);
 				// out.println(result.getInt((String) result.keys().next()));
-			} else if (type.equals("activities_split")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								// "SELECT COUNT(*) FROM splab_removed_desks(?)",
-								// obsID));
-								"SELECT walking,standing,sitting,count FROM"
-										+ " (SELECT SUM(case when state=1 then 1 else 0 end) "
-										+ "AS sitting, SUM(case when state=2 then 1 else 0 end) "
-										+ "AS standing, SUM(case when state=3 then 1 else 0 end) "
-										+ "AS walking,"
-										+ "COUNT(occupancy.entity_id) FROM occupancy "
-										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=?) AS walking_prc;",
-								obsID).getJSONObject(0);
-				out.println(result);
+				// // } else if (type.equals("project_name")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT * FROM splab_project_name(?)", obsID)
+				// // .getJSONObject(0);
+				// // // System.out.println(result);
+				// // out.print(result.getString((String)
+				// result.keys().next()));
+				// // } else if (type.equals("no_of_staff")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_all_staff(?)",
+				// // obsID).getJSONObject(0);
+				// // // System.out.println(result);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.print(result
+				// // .getString((String) result.keys().next()));
+				// // } else if (type.equals("no_of_desks")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // // obsID));
+				// // "SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
+				// // + "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
+				// // + "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
+				// // obsID, obsID, obsID).getJSONObject(0);
+				// // out.println(result.getInt((String) result.keys().next()));
+				// // } else if (type.equals("no_of_desks_not_empty")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // // obsID));
+				// //
+				// "SELECT COUNT(*) FROM splab_per_desk_total_occupancy WHERE"
+				// // + " observation_id=? AND times_found >0;",
+				// // obsID).getJSONObject(0);
+				// // out.println(result.getInt((String) result.keys().next()));
+				// } else if (type.equals("activities_split")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT walking,standing,sitting,count FROM"
+				// + " (SELECT SUM(case when state=1 then 1 else 0 end) "
+				// + "AS sitting, SUM(case when state=2 then 1 else 0 end) "
+				// + "AS standing, SUM(case when state=3 then 1 else 0 end) "
+				// + "AS walking,"
+				// + "COUNT(occupancy.entity_id) FROM occupancy "
+				// + "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE observation_id=?) AS walking_prc;",
+				// obsID).getJSONObject(0);
+				// out.println(result);
 				// } else if (type.equals("avg_moving_total")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// JSONObject result =
@@ -769,79 +1024,79 @@ public class Occupancy extends HttpServlet {
 				// out.println("No data present");
 				// } else out.println(result.getDouble((String) result.keys()
 				// .next()));
-			} else if (type.equals("avg_moving_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-						// "SELECT COUNT(*) FROM splab_removed_desks(?)",
-						// obsID));
-								"SELECT space_id,walking/count::float AS prc_walking FROM"
-										+ " (SELECT space_id,"
-										+ "SUM(case when state=3 then 1 else 0 end) AS walking,"
-										+ "COUNT(occupancy.entity_id) FROM occupancy "
-										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=? GROUP BY snapshots.space_id) "
-										+ "AS walking_prc;", obsID);
-				out.println(result);
-			} else if (type.equals("movement_density_total")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT "
-										+ "(SELECT COUNT(occupancy.entity_id) FROM occupancy "
-										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=? AND state=3) "
-										+ "/"
-										+ " ( SELECT SUM(st_area) FROM splab_polygons_areas "
-										+ "WHERE observation_id=?"
-										+ " AND functeam='func' AND type_alias='CIRC-PRI')"
-										+ "::float "
-										+ "AS walkin_per_circ_sqm;", obsID,
-								obsID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("movement_density_spaces")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-								" SELECT splab_polygons_areas.space_id,walking/st_area::float "
-										+ "AS sqm_per_walker FROM splab_polygons_areas JOIN "
-										+ "(SELECT space_id,COUNT(occupancy.entity_id) AS walking "
-										+ "FROM occupancy "
-										+ "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE observation_id=? AND state=3 "
-										+ "GROUP BY snapshots.space_id) "
-										+ "AS walkers "
-										+ "ON walkers.space_id=splab_polygons_areas.space_id "
-										+ "WHERE observation_id=? AND functeam='func' "
-										+ "AND type_alias='CIRC-PRI'", obsID,
-								obsID);
-				out.println(result);
-			} else if (type.equals("depthmap_stats_polygon")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-								" SELECT polygons.id,type_id,ST_Clip(map,ST_Union(polygon)) "
-										+ "FROM depthmaps JOIN polygons "
-										+ "ON depthmaps.space_id=polygons.space_id "
-										+ "WHERE depthmaps.space_id = 259 AND functeam='func' "
-										+ "GROUP BY map,polygons.type_id,polygons.id;",
-								obsID, obsID);
-				out.println(result);
-			} else if (type.equals("depthmap_stats_type")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONArray result =
-						Database.customQuery(
-								" SELECT type_id,ST_Clip(map,ST_Union(polygon)) "
-										+ "FROM depthmaps JOIN polygons "
-										+ "ON depthmaps.space_id=polygons.space_id "
-										+ "WHERE depthmaps.space_id = ? AND functeam='func' "
-										+ "GROUP BY map,polygons.type_id;",
-								obsID, obsID);
-				out.println(result);
+				// } else if (type.equals("avg_moving_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT space_id,walking/count::float AS prc_walking FROM"
+				// + " (SELECT space_id,"
+				// + "SUM(case when state=3 then 1 else 0 end) AS walking,"
+				// + "COUNT(occupancy.entity_id) FROM occupancy "
+				// + "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE observation_id=? GROUP BY snapshots.space_id) "
+				// + "AS walking_prc;", obsID);
+				// out.println(result);
+				// } else if (type.equals("movement_density_total")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT "
+				// + "(SELECT COUNT(occupancy.entity_id) FROM occupancy "
+				// + "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE observation_id=? AND state=3) "
+				// + "/"
+				// + " ( SELECT SUM(st_area) FROM splab_polygons_areas "
+				// + "WHERE observation_id=?"
+				// + " AND functeam='func' AND type_alias='CIRC-PRI')"
+				// + "::float "
+				// + "AS walkin_per_circ_sqm;", obsID,
+				// obsID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("movement_density_spaces")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// " SELECT splab_polygons_areas.space_id,walking/st_area::float "
+				// + "AS sqm_per_walker FROM splab_polygons_areas JOIN "
+				// + "(SELECT space_id,COUNT(occupancy.entity_id) AS walking "
+				// + "FROM occupancy "
+				// + "JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE observation_id=? AND state=3 "
+				// + "GROUP BY snapshots.space_id) "
+				// + "AS walkers "
+				// + "ON walkers.space_id=splab_polygons_areas.space_id "
+				// + "WHERE observation_id=? AND functeam='func' "
+				// + "AND type_alias='CIRC-PRI'", obsID,
+				// obsID);
+				// out.println(result);
+				// } else if (type.equals("depthmap_stats_polygon")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// " SELECT polygons.id,type_id,ST_Clip(map,ST_Union(polygon)) "
+				// + "FROM depthmaps JOIN polygons "
+				// + "ON depthmaps.space_id=polygons.space_id "
+				// + "WHERE depthmaps.space_id = 259 AND functeam='func' "
+				// + "GROUP BY map,polygons.type_id,polygons.id;",
+				// obsID, obsID);
+				// out.println(result);
+				// } else if (type.equals("depthmap_stats_type")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONArray result =
+				// Database.customQuery(
+				// " SELECT type_id,ST_Clip(map,ST_Union(polygon)) "
+				// + "FROM depthmaps JOIN polygons "
+				// + "ON depthmaps.space_id=polygons.space_id "
+				// + "WHERE depthmaps.space_id = ? AND functeam='func' "
+				// + "GROUP BY map,polygons.type_id;",
+				// obsID, obsID);
+				// out.println(result);
 				// } else if (type.equals("no_of_desks_open_plan")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// JSONObject result =
@@ -887,611 +1142,652 @@ public class Occupancy extends HttpServlet {
 				// response.setStatus(HttpServletResponse.SC_CREATED);
 				// out.println("No data present");
 				// } else out.println(result.getInt("count"));
-			} else if (type.equals("max_cellular_workspace_nia_per_desk")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int typeID = 7;
-				JSONObject result =
-						Database.customQuery(
-								" SELECT MAX(workspace_per_desk) FROM "
-										+ "(SELECT polygons.id,ST_Area(polygon)/COUNT(entity_id) "
-										+ "AS workspace_per_desk FROM "
-										+ "(SELECT DISTINCT ON (occupancy.entity_id) "
-										+ "occupancy.entity_id,occupancy.position, snapshots.space_id "
-										+ "FROM occupancy LEFT JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined "
-										+ "ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) "
-										+ "ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 AND splab_removed_desks "
-										+ "IS NULL AND snapshots.observation_id=?) AS desks "
-										+ "JOIN polygons ON polygons.space_id=desks.space_id "
-										+ "WHERE functeam='func' AND type_id=? "
-										+ "AND ST_Contains(polygons.polygon,desks.position) "
-										+ "GROUP BY  polygons.id) AS t1;",
-								obsID, obsID, typeID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("min_cellular_workspace_nia_per_desk")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int typeID = 7;
-				JSONObject result =
-						Database.customQuery(
-								" SELECT MIN(workspace_per_desk) FROM "
-										+ "(SELECT polygons.id,ST_Area(polygon)/COUNT(entity_id) "
-										+ "AS workspace_per_desk FROM "
-										+ "(SELECT DISTINCT ON (occupancy.entity_id) "
-										+ "occupancy.entity_id,occupancy.position, snapshots.space_id "
-										+ "FROM occupancy LEFT JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined "
-										+ "ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) "
-										+ "ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 AND splab_removed_desks "
-										+ "IS NULL AND snapshots.observation_id=?) AS desks "
-										+ "JOIN polygons ON polygons.space_id=desks.space_id "
-										+ "WHERE functeam='func' AND type_id=? "
-										+ "AND ST_Contains(polygons.polygon,desks.position) "
-										+ "GROUP BY  polygons.id) AS t1;",
-								obsID, obsID, typeID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("printer_accessibility_mean_depth")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID, bandid = 9, typeID = 33;
-				JSONObject result =
-						Database.customQuery(
-								" SELECT SUM((stats).mean*(stats).count)"
-										+ "/(SUM((stats).count))::real AS mean "
-										+ "FROM (SELECT ST_SummaryStats("
-										+ "ST_Clip(map,ST_Union(polygon))"
-										+ ",?) "
-										+ "AS stats FROM depthmaps JOIN polygons "
-										+ "ON depthmaps.space_id=polygons.space_id "
-										+ "WHERE depthmaps.space_id "
-										+ "IN ((SELECT id FROM spaces WHERE study_id=?)) "
-										+ "AND functeam='func' AND polygons.type_id=? "
-										+ "AND depthmaps.def=TRUE "
-										+ "AND depthmaps.analysis_type=?::depthmap_types "
-										+ "GROUP BY map,polygons.type_id) AS clipped;",
-								bandid, studyID, typeID, "Accessibility")
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("teapoint_accessibility_mean_depth")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID, bandid = 9, typeID = 43;
-				JSONObject result =
-						Database.customQuery(
-								" SELECT SUM((stats).mean*(stats).count)"
-										+ "/(SUM((stats).count))::real AS mean "
-										+ "FROM (SELECT ST_SummaryStats("
-										+ "ST_Clip(map,ST_Union(polygon))"
-										+ ",?) "
-										+ "AS stats FROM depthmaps JOIN polygons "
-										+ "ON depthmaps.space_id=polygons.space_id "
-										+ "WHERE depthmaps.space_id "
-										+ "IN ((SELECT id FROM spaces WHERE study_id=?)) "
-										+ "AND functeam='func' AND polygons.type_id=? "
-										+ "AND depthmaps.def=TRUE "
-										+ "AND depthmaps.analysis_type=?::depthmap_types "
-										+ "GROUP BY map,polygons.type_id) AS clipped;",
-								bandid, studyID, typeID, "Accessibility")
-								.getJSONObject(0);
-				out.println(result.getDouble("mean"));
-			} else if (type.equals("study_accessibility_mean")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				String bandName = "Visual Integration [HH]";
-				JSONObject result =
-						Database.customQuery(
-								"SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
-										+ "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
-										+ "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
-								// "SELECT SUM((mapstats.stats).sum)"
-								// +
-								// "/(SUM((mapstats.stats).count))::real AS mean "
-								// +
-								// "FROM (SELECT ST_SummaryStats(map,?) AS stats "
-								// + "FROM depthmaps WHERE study_id=?  "
-								// + "AND analysis_type=?) AS mapstats;",
-								bandName, studyID, "Accessibility")
-								.getJSONObject(0);
-
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("study_visibility_mean")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				String bandName = "Visual Integration [HH]";
-				JSONObject result =
-						Database.customQuery(
-								"SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
-										+ "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
-										+ "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
-								// "SELECT SUM((mapstats.stats).sum)"
-								// +
-								// "/(SUM((mapstats.stats).count))::real AS mean "
-								// +
-								// "FROM (SELECT ST_SummaryStats(map,?) AS stats "
-								// +
-								// "FROM depthmaps WHERE study_id=? AND def=TRUE "
-								// +
-								// "AND analysis_type=?::depthmap_types) AS mapstats;",
-								bandName, studyID, "Visibility").getJSONObject(
-								0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("study_essence_mean")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				String bandName = "Visual Integration [HH]";
-				JSONObject result =
-						Database.customQuery(
-								"SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
-										+ "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
-										+ "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
-								// "SELECT SUM((mapstats.stats).sum)"
-								// +
-								// "/(SUM((mapstats.stats).count))::real AS mean "
-								// +
-								// "FROM (SELECT ST_SummaryStats(map,?) AS stats "
-								// +
-								// "FROM depthmaps WHERE study_id=? AND def=TRUE "
-								// +
-								// "AND analysis_type=?::depthmap_types) AS mapstats;",
-								bandName, studyID, "Essence").getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-				// } else if (type.equals("nia_total")) {
+				// } else if
+				// (type.equals("max_cellular_workspace_nia_per_desk")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
+				// int typeID = 7;
 				// JSONObject result =
 				// Database.customQuery(
+				// " SELECT MAX(workspace_per_desk) FROM "
+				// + "(SELECT polygons.id,ST_Area(polygon)/COUNT(entity_id) "
+				// + "AS workspace_per_desk FROM "
+				// + "(SELECT DISTINCT ON (occupancy.entity_id) "
+				// +
+				// "occupancy.entity_id,occupancy.position, snapshots.space_id "
+				// + "FROM occupancy LEFT JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "LEFT OUTER JOIN predefined "
+				// + "ON occupancy.entity_id = predefined.id "
+				// + "LEFT OUTER JOIN splab_removed_desks(?) "
+				// + "ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 AND splab_removed_desks "
+				// + "IS NULL AND snapshots.observation_id=?) AS desks "
+				// + "JOIN polygons ON polygons.space_id=desks.space_id "
+				// + "WHERE functeam='func' AND type_id=? "
+				// + "AND ST_Contains(polygons.polygon,desks.position) "
+				// + "GROUP BY  polygons.id) AS t1;",
+				// obsID, obsID, typeID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if
+				// (type.equals("min_cellular_workspace_nia_per_desk")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int typeID = 7;
+				// JSONObject result =
+				// Database.customQuery(
+				// " SELECT MIN(workspace_per_desk) FROM "
+				// + "(SELECT polygons.id,ST_Area(polygon)/COUNT(entity_id) "
+				// + "AS workspace_per_desk FROM "
+				// + "(SELECT DISTINCT ON (occupancy.entity_id) "
+				// +
+				// "occupancy.entity_id,occupancy.position, snapshots.space_id "
+				// + "FROM occupancy LEFT JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "LEFT OUTER JOIN predefined "
+				// + "ON occupancy.entity_id = predefined.id "
+				// + "LEFT OUTER JOIN splab_removed_desks(?) "
+				// + "ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 AND splab_removed_desks "
+				// + "IS NULL AND snapshots.observation_id=?) AS desks "
+				// + "JOIN polygons ON polygons.space_id=desks.space_id "
+				// + "WHERE functeam='func' AND type_id=? "
+				// + "AND ST_Contains(polygons.polygon,desks.position) "
+				// + "GROUP BY  polygons.id) AS t1;",
+				// obsID, obsID, typeID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// // } else if
+				// (type.equals("printer_accessibility_mean_depth")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID, bandid = 9, typeID = 33;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // " SELECT SUM((stats).mean*(stats).count)"
+				// // + "/(SUM((stats).count))::real AS mean "
+				// // + "FROM (SELECT ST_SummaryStats("
+				// // + "ST_Clip(map,ST_Union(polygon))"
+				// // + ",?) "
+				// // + "AS stats FROM depthmaps JOIN polygons "
+				// // + "ON depthmaps.space_id=polygons.space_id "
+				// // + "WHERE depthmaps.space_id "
+				// // + "IN ((SELECT id FROM spaces WHERE study_id=?)) "
+				// // + "AND functeam='func' AND polygons.type_id=? "
+				// // + "AND depthmaps.def=TRUE "
+				// // + "AND depthmaps.analysis_type=?::depthmap_types "
+				// // + "GROUP BY map,polygons.type_id) AS clipped;",
+				// // bandid, studyID, typeID, "Accessibility")
+				// // .getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if
+				// (type.equals("teapoint_accessibility_mean_depth"))
+				// // {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID, bandid = 9, typeID = 43;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // " SELECT SUM((stats).mean*(stats).count)"
+				// // + "/(SUM((stats).count))::real AS mean "
+				// // + "FROM (SELECT ST_SummaryStats("
+				// // + "ST_Clip(map,ST_Union(polygon))"
+				// // + ",?) "
+				// // + "AS stats FROM depthmaps JOIN polygons "
+				// // + "ON depthmaps.space_id=polygons.space_id "
+				// // + "WHERE depthmaps.space_id "
+				// // + "IN ((SELECT id FROM spaces WHERE study_id=?)) "
+				// // + "AND functeam='func' AND polygons.type_id=? "
+				// // + "AND depthmaps.def=TRUE "
+				// // + "AND depthmaps.analysis_type=?::depthmap_types "
+				// // + "GROUP BY map,polygons.type_id) AS clipped;",
+				// // bandid, studyID, typeID, "Accessibility")
+				// // .getJSONObject(0);
+				// // out.println(result.getDouble("mean"));
+				// // } else if (type.equals("study_accessibility_mean")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String bandName = "Visual Integration [HH]";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// //
+				// "SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
+				// // +
+				// //
+				// "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
+				// // +
+				// //
+				// "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
+				// // // "SELECT SUM((mapstats.stats).sum)"
+				// // // +
+				// // // "/(SUM((mapstats.stats).count))::real AS mean "
+				// // // +
+				// // // "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+				// // // + "FROM depthmaps WHERE study_id=?  "
+				// // // + "AND analysis_type=?) AS mapstats;",
+				// // bandName, studyID, "Accessibility")
+				// // .getJSONObject(0);
+				// //
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("study_visibility_mean")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String bandName = "Visual Integration [HH]";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// //
+				// "SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
+				// // +
+				// //
+				// "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
+				// // +
+				// //
+				// "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
+				// // // "SELECT SUM((mapstats.stats).sum)"
+				// // // +
+				// // // "/(SUM((mapstats.stats).count))::real AS mean "
+				// // // +
+				// // // "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+				// // // +
+				// // // "FROM depthmaps WHERE study_id=? AND def=TRUE "
+				// // // +
+				// // // "AND analysis_type=?::depthmap_types) AS mapstats;",
+				// // bandName, studyID, "Visibility").getJSONObject(
+				// // 0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("study_essence_mean")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String bandName = "Visual Integration [HH]";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// //
+				// "SELECT (SUM(sum)/SUM(count))::real AS mean FROM (SELECT (ST_SummaryStats(map,"
+				// // +
+				// //
+				// "(SELECT band_id FROM band_info WHERE map_id=id AND alias=?))).* "
+				// // +
+				// //
+				// "FROM depthmaps WHERE study_id=? AND def=TRUE AND analysis_type=?::depthmap_types) AS t2;",
+				// // // "SELECT SUM((mapstats.stats).sum)"
+				// // // +
+				// // // "/(SUM((mapstats.stats).count))::real AS mean "
+				// // // +
+				// // // "FROM (SELECT ST_SummaryStats(map,?) AS stats "
+				// // // +
+				// // // "FROM depthmaps WHERE study_id=? AND def=TRUE "
+				// // // +
+				// // // "AND analysis_type=?::depthmap_types) AS mapstats;",
+				// // bandName, studyID, "Essence").getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_total")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND study_id=?;", studyID)
+				// // .getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_prim_circ")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // int typeID = 14;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id =? AND study_id=?;",
+				// // typeID, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_alternative_spaces")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String typeStartString = "ALT";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// // + "UPPER(left(alias,length(?)))=?) "
+				// // +
 				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND study_id=?;", studyID)
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id IN (SELECT id FROM all_of_type) "
+				// // + "AND study_id=?;", typeStartString,
+				// // typeStartString, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_shared_facilities")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String typeStartString1 = "MTG";
+				// // String typeStartString2 = "ALT";
+				// // String typeStartString3 = "OTHFCL";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// // +
+				// //
+				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
+				// // + "OR UPPER(left(alias,length(?)))=?) "
+				// // +
+				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id IN (SELECT id FROM all_of_type) "
+				// // + "AND study_id=?;", typeStartString1,
+				// // typeStartString1, typeStartString2,
+				// // typeStartString2, typeStartString3,
+				// // typeStartString3, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_storage")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // String typeStartString = "OTHFCL-STO";
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// // + "UPPER(left(alias,length(?)))=?) "
+				// // +
+				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id IN (SELECT id FROM all_of_type) "
+				// // + "AND study_id=?;", typeStartString,
+				// // typeStartString, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_meeting_room_bkb")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // int typeID = 2;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id =? AND study_id=?;",
+				// // typeID, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_wrksp_open")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // int typeID = 58;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id = ? AND study_id=?;",
+				// // typeID, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// // } else if (type.equals("nia_wrksp_cel")) {
+				// // int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// // int studyID = obsID;
+				// // int typeID = 7;
+				// // JSONObject result =
+				// // Database.customQuery(
+				// // "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// // + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// // + "AND type_id = ? AND study_id=?;",
+				// // typeID, studyID).getJSONObject(0);
+				// // if (result.length() < 1) {
+				// // response.setStatus(HttpServletResponse.SC_CREATED);
+				// // out.println("No data present");
+				// // } else out.println(result.getDouble((String) result.keys()
+				// // .next()));
+				// } else if (type.equals("no_of_people_on_the_phone_total")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and flag_bit=1"
+				// + "AND type IN (0,1);", obsID)
 				// .getJSONObject(0);
 				// if (result.length() < 1) {
 				// response.setStatus(HttpServletResponse.SC_CREATED);
 				// out.println("No data present");
 				// } else out.println(result.getDouble((String) result.keys()
 				// .next()));
-				// } else if (type.equals("nia_prim_circ")) {
+				// } else if (type.equals("no_of_people_observed")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state IN (1,2,3)"
+				// + "AND type IN (0,1);", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("no_of_people_walking")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state=3"
+				// + "AND type=0;", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("no_of_people_standing")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state=2"
+				// + "AND type=0;", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("no_of_people_sitting")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state=1"
+				// + "AND type IN (0,1);", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("no_of_people_sitting_own_desk")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state=1"
+				// + "AND type=1;", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("no_of_people_sitting_not_own_desk"))
+				// {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// + "WHERE snapshots.observation_id=? and state=1"
+				// + "AND type=0;", obsID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result.getDouble((String) result.keys()
+				// .next()));
+				// } else if (type.equals("tbl_no_of_desks_wrksp_per_space")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// int typeID1 = 7;
+				// int typeID2 = 58;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT polygons.space_id,COUNT(entity_id) "
+				// + "FROM (SELECT DISTINCT ON (occupancy.entity_id) "
+				// +
+				// "occupancy.entity_id,occupancy.position, snapshots.space_id "
+				// + "FROM occupancy LEFT JOIN snapshots "
+				// + "ON occupancy.snapshot_id=snapshots.id "
+				// +
+				// "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
+				// + "LEFT OUTER JOIN splab_removed_desks(?) "
+				// + "ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 AND splab_removed_desks IS NULL "
+				// + "AND snapshots.observation_id=?) AS desks "
+				// + "JOIN polygons ON polygons.space_id=desks.space_id "
+				// + "WHERE functeam='func' AND type_id IN (?,?) "
+				// + "AND ST_Contains(polygons.polygon,desks.position) "
+				// + "GROUP BY polygons.space_id;",
+				// studyID, studyID, typeID1, typeID2);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_nia_wrksp_per_space")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// int typeID1 = 7;
+				// int typeID2 = 58;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT spaces.alias,SUM(ST_Area(polygon)) FROM polygons "
+				// + "JOIN spaces on polygons.space_id=spaces.id "
+				// + "WHERE study_id=? AND type_id IN (?,?) "
+				// + "AND functeam='func' GROUP BY spaces.alias;",
+				// studyID, typeID1, typeID2);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_no_of_desks_wrksp_per_building"))
+				// {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int typeID1 = 7;
+				// int typeID2 = 58;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT spaces.building"
+				// // + ",SUM(ST_Area(polygon)) "
+				// + ",COUNT(entity_id) "
+				// +
+				// "FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
+				// + "occupancy.position, snapshots.space_id FROM occupancy "
+				// +
+				// "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// +
+				// "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
+				// +
+				// "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 "
+				// + "AND splab_removed_desks IS NULL "
+				// + "AND snapshots.observation_id=?) AS desks "
+				// + "JOIN polygons ON polygons.space_id=desks.space_id "
+				// + "JOIN spaces ON polygons.space_id=spaces.id "
+				// + "WHERE functeam='func' AND type_id IN (?,?) "
+				// + "AND ST_Contains(polygons.polygon,desks.position) "
+				// + "GROUP BY spaces.building;", obsID,
+				// obsID, typeID1, typeID2);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_nia_wrksp_per_building")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// int typeID1 = 7;
+				// int typeID2 = 58;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT building,SUM(ST_Area(polygon)) FROM polygons "
+				// + "JOIN spaces on polygons.space_id=spaces.id "
+				// + "WHERE study_id=? AND type_id IN (?,?) "
+				// + "AND functeam='func' GROUP BY building;",
+				// studyID, typeID1, typeID2);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_no_of_desks_wrksp_per_team")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT teams.alias,COUNT(entity_id) "
+				// +
+				// "FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
+				// + "occupancy.position, snapshots.space_id FROM occupancy "
+				// +
+				// "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
+				// +
+				// "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
+				// +
+				// "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
+				// + "WHERE occupancy.type=1 "
+				// + "AND splab_removed_desks IS NULL "
+				// + "AND snapshots.observation_id=?) AS desks "
+				// + "JOIN polygons ON polygons.space_id=desks.space_id "
+				// + "JOIN teams On polygons.type_id=teams.id "
+				// + "WHERE functeam='team' "
+				// + "AND ST_Contains(polygons.polygon,desks.position) "
+				// + "GROUP BY teams.alias;", studyID,
+				// studyID);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_nia_wrksp_per_team")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// JSONArray result =
+				// Database.customQuery(
+				// "SELECT teams.alias,SUM(ST_Area(polygon)) FROM polygons "
+				// + "LEFT JOIN teams ON polygons.type_id= teams.id "
+				// + "WHERE study_id=? AND functeam='team' "
+				// + "GROUP BY teams.alias;", studyID);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_nia_prim_circ_per_floor")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// int studyID = obsID;
 				// int typeID = 14;
 				// JSONObject result =
 				// Database.customQuery(
-				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// "SELECT spaces.alias,SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
 				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id =? AND study_id=?;",
+				// + "AND type_id =? AND study_id=? GROUP BY spaces.alias;",
 				// typeID, studyID).getJSONObject(0);
 				// if (result.length() < 1) {
 				// response.setStatus(HttpServletResponse.SC_CREATED);
 				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-				// } else if (type.equals("nia_alternative_spaces")) {
+				// } else out.println(result);
+				// } else if (type.equals("tbl_avg_mean_depth_per_team")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// int typeID = 14;
+				// JSONObject result =
+				// Database.customQuery(
+				// "WITH spaces_in_study AS (SELECT id FROM spaces WHERE study_id=?) "
+				// + "SELECT alias,SUM((stats).mean*(stats).count)"
+				// + "/(SUM((stats).count))::real AS mean "
+				// + "FROM (SELECT depthmaps.space_id,teams.alias,"
+				// + "ST_SummaryStats(ST_Clip(map,ST_Union(polygon)),"
+				// + "(SELECT band_id FROM band_info WHERE map_id=depthmaps.id "
+				// + "AND alias='Visual Integration [HH]')) "
+				// + "AS stats FROM depthmaps JOIN polygons "
+				// + "ON depthmaps.space_id=polygons.space_id "
+				// + "LEFT JOIN teams ON polygons.type_id=teams.id "
+				// + "WHERE depthmaps.space_id "
+				// + "IN (SELECT * FROM spaces_in_study) "
+				// + "AND functeam='team' "
+				// + "AND depthmaps.def=TRUE "
+				// + "AND depthmaps.analysis_type='Visibility'::depthmap_types "
+				// + "GROUP BY depthmaps.id,map,teams.alias) "
+				// + "AS clipped GROUP BY alias;", studyID)
+				// .getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if (type.equals("tbl_nia_prim_circ_per_building")) {
+				// int obsID = Integer.parseInt(params.get("obsid")[0]);
+				// int studyID = obsID;
+				// int typeID = 14;
+				// JSONObject result =
+				// Database.customQuery(
+				// "SELECT spaces.building,SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
+				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
+				// + "AND type_id =? AND study_id=? GROUP BY spaces.building;",
+				// typeID, studyID).getJSONObject(0);
+				// if (result.length() < 1) {
+				// response.setStatus(HttpServletResponse.SC_CREATED);
+				// out.println("No data present");
+				// } else out.println(result);
+				// } else if
+				// (type.equals("tbl_nia_alternative_spaces_per_type")) {
 				// int obsID = Integer.parseInt(params.get("obsid")[0]);
 				// int studyID = obsID;
 				// String typeStartString = "ALT";
 				// JSONObject result =
 				// Database.customQuery(
-				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-				// + "UPPER(left(alias,length(?)))=?) "
-				// + "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id IN (SELECT id FROM all_of_type) "
-				// + "AND study_id=?;", typeStartString,
-				// typeStartString, studyID).getJSONObject(0);
-				// if (result.length() < 1) {
-				// response.setStatus(HttpServletResponse.SC_CREATED);
-				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-				// } else if (type.equals("nia_shared_facilities")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
-				// String typeStartString1 = "MTG";
-				// String typeStartString2 = "ALT";
-				// String typeStartString3 = "OTHFCL";
-				// JSONObject result =
-				// Database.customQuery(
-				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
+				// "WITH all_of_type AS (SELECT id FROM polygon_types "
+				// + "WHERE UPPER(left(alias,length(?)))=?) "
+				// + "SELECT polygon_types.alias,SUM(ST_Area(polygon)) "
+				// + "FROM polygons JOIN spaces ON polygons.space_id=spaces.id "
 				// +
-				// "UPPER(left(alias,length(?)))=? OR UPPER(left(alias,length(?)))=? "
-				// + "OR UPPER(left(alias,length(?)))=?) "
-				// + "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id IN (SELECT id FROM all_of_type) "
-				// + "AND study_id=?;", typeStartString1,
-				// typeStartString1, typeStartString2,
-				// typeStartString2, typeStartString3,
-				// typeStartString3, studyID).getJSONObject(0);
+				// "LEFT JOIN polygon_types ON polygons.type_id=polygon_types.id "
+				// +
+				// "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
+				// + "AND study_id=? GROUP BY polygon_types.alias;",
+				// typeStartString, typeStartString, studyID)
+				// .getJSONObject(0);
 				// if (result.length() < 1) {
 				// response.setStatus(HttpServletResponse.SC_CREATED);
 				// out.println("No data present");
 				// } else out.println(result.getDouble((String) result.keys()
 				// .next()));
-				// } else if (type.equals("nia_storage")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
-				// String typeStartString = "OTHFCL-STO";
-				// JSONObject result =
-				// Database.customQuery(
-				// "WITH all_of_type AS (SELECT id FROM polygon_types WHERE "
-				// + "UPPER(left(alias,length(?)))=?) "
-				// + "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id IN (SELECT id FROM all_of_type) "
-				// + "AND study_id=?;", typeStartString,
-				// typeStartString, studyID).getJSONObject(0);
-				// if (result.length() < 1) {
-				// response.setStatus(HttpServletResponse.SC_CREATED);
-				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-				// } else if (type.equals("nia_meeting_room_bkb")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
-				// int typeID = 2;
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id =? AND study_id=?;",
-				// typeID, studyID).getJSONObject(0);
-				// if (result.length() < 1) {
-				// response.setStatus(HttpServletResponse.SC_CREATED);
-				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-				// } else if (type.equals("nia_wrksp_open")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
-				// int typeID = 58;
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id = ? AND study_id=?;",
-				// typeID, studyID).getJSONObject(0);
-				// if (result.length() < 1) {
-				// response.setStatus(HttpServletResponse.SC_CREATED);
-				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-				// } else if (type.equals("nia_wrksp_cel")) {
-				// int obsID = Integer.parseInt(params.get("obsid")[0]);
-				// int studyID = obsID;
-				// int typeID = 7;
-				// JSONObject result =
-				// Database.customQuery(
-				// "SELECT SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-				// + "ON polygons.space_id=spaces.id WHERE functeam='func' "
-				// + "AND type_id = ? AND study_id=?;",
-				// typeID, studyID).getJSONObject(0);
-				// if (result.length() < 1) {
-				// response.setStatus(HttpServletResponse.SC_CREATED);
-				// out.println("No data present");
-				// } else out.println(result.getDouble((String) result.keys()
-				// .next()));
-			} else if (type.equals("no_of_people_on_the_phone_total")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and flag_bit=1"
-										+ "AND type IN (0,1);", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_observed")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state IN (1,2,3)"
-										+ "AND type IN (0,1);", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_walking")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state=3"
-										+ "AND type=0;", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_standing")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state=2"
-										+ "AND type=0;", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_sitting")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state=1"
-										+ "AND type IN (0,1);", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_sitting_own_desk")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state=1"
-										+ "AND type=1;", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("no_of_people_sitting_not_own_desk")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				JSONObject result =
-						Database.customQuery(
-								"SELECT COUNT(occupancy.id) FROM occupancy JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "WHERE snapshots.observation_id=? and state=1"
-										+ "AND type=0;", obsID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
-			} else if (type.equals("tbl_no_of_desks_wrksp_per_space")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID1 = 7;
-				int typeID2 = 58;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT polygons.space_id,COUNT(entity_id) "
-										+ "FROM (SELECT DISTINCT ON (occupancy.entity_id) "
-										+ "occupancy.entity_id,occupancy.position, snapshots.space_id "
-										+ "FROM occupancy LEFT JOIN snapshots "
-										+ "ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) "
-										+ "ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 AND splab_removed_desks IS NULL "
-										+ "AND snapshots.observation_id=?) AS desks "
-										+ "JOIN polygons ON polygons.space_id=desks.space_id "
-										+ "WHERE functeam='func' AND type_id IN (?,?) "
-										+ "AND ST_Contains(polygons.polygon,desks.position) "
-										+ "GROUP BY polygons.space_id;",
-								studyID, studyID, typeID1, typeID2);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_wrksp_per_space")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID1 = 7;
-				int typeID2 = 58;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT spaces.alias,SUM(ST_Area(polygon)) FROM polygons "
-										+ "JOIN spaces on polygons.space_id=spaces.id "
-										+ "WHERE study_id=? AND type_id IN (?,?) "
-										+ "AND functeam='func' GROUP BY spaces.alias;",
-								studyID, typeID1, typeID2);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_no_of_desks_wrksp_per_building")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int typeID1 = 7;
-				int typeID2 = 58;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT spaces.building"
-										// + ",SUM(ST_Area(polygon)) "
-										+ ",COUNT(entity_id) "
-										+ "FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
-										+ "occupancy.position, snapshots.space_id FROM occupancy "
-										+ "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 "
-										+ "AND splab_removed_desks IS NULL "
-										+ "AND snapshots.observation_id=?) AS desks "
-										+ "JOIN polygons ON polygons.space_id=desks.space_id "
-										+ "JOIN spaces ON polygons.space_id=spaces.id "
-										+ "WHERE functeam='func' AND type_id IN (?,?) "
-										+ "AND ST_Contains(polygons.polygon,desks.position) "
-										+ "GROUP BY spaces.building;", obsID,
-								obsID, typeID1, typeID2);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_wrksp_per_building")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID1 = 7;
-				int typeID2 = 58;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT building,SUM(ST_Area(polygon)) FROM polygons "
-										+ "JOIN spaces on polygons.space_id=spaces.id "
-										+ "WHERE study_id=? AND type_id IN (?,?) "
-										+ "AND functeam='func' GROUP BY building;",
-								studyID, typeID1, typeID2);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_no_of_desks_wrksp_per_team")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT teams.alias,COUNT(entity_id) "
-										+ "FROM (SELECT DISTINCT ON (occupancy.entity_id) occupancy.entity_id,"
-										+ "occupancy.position, snapshots.space_id FROM occupancy "
-										+ "LEFT JOIN snapshots ON occupancy.snapshot_id=snapshots.id "
-										+ "LEFT OUTER JOIN predefined ON occupancy.entity_id = predefined.id "
-										+ "LEFT OUTER JOIN splab_removed_desks(?) ON occupancy.entity_id = splab_removed_desks "
-										+ "WHERE occupancy.type=1 "
-										+ "AND splab_removed_desks IS NULL "
-										+ "AND snapshots.observation_id=?) AS desks "
-										+ "JOIN polygons ON polygons.space_id=desks.space_id "
-										+ "JOIN teams On polygons.type_id=teams.id "
-										+ "WHERE functeam='team' "
-										+ "AND ST_Contains(polygons.polygon,desks.position) "
-										+ "GROUP BY teams.alias;", studyID,
-								studyID);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_wrksp_per_team")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				JSONArray result =
-						Database.customQuery(
-								"SELECT teams.alias,SUM(ST_Area(polygon)) FROM polygons "
-										+ "LEFT JOIN teams ON polygons.type_id= teams.id "
-										+ "WHERE study_id=? AND functeam='team' "
-										+ "GROUP BY teams.alias;", studyID);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_prim_circ_per_floor")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID = 14;
-				JSONObject result =
-						Database.customQuery(
-								"SELECT spaces.alias,SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-										+ "ON polygons.space_id=spaces.id WHERE functeam='func' "
-										+ "AND type_id =? AND study_id=? GROUP BY spaces.alias;",
-								typeID, studyID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_avg_mean_depth_per_team")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID = 14;
-				JSONObject result =
-						Database.customQuery(
-								"WITH spaces_in_study AS (SELECT id FROM spaces WHERE study_id=?) "
-										+ "SELECT alias,SUM((stats).mean*(stats).count)"
-										+ "/(SUM((stats).count))::real AS mean "
-										+ "FROM (SELECT depthmaps.space_id,teams.alias,"
-										+ "ST_SummaryStats(ST_Clip(map,ST_Union(polygon)),"
-										+ "(SELECT band_id FROM band_info WHERE map_id=depthmaps.id "
-										+ "AND alias='Visual Integration [HH]')) "
-										+ "AS stats FROM depthmaps JOIN polygons "
-										+ "ON depthmaps.space_id=polygons.space_id "
-										+ "LEFT JOIN teams ON polygons.type_id=teams.id "
-										+ "WHERE depthmaps.space_id "
-										+ "IN (SELECT * FROM spaces_in_study) "
-										+ "AND functeam='team' "
-										+ "AND depthmaps.def=TRUE "
-										+ "AND depthmaps.analysis_type='Visibility'::depthmap_types "
-										+ "GROUP BY depthmaps.id,map,teams.alias) "
-										+ "AS clipped GROUP BY alias;", studyID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_prim_circ_per_building")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				int typeID = 14;
-				JSONObject result =
-						Database.customQuery(
-								"SELECT spaces.building,SUM(ST_Area(polygon)) FROM polygons JOIN spaces "
-										+ "ON polygons.space_id=spaces.id WHERE functeam='func' "
-										+ "AND type_id =? AND study_id=? GROUP BY spaces.building;",
-								typeID, studyID).getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result);
-			} else if (type.equals("tbl_nia_alternative_spaces_per_type")) {
-				int obsID = Integer.parseInt(params.get("obsid")[0]);
-				int studyID = obsID;
-				String typeStartString = "ALT";
-				JSONObject result =
-						Database.customQuery(
-								"WITH all_of_type AS (SELECT id FROM polygon_types "
-										+ "WHERE UPPER(left(alias,length(?)))=?) "
-										+ "SELECT polygon_types.alias,SUM(ST_Area(polygon)) "
-										+ "FROM polygons JOIN spaces ON polygons.space_id=spaces.id "
-										+ "LEFT JOIN polygon_types ON polygons.type_id=polygon_types.id "
-										+ "WHERE functeam='func' AND type_id IN (SELECT id FROM all_of_type) "
-										+ "AND study_id=? GROUP BY polygon_types.alias;",
-								typeStartString, typeStartString, studyID)
-								.getJSONObject(0);
-				if (result.length() < 1) {
-					response.setStatus(HttpServletResponse.SC_CREATED);
-					out.println("No data present");
-				} else out.println(result.getDouble((String) result.keys()
-						.next()));
 			} else if (type.equals("tbl_avg_util_per_team")) {
 				int obsID = Integer.parseInt(params.get("obsid")[0]);
 				JSONObject result =
@@ -1776,14 +2072,15 @@ public class Occupancy extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-	private java.sql.Array getAsJDBCArray(String arr)
-			throws ClassNotFoundException, SQLException {
+	private java.sql.Array getAsJDBCArray(Connection psql, String arr,
+			String argType) throws ClassNotFoundException, SQLException {
 		// System.out.println("aaa");
 		// System.out.println(arr);
 		String [] args = arr.split(",");
 		int type = 4; // 0 : string
-		for (String arg : args) {
-			// System.out.println(arg);
+		if (argType != null) {
+			if (argType.replace(" ", "").equalsIgnoreCase("text[]")) type = 0;
+		} else for (String arg : args) {
 			// System.out.println(NumberUtils.isNumber(arg.trim()));
 			if (!NumberUtils.isNumber(arg.trim())) {
 				type = 0;
@@ -1824,7 +2121,7 @@ public class Occupancy extends HttpServlet {
 				typeIn = "int4";
 				break;
 		}
-		return Database.getConnection().createArrayOf(typeIn, args);
+		return psql.createArrayOf(typeIn, args);
 	}
 
 	/**

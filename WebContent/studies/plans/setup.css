@@ -1,0 +1,73 @@
+.box {
+	/*background: #FFEEB8;*/
+	
+}
+
+.roundcontainer, .daycontainer {
+	margin: .5em;
+}
+
+.lighttext {
+	color: gray;
+}
+
+.validbox {
+	/*background: #CCFFD2;*/
+	background: #5D952D;
+	color: white;
+}
+
+.validbox .faketextbox, .validbox a, .validbox a:visited {
+	color: white;
+}
+
+.invalidbox {
+	/*background: #FFA8A8;*/
+	background: #FF0000;
+}
+
+.rightcheck {
+	float: right;
+	clear: right;
+}
+
+.rightchecktext {
+	float: right;
+	margin-right: 2px;
+}
+
+#foundobjects {
+	text-align: left;
+	width: 100%;
+	resize: none;
+}
+
+.faketextbox {
+	border: none;
+	background: none;
+}
+a,a:visited {
+	color:black;
+	font-weight:bold;
+	text-decoration:none;
+}
+.boxswitcher {
+	float:right;
+}
+label.button {
+	padding: 5px 10px;
+}
+.removebutton {
+	margin-left: 5px;
+}
+.devicecheck {
+	float:left;
+	clear:left;
+	margin-left:40%;
+}
+span {
+	margin: 2px;
+}
+.devicename {
+	float:left;
+}
