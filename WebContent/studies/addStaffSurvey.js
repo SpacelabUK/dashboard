@@ -372,10 +372,9 @@ app
 								MatcherFactory.openMatcherModal("team", "teams",
 										response["DEPARTMENT_LIST"], response["DATABASE_TEAMS"]).result
 										.then(function(teams_message) {
-											// MatcherFactory.openMatcherModal("question",
-											// "questions",
-											// // response["QUESTION_LIST"],
-											// response["DATABASE_QUESTIONS"], {
+											MatcherFactory.openMatcherModal("floor", "floors",
+													response["FLOOR_LIST"], response["DATABASE_FLOORS"]
+											// , {
 											// // preCompare : true,
 											// fromProperties : [
 											// 'parent'
@@ -383,25 +382,28 @@ app
 											// toProperties : [
 											// 'parent'
 											// ]
-											// }).result.then(function(questions_message) {
-											console.log("success");
-											console.log(teams_message);
-											// console.log(questions_message);
-											var data = {
-												studyid : study.id,
-												fileid : response.fileid,
-												datain : {
-													teams : teams_message,
-												// questions : questions_message,
-												// issues : response["ISSUE_LIST"],
-												// client_issues : response["CLIENT_ISSUE_LIST"]
+											// }
+											).result.then(function(floors_message) {
+												// console.log("success");
+												// console.log(teams_message);
+												//												console.log(floors_message);
+												// console.log(questions_message);
+												var data = {
+													studyid : study.id,
+													fileid : response.fileid,
+													datain : {
+														teams : teams_message,
+														floors : floors_message,
+													// questions : questions_message,
+													// issues : response["ISSUE_LIST"],
+													// client_issues : response["CLIENT_ISSUE_LIST"]
+													}
 												}
-											}
-											console.log(data);
-											HTTPFactory.backendPost('StoreStaffSurvey', data);
-											// }, function(error) {
-											// console.log(error);
-											// });
+//												console.log(data);
+												HTTPFactory.backendPost('StoreStaffSurvey', data);
+											}, function(error) {
+												console.log(error);
+											});
 										}, function(error) {
 											console.log(error);
 										});

@@ -145,6 +145,138 @@ app.directive("responsiveDoughnutChart", [
 		return directiveDefinitionObject;
 	}
 ]);
+app.directive("doughnutChartEr", [
+	function() {
+		var directiveDefinitionObject = {
+			restrict : 'E',
+			scope : {
+				data : '=',
+				// labels : '=',
+				showText : '=',
+				showOnlyFirst : '=',
+				colours : '=',
+				showLegend : '=',
+				title : '='
+			},
+			link : function(scope, element, attrs) {
+
+				var width = 400, height = 250, radius = Math.min(width, height) / 2;
+
+				var pie = d3.layout.pie().sort(null).value(function(d) {
+					return d.value;
+				});
+
+				var legendRectSize = 10; // NEW
+				var legendSpacing = 4; // NEW
+
+				var arc = d3.svg.arc().innerRadius(radius - 75)
+						.outerRadius(radius - 25);
+
+				var svg = d3.select(element[0]).append("svg")
+				// .attr("width",
+				// width)
+				.attr("height", "100%").attr("width", "100%").attr(
+						"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
+						"0 0 " + width + " " + height).append("g").attr("transform",
+						"translate(" + width / 3 + "," + height / 2 + ")");
+
+				scope.$watch('data', function(newData) {
+					svg.selectAll("path").remove();
+					var prop = newData.properties[0].alias;
+					var data = [];
+					for (var i = 0; i < newData.keys.length; i++) {
+						var key = newData.keys[i].alias;
+						var obj = {
+							key : key,
+							value : newData.data[key][prop]
+						};
+						if ('name' in newData.keys[i])
+							obj.key = newData.keys[i].name
+						data.push(obj);
+					}
+					// var path = svg.selectAll("path").data(pie(data)).enter().append(
+					// "path").attr("fill", function(d, i) {
+					// return spacelabColours[i];
+					// }).attr("d", arc);
+
+					var g = svg.selectAll(".arc").data(pie(data)).enter().append("g")
+							.attr("class", "arc");
+
+					g.append("path").attr("d", arc).style("fill", function(d, i) {
+						return spacelabColours[i];
+					});
+					// if(scope.title) svg.append("text").style("text-anchor",
+					// "middle")
+					// .attr("y", 150)
+					// .text(scope.title);
+					if (scope.showText) {
+						if (scope.showOnlyFirst) {
+							svg.selectAll("text").remove();
+
+							svg.append("text")
+							// .attr("transform", function(d) {
+							// return "translate(" +
+							// arc.centroid(d) + ")";
+							// })
+							// .attr("dy", ".35em")
+							.attr('font-family', 'Apercu,serif').attr('font-size', '20px')
+									.attr("transform", "translate(" + 0 + "," + 10 + ")").style(
+											"text-anchor", "middle").text(function(d) {
+										// if (scope.keys)
+										return scope.keys[0].alias;
+										// return 'lol';
+										// else
+										// return scope.parts[0];
+									});
+						} else {
+							g.append("text").attr("transform", function(d) {
+								return "translate(" + arc.centroid(d) + ")";
+							}).attr("dy", ".25em").style("text-anchor", "middle").attr(
+									'font-family', 'Apercu,serif').style('font-size', '10px')
+									.text(function(d) {
+										// return d.data.age;
+										// return d.data.key;
+										return d.value.toFixed(2);
+									});
+						}
+					}
+					if (scope.showLegend) {
+						var legend = svg.selectAll('.legend') // NEW
+						.data(data) // NEW
+						.enter() // NEW
+						.append('g') // NEW
+						.attr('class', 'legend') // NEW
+						.attr('transform', function(d, i) { // NEW
+							var height = legendRectSize + legendSpacing; // NEW
+							var offset = height * data.length / 2; // NEW
+							var horz = radius * 1.2 - 2 * legendRectSize; // NEW
+							var vert = i * height - offset; // NEW
+							return 'translate(' + horz + ',' + vert + ')'; // NEW
+						}); // NEW
+
+						legend.append('rect') // NEW
+						.attr('width', legendRectSize) // NEW
+						.attr('height', legendRectSize) // NEW
+						.style('fill', function(d, i) {
+							return spacelabColours[i]
+						}) // NEW
+						.style('stroke', function(d, i) {
+							return spacelabColours[i]
+						}); // NEW
+
+						legend.append('text') // NEW
+						.attr('x', legendRectSize + legendSpacing) // NEW
+						.attr('y', legendRectSize - legendSpacing * 0.5) // NEW
+						.style('font-size', '10px').text(function(d) {
+							return d.key;
+						}); // NEW
+					}
+				}, true);
+			}
+		};
+		return directiveDefinitionObject;
+	}
+]);
 app.directive("simpleLineChart", [
 
 	function() {

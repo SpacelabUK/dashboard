@@ -355,17 +355,14 @@ public class StoreDepthmap extends FlowUpload {
 		Database.insertInto(psql, TABLE_MAP,
 				"name,analysis_type,study_id,space_id,map",
 				"?,?::depthmap_types,?,?,ST_MakeEmptyRaster( ?, ?, ?, ?, ?)",
-				mapName, type, String.valueOf(studyID),
-				String.valueOf(spaceID), String.valueOf(raster.cellNumX),
-				String.valueOf(raster.cellNumY), String.valueOf(raster.x),
-				String.valueOf(raster.y + raster.cellNumY * raster.cellW),
-				String.valueOf(raster.cellW));
+				mapName, type, studyID, spaceID, raster.cellNumX,
+				raster.cellNumY, raster.x, raster.y + raster.cellNumY
+						* raster.cellW, raster.cellW);
 
 		JSONArray result =
 				Database.selectWhatFromTableWhere(psql, TABLE_MAP, "id",
-						"study_id=? AND space_id=? AND name=?",
-						String.valueOf(studyID), String.valueOf(spaceID),
-						mapName);
+						"study_id=? AND space_id=? AND name=?", studyID,
+						spaceID, mapName);
 		int mapID = result.getJSONObject(0).getInt("id");
 
 		List<Integer> bandIds = new ArrayList<Integer>();

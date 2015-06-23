@@ -352,8 +352,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				if (spaceOffset != null) {
 					xpos += spaceOffset[0];
 					ypos += spaceOffset[1];
-					// xpos += rs.getDouble("xpos") + spaceOffset[0];
-					// ypos += rs.getDouble("ypos") + spaceOffset[1];
+//					 xpos += rs.getDouble("xpos") + spaceOffset[0];
+//					 ypos += rs.getDouble("ypos") + spaceOffset[1];
 				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				int interaction = rs.getInt("interaction");

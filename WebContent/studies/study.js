@@ -388,584 +388,822 @@ app
 						}
 				]);
 
-app.controller('AllStudyIssuesCtrl', [
-		'$scope',
-		'$stateParams',
-		'$modal',
-		'StudyFactory',
-		'HTTPFactory',
-		function($scope, $stateParams, $modal, StudyFactory, HTTPFactory) {
-			$scope.id = $stateParams.studyid;
-			$scope.viewAlias = $stateParams.viewAlias;
-			$scope.activityValues = [];
-			$scope.activityLabels = [
-					'walking', 'standing', 'sitting'
-			];
-			$scope.isNumber = function(metric) {
-				return !metric.measure || !metric.measure.type
-						|| metric.measure.type == 'number';
-			}
-			$scope.isTable = function(metric) {
-				return metric.measure && metric.measure.type
-						&& metric.measure.type == 'table';
-			}
-			$scope.isList = function(metric) {
-				return metric.measure && metric.measure.type
-						&& metric.measure.type == 'list';
-			}
-			var requiredStyles = [
-					'background-color', 'border-left-color', 'border-right-color',
-					'border-top-color', 'border-bottom-color', 'color', 'font-family'
-			];
-			$scope.toAliasString = function(name) {
-				return name.replace(/[^a-z0-9]/g, function(s) {
-					var c = s.charCodeAt(0);
-					if (c == 32)
-						return '-';
-					if (c >= 65 && c <= 90)
-						return '_' + s.toLowerCase();
-					return '__' + ('000' + c.toString(16)).slice(-4);
-				});
-			}
-			$scope.copyToClipboard = function(id) {
-				var nid = $scope.toAliasString(id);
-				console.log(nid);
-				var tbl = document.getElementById(nid);
-				var el = tbl.getElementsByTagName('table')[0];
-				var inliner = function(element) {
-					if (element.nodeType !== 1)
-						return;
-					var style = window.getComputedStyle(element);
-					for (var i = 0; i < requiredStyles.length; i++) {
-						element.style[requiredStyles[i]] = style
-								.getPropertyValue(requiredStyles[i]);
-					}
-					var children = element.childNodes;
-					for (var i = 0; i < children.length; i++) {
-						inliner(children[i]);
-					}
-				}
-				inliner(el);
-				// console.log(el);
-				window.prompt("Copy to clipboard: Ctrl+C, Enter", el.outerHTML);
-			}
-			$scope.getNameOrAlias = function(e) {
-				if (e.name)
-					// return e.name + '(' + e.alias + ')';
-					return e.name;
-				return e.alias;
-			}
-			$scope.getSorterOrNameOrAlias = function(e) {
-				if (e.sortby || e.sortby === 0)
-					// return e.name + '(' + e.alias + ')';
-					return e.sortby;
-				if (e.name)
-					// return e.name + '(' + e.alias + ')';
-					return e.name;
-				return e.alias;
-			}
-			$scope.wantedMetrics = [
-					{
-						name : 'G0',
-						title : 'General project info',
-						metrics : [
-								'project_name', //
-								'nia_total', //
-								'no_of_buildings'
-						]
-					},
-					// {
-					// name : 'S1',
-					// title : 'Space planned to suit occupancy levels',
-					// metrics : [
-					// 'max_desk_occupancy_prc', //
-					// 'avg_desk_occupancy_total_prc', //
-					// 'total_expected_headcount',//
-					// 'no_of_seats_canteen',//
-					// 'no_of_desks', //
-					// 'no_of_desks_per_building', //
-					// 'tbl_no_of_desks_wrksp_per_building', //
-					// 'avg_working_hours',//
-					// 'avg_out_of_office_hours', //
-					// 'avg_away_from_desk_hours', //
-					// 'perceived_hours_in_office', //
-					// 'nia_per_desk_at_max_occupancy', //
-					// 'q_avg_mark_hoursofworking',//
-					// 'avg_time_in_office', //
-					// 'avg_hours_work_from_home',//
-					// 'desired_avg_hours_work_from_home', //
-					// 'avg_visitor_numbers', //
-					// 'avg_on_leave_or_sick', //
-					// 'Space planned to suit occupancy levels',
-					// 'no_of_people_per_round' //
-					// ]
-					// }, //
-					// {
-					// name : 'S2',
-					// title : 'Efficient desk occupation',
-					// metrics : [
-					// 'avg_not_empty_desk_occupancy_prc',//
-					// 'no_of_desks', //
-					// 'no_of_desks_open_plan', //
-					// 'no_of_desks_cellular',//
-					// 'no_of_staff', //
-					// 'no_of_desks_more_than_staff_prc',
-					// 'q_mark_over_3_imp2workatdesk_over_no_of_staff',
-					// 'perceived_desk_occupancy',
-					// 'prc_of_responders_desk_space_is_quite_or_very_important',
-					// 'quotes_under_efficient_desk_occupation',
-					// 'avg_desk_occupancy_per_team', //
-					// 'max_desk_occupancy_per_team_prc',
-					// 'occupancy_frequency_grouped'
-					// ]
-					// },
-					// {
-					// name : 'S3',
-					// title : 'Appropriate workspace densities',
-					// metrics : [
-					// 'nia_prim_circ',//
-					// 'nia_prim_circ_sqft',//
-					// 'nia_prim_circ_to_total_prc', //
-					// 'nia_shared_facilities', //
-					// 'nia_shared_facilities_sqft', //
-					// 'nia_shared_facilities_to_total_prc', //
-					// 'nia_wrksp_per_building',//
-					// 'nia_wrksp_open', //
-					// 'nia_wrksp_open_sqft', //
-					// 'nia_wrksp_open_to_total_prc', //
-					// 'nia_wrksp_cel', //
-					// 'nia_wrksp_cel_sqft', //
-					// 'nia_wrksp_cel_to_total_prc', //
-					//								
-					// 'nia_total_per_desk', //
-					// 'nia_wrksp_per_desk', //
-					// 'nia_wrksp_open_per_desk', //
-					// 'nia_wrksp_cel_per_desk', //
-					//								
-					// 'nia_per_desk_per_team', //
-					// 'nia_wrksp_per_desk_per_space', //
-					// 'nia_wrksp_per_desk_per_building', //
-					// 'no_of_replies_amount_of_space', //
-					// 'Appropriate workspace densities'
-					// ]
-					// },
-					// {
-					// name : 'S4',
-					// title : 'Efficient primary circulation',
-					// metrics : [
-					// 'nia_prim_circ',//
-					// 'nia_prim_circ_sqft',//
-					// 'nia_prim_circ_to_total_prc', //
-					// 'nia_prim_circ_to_total_per_building',
-					// 'nia_prim_circ_to_total_per_space',
-					// 'Efficient primary circulation',
-					// 'nia_wrksp_to_total_per_space',
-					// 'nia_wrksp_to_total_per_building',
-					// 'nia_shared_facilities_to_total_per_space',
-					// 'nia_shared_facilities_to_total_per_building'
-					// ]
-					// },
-					// {
-					// name : 'S5',
-					// title : 'Spatial efficiency of bookable meeting rooms',
-					// metrics : [
-					// 'occupancy_of_bookable_meeting_rooms_prc',//
-					// 'max_occupancy_of_meeting_rooms_prc',//
-					// 'min_occupancy_of_meeting_rooms_prc',//
-					// 'no_of_meeting_rooms',//
-					// 'nia_meeting_room_bkb',//
-					// 'avg_utilisation_when_used_meeting_rooms',//
-					// 'no_of_replies_can_get_meeting_room',
-					// 'no_of_replies_important_confidential_mtg',
-					// 'no_of_replies_important_bookable_mtg',
-					// 'Spatial efficiency of bookable meeting rooms',
-					// 'meeting_room_groups_avg', //
-					// 'meeting_room_groups_max', //
-					// 'avg_meeting_size'
-					// ]
-					// },
-					// {
-					// name : 'S6',
-					// title : 'Spatial efficiency of alternative spaces',
-					// metrics : [
-					// 'nia_alternative_spaces', //
-					// 'nia_per_alternative_space_type', //
-					// 'no_of_alternative_spaces', //
-					// 'max_utilisation_of_alternative_spaces',
-					// 'occupancy_of_alternative_spaces_prc',
-					// 'choices_of_informal_facilities_questions',
-					// 'Spatial efficiency of alternative spaces',
-					// 'activity_in_alternative_spaces_per_round',
-					// 'activity_in_canteen_per_round'
-					// ]
-					// },
-					// // s7
-					// {
-					// name : 'S7',
-					// title : 'Suitability of storage',
-					// metrics : [
-					// 'nia_storage_to_total_prc',
-					// 'choices_of_storage_facilities_questions',
-					// 'Suitability of storage',
-					// 'stakeholder_cultural_preferences_organised_chaos_current',
-					// 'stakeholder_cultural_preferences_organised_chaos_future'
-					// ]
-					// }, //
-					// {
-					// name : 'O1',
-					// title : 'Space suits future organisation structure',
-					// metrics : [
-					// 'Space suits future organisation structure',
-					//								
-					// 'avg_accessibility_mean_depth_per_building', //
-					// 'avg_visibility_mean_depth_per_building', //
-					// 'avg_essence_mean_depth_per_building', //
-					// 'step_depth_essence_to_visibility',
-					// 'step_depth_essence_to_accessibility'
-					// ]
-					// },
-					// {
-					// name : 'O2',
-					// title : 'Hierarchy suitably reinforced by space',
-					// metrics : [
-					// 'max_cellular_workspace_nia_per_desk', //
-					// 'min_cellular_workspace_nia_per_desk', //
-					// 'no_of_replies_some_people_better_environment',
-					// 'quotes_under_hierarchy_suitably_reinforced_by_space',
-					// 'stakeholder_cultural_preferences_formal_informal_current',
-					// 'stakeholder_cultural_preferences_formal_informal_future',
-					// 'nia_wrksp_open_per_desk', //
-					// 'nia_wrksp_cel_per_desk', //
-					// 'nia_per_desk_per_team', //
-					// 'team_with_max_nia_per_desk', //
-					// 'team_with_min_nia_per_desk', //
-					// 'nia_wrksp_per_desk_per_space', //
-					// 'nia_wrksp_per_desk_per_building', //
-					// ]
-					// },
-					// {
-					// name : 'O3',
-					// title : 'Team locations',
-					// metrics : [
-					// 'no_of_replies_needed_teams_close',
-					// 'in_degree_teams_extreme_usefulness', //
-					// 'in_degree_teams_current_collaboration',//
-					// 'in_degree_teams_future_interaction', //
-					// 'Team locations', //
-					// 'avg_accessibility_mean_depth_per_team' //
-					// ]
-					// },
-					// {
-					// name : 'O4',
-					// title : 'Spatial suitability for key business processes',
-					// metrics : [
-					// 'prc_on_the_phone',
-					// 'avg_no_of_people_on_the_phone_per_team_prc',
-					// 'choices_of_activities_questions',
-					// 'choices_of_facilities_importance_questions',
-					// 'no_of_tagged_quotes_improvements',
-					// 'Spatial suitability for key business processes',
-					// 'prc_of_responders_uninterrupted_work_is_quite_or_very_important'
-					// ]
-					// },
-					// {
-					// name : 'O5',
-					// title : 'Location of specialist shared facilities',
-					// metrics : [
-					// 'Location of specialist shared facilities'
-					// ]
-					// },
-					// {
-					// name : 'O6',
-					// title : 'Space reflects organisational identity',
-					// metrics : [
-					// 'no_of_replies_brand_reflects_identity',
-					// 'Space reflects organisational identity'
-					// ]
-					// },
-					// {
-					// name : 'O7',
-					// title : 'Visitor experience',
-					// metrics : [
-					// 'no_of_replies_proud_of_environment',
-					// 'no_of_replies_meetings_with_externals',
-					// 'no_of_replies_visitors_like_office',
-					// 'Visitor experience',
-					// 'prc_of_responders_in_pre_planned_meetings_with_externals',
-					// 'prc_of_responders_in_pre_planned_meetings_with_externals_over_10_prc'
-					// ]
-					// },
-					// {// b1
-					// name : 'B1',
-					// title : 'Appropriate movement levels in the right places',
-					// metrics : [
-					// // //'people_moving_total', //
-					// // //'people_any_activity_total', //
-					// 'avg_moving_total', //
-					// 'avg_moving_per_building', //
-					// 'avg_moving_per_space', 'people_moving_to_nia_prim_circ',
-					// 'people_moving_to_nia_prim_circ_per_building',
-					// 'people_moving_to_nia_prim_circ_per_space',
-					// 'people_moving_to_nia_total',
-					// 'people_moving_to_nia_total_per_building',
-					// 'people_moving_to_nia_total_per_space',
-					// 'printer_accessibility_mean_depth',
-					// 'no_of_replies_dynamic_environment',
-					// 'no_of_replies_free_access', //
-					// 'no_of_replies_noisy_environment', //
-					// 'no_of_staff_per_tea_point',
-					// 'Appropriate movement levels in the right places',
-					// 'avg_accessibility_mean_depth', //
-					// 'avg_visibility_mean_depth', //
-					// 'avg_essence_mean_depth', //
-					// 'avg_accessibility_mean_depth_of_printers',
-					// 'avg_accessibility_mean_depth_of_teapoints',
-					// 'people_any_activity_total_breakdown',
-					// ]
-					// },
-					// {
-					// name : 'B2',
-					// title : 'People can have visible contact of whole business',
-					// metrics : [
-					// 'avg_accessibility_mean_depth_of_canteens',
-					// 'avg_accessibility_mean_depth_of_social_hubs',
-					// 'max_accessibility_mean_depth', //
-					// 'min_accessibility_mean_depth', 'study_visibility_mean', //
-					// 'study_accessibility_mean', //
-					// 'study_essence_mean', //
-					// 'no_of_replies_community_environment', //
-					// 'People can have visible contact of whole business'
-					// ]
-					// },
-					// {
-					// name : 'B3',
-					// title : 'Collaboration supported by space',
-					// metrics : [
-					// 'people_any_activity_interacting_prc',
-					// 'people_any_activity_interacting_prc_verdict',
-					// 'people_any_activity_interacting_prc_per_building',
-					// 'people_any_activity_interacting_prc_per_space',
-					// 'avg_utlisation_per_sqm', //
-					// 'avg_utlisation_per_sqm_per_building',
-					// 'avg_utlisation_per_sqm_per_space',
-					// 'avg_no_of_contacts_per_person', //
-					// 'avg_area_per_desk', //
-					// 'avg_area_per_desk_per_building', //
-					// 'avg_area_per_desk_per_space', //
-					// 'avg_no_of_contacts_per_person_seen_over_5',
-					// 'avg_no_of_contacts_per_person_useful_4',
-					// 'avg_no_of_contacts_per_person_useful_3',
-					// 'avg_no_of_contacts_per_person_useful_2',
-					// 'Collaboration supported by space',
-					// 'stakeholder_cultural_preferences_alone_together_current',
-					// 'stakeholder_cultural_preferences_alone_together_future',
-					// 'avg_visibility_mean_depth', //
-					// ]
-					// }, //
-					// {
-					// name : 'B4',
-					// title : 'Opportunities for unplanned interaction',
-					// metrics : [
-					// 'no_of_replies_env_allows_unplanned_mtg', //
-					// 'visiting_ratio',
-					// 'Opportunities for unplanned interaction',
-					// 'no_of_planned_contacts_per_score',
-					// 'no_of_unplanned_contacts_per_score',
-					// 'avg_accessibility_mean_depth', //
-					// ]
-					// },
-					{
-						name : 'B5',
-						title : 'Balance between local and global interaction',
-						metrics : [
-								'avg_no_of_contacts_per_person', //
-								'avg_ties_in_team', //
-								'avg_ties_outside_team', //
-								'avg_possible_ties_in_team', //
-								'avg_possible_ties_outside_team', //
-								'yules_q_team', //
-								'avg_ties_in_floor', //
-								'avg_ties_outside_floor', //
-								'avg_possible_ties_in_floor', //
-								'avg_possible_ties_outside_floor',
-								'Balance between local and global interaction',
-								'no_of_planned_and_unplanned_contacts_per_score_within_team',
-								'no_of_planned_and_unplanned_contacts_per_score_outside_team',
-
-								'no_of_staff_ties_outside_team_per_team',
-								'no_of_staff_ties_within_team_per_team',
-								'no_of_possible_staff_ties_outside_team_per_team',
-								'no_of_possible_staff_ties_within_team_per_team'
-						]
-					},
-			// {
-			// name : 'E1',
-			// title : 'IT supports desired working practices',
-			// metrics : [
-			// 'no_of_replies_printer_importance',
-			// 'no_of_replies_computer_importance',
-			// 'no_of_tagged_quotes_improvements',
-			// 'no_of_tagged_quotes_best_feature',
-			// 'choices_of_it_facilities_questions',
-			// 'IT supports desired working practices'
-			// ]
-			// },
-			// {
-			// name : 'CR1',
-			// title : 'Awareness and willingness to change',
-			// metrics : [
-			// 'no_of_replies_understand_why_change',
-			// 'Awareness and willingness to change',
-			// 'stakeholder_cultural_preferences_risky_cautious_current',
-			// 'stakeholder_cultural_preferences_risky_cautious_future'
-			//						
-			// ]
-			// },
-			// {
-			// name : 'CR2',
-			// title : 'Staff drivers for change',
-			// metrics : [
-			// 'no_of_replies_community_environment',
-			// 'no_of_replies_enjoyable_environment',
-			// 'Staff drivers for change'
-			// ]
-			// },
-			// {
-			// name : 'CR3',
-			// title : 'Attitude to open plan and flexible working',
-			// metrics : [
-			// 'no_of_replies_own_desk_important',
-			// 'no_of_replies_proud_of_environment',
-			// 'no_of_tagged_quotes_improvements',
-			// 'no_of_tagged_quotes_best_feature',
-			// 'Attitude to open plan and flexible working',
-			// 'stakeholder_cultural_preferences_static_flexible_working_current',
-			// 'stakeholder_cultural_preferences_static_flexible_working_future'
-			// ]
-			// }
-			];
-			var allMetrics = [
-					'project_name', 'activities_split'
-			];
-			// for (var i = 0; i < $scope.wantedMetrics.length; i++)
-			// allMetrics =
-			// allMetrics.concat($scope.wantedMetrics[i].metrics);
-			// StudyFactory
-			// .fetchStudy($scope.id, allMetrics)
-			// .then(
-			// function(response) {
-			// $scope.study = response;
-			// // console.log($scope.study.activities_split);
-			// for (var i = 0; i < $scope.activityLabels.length; i++) {
-			// $scope.activityValues
-			// .push($scope.study.activities_split[$scope.activityLabels[i]]);
-			// }
-			// HTTPFactory
-			// .backendGet(
-			// 'Occupancy?t=occ_per_space_and_round_prc&obsid='
-			// + $scope.study.first_observation_id.content)
-			// .then(
-			// function(response) {
-			// $scope.spaces = response.data;
-			// var spaceMap = {};
-			// for (var i = 0; i < $scope.spaces.length; i++) {
-			// spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
-			// }
-			// if ($scope.study.movement_density_spaces) {
-			// for (var i = 0; i <
-			// $scope.study.movement_density_spaces.content.length; i++) {
-			// var spaceID =
-			// parseInt($scope.study.movement_density_spaces.content[i].space_id);
-			// spaceMap[spaceID].sqm_per_walker = {
-			// content :
-			// parseFloat($scope.study.movement_density_spaces.content[i].sqm_per_walker)
-			// };
-			// }
-			// }
-			// }, function(error) {
-			// console.log(error);
-			// });
-			//
-			// // console.log(response);
-			// }, function(error) {
-			// console.log(error);
-			// });
-			for (var i = 0; i < $scope.wantedMetrics.length; i++)
-				allMetrics = allMetrics.concat($scope.wantedMetrics[i].metrics);
-			$scope.study = StudyFactory.fetchStudy($scope.id, allMetrics);
-			console.log($scope.study);
-			// .then(
-			// function(response) {
-			// $scope.study = response;
-			// // console.log($scope.study.activities_split);
-			// // for (var i = 0; i < $scope.activityLabels.length; i++) {
-			// // $scope.activityValues
-			// //
-			// .push($scope.study.activities_split[$scope.activityLabels[i]]);
-			// // }
-			// // HTTPFactory
-			// // .backendGet(
-			// // 'Occupancy?t=occ_per_space_and_round_prc&obsid='
-			// // + $scope.study.first_observation_id.content)
-			// // .then(
-			// // function(response) {
-			// // $scope.spaces = response.data;
-			// // var spaceMap = {};
-			// // for (var i = 0; i < $scope.spaces.length; i++) {
-			// // spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
-			// // }
-			// // if ($scope.study.movement_density_spaces) {
-			// // for (var i = 0; i <
-			// $scope.study.movement_density_spaces.content.length; i++) {
-			// // var spaceID =
-			// parseInt($scope.study.movement_density_spaces.content[i].space_id);
-			// // spaceMap[spaceID].sqm_per_walker = {
-			// // content :
-			// parseFloat($scope.study.movement_density_spaces.content[i].sqm_per_walker)
-			// // };
-			// // }
-			// // }
-			// // }, function(error) {
-			// // console.log(error);
-			// // });
-			//
-			// // console.log(response);
-			// }, function(error) {
-			// console.log(error);
-			// })
-			;
-			$scope.getSQM = function(number) {
-				return number.toFixed(1) + 'm' + '\xB2';
-			}
-			$scope.getDepthmapMeasure = function(space, analysis_type) {
-				HTTPFactory.backendGet(
-						"GetDepthmapData?spaceid=" + space.id + "&measure=" + 9
-								+ "&analysis_type=" + analysis_type).then(function(response) {
-					// console.log(response.data);
-					var promise = $modal.open({
-						templateUrl : 'studies/dpmView.html',
-						controller : 'dpmViewController',
-						windowClass : 'planView',
-						resolve : {
-							img : function() {
-								return space.img;
-							},
-							dpmData : function() {
-								return response.data;
+app
+		.controller(
+				'AllStudyIssuesCtrl',
+				[
+						'$scope',
+						'$stateParams',
+						'$modal',
+						'$timeout',
+						'StudyFactory',
+						'HTTPFactory',
+						function($scope, $stateParams, $modal, $timeout, StudyFactory,
+								HTTPFactory) {
+							$scope.id = $stateParams.studyid;
+							// $scope.viewAlias = $stateParams.viewAlias;
+							$scope.issue = $stateParams.issue;
+							$scope.activityValues = [];
+							$scope.activityLabels = [
+									'walking', 'standing', 'sitting'
+							];
+							$scope.isNumber = function(metric) {
+								return !metric.measure || !metric.measure.type
+										|| metric.measure.type == 'number';
 							}
+							$scope.isTable = function(metric) {
+								return metric.measure && metric.measure.type
+										&& metric.measure.type == 'table';
+							}
+							$scope.isList = function(metric) {
+								return metric.measure && metric.measure.type
+										&& metric.measure.type == 'list';
+							}
+							var requiredStyles = [
+									'background-color', 'border-left-color',
+									'border-right-color', 'border-top-color',
+									'border-bottom-color', 'color', 'font-family'
+							];
+							$scope.toAliasString = function(name) {
+								return name.replace(/[^a-z0-9]/g, function(s) {
+									var c = s.charCodeAt(0);
+									if (c == 32)
+										return '-';
+									if (c >= 65 && c <= 90)
+										return '_' + s.toLowerCase();
+									return '__' + ('000' + c.toString(16)).slice(-4);
+								});
+							}
+							$scope.copyToClipboard = function(metric, id) {
+								if (metric.no_of_decimals || metric.no_of_decimals === 0)
+									metric.no_of_decimals = 'i' + metric.no_of_decimals;
+								console.log(metric.no_of_decimals);
+								$timeout(function() {
+									var nid = $scope.toAliasString(id);
+									var tbl = document.getElementById(nid);
+									var el = tbl.getElementsByTagName('table')[0];
+									var inliner = function(element) {
+										if (element.nodeType !== 1)
+											return;
+										var style = window.getComputedStyle(element);
+										for (var i = 0; i < requiredStyles.length; i++) {
+											element.style[requiredStyles[i]] = style
+													.getPropertyValue(requiredStyles[i]);
+										}
+										var children = element.childNodes;
+										for (var i = 0; i < children.length; i++) {
+											inliner(children[i]);
+										}
+									}
+									inliner(el);
+									window.prompt("Copy to clipboard: Ctrl+C, Enter",
+											el.outerHTML);
+									if (metric.no_of_decimals
+											&& metric.no_of_decimals.slice(0, 1) === 'i')
+										metric.no_of_decimals = metric.no_of_decimals.slice(1);
+									console.log(metric.no_of_decimals);
+								}, 200);
+
+								// return defer.promise;
+							}
+							$scope.getNameOrAlias = function(e) {
+								if (e.name)
+									// return e.name + '(' + e.alias + ')';
+									return e.name;
+								return e.alias;
+							}
+							$scope.getSorterOrNameOrAlias = function(e) {
+								if (e.sortby || e.sortby === 0)
+									// return e.name + '(' + e.alias + ')';
+									return e.sortby;
+								if (e.name)
+									// return e.name + '(' + e.alias + ')';
+									return e.name;
+								return e.alias;
+							}
+							$scope.getCellContent = function(e, key, property) {
+								if (e.measure.content.data[key.alias][property.alias]) {
+									if ((e.no_of_decimals || e.no_of_decimals === 0)
+											&& !isNaN(e.no_of_decimals))
+										return e.measure.content.data[key.alias][property.alias]
+												.toFixed(e.no_of_decimals);
+									// .toFixed(2);
+									else
+										return e.measure.content.data[key.alias][property.alias];
+								}
+								return '';
+							}
+							$scope.getContent = function(e) {
+								if (e.measure.content) {
+									if ((e.no_of_decimals || e.no_of_decimals === 0)
+											&& e.no_of_decimals != 'all')
+										return e.measure.content.toFixed(e.no_of_decimals);
+									// .toFixed(2);
+									else
+										return e.measure.content;
+								}
+								return 'fetching...';
+							}
+							$scope.issueNames = [
+									{
+										name : 'G0',
+										title : 'General project info',
+
+									},
+									{
+										name : 'S1',
+										title : 'Space planned to suit occupancy levels',
+
+									}, //
+									{
+										name : 'S2',
+										title : 'Efficient desk occupation',
+
+									},
+									{
+										name : 'S3',
+										title : 'Appropriate workspace densities',
+
+									},
+									{
+										name : 'S4',
+										title : 'Efficient primary circulation',
+
+									},
+									{
+										name : 'S5',
+										title : 'Spatial efficiency of bookable meeting rooms',
+
+									},
+									{
+										name : 'S6',
+										title : 'Spatial efficiency of alternative spaces',
+
+									},
+									// s7
+									{
+										name : 'S7',
+										title : 'Suitability of storage',
+
+									}, //
+									{
+										name : 'O1',
+										title : 'Space suits future organisation structure',
+
+									},
+									{
+										name : 'O2',
+										title : 'Hierarchy suitably reinforced by space',
+
+									},
+									{
+										name : 'O3',
+										title : 'Team locations',
+
+									},
+									{
+										name : 'O4',
+										title : 'Spatial suitability for key business processes',
+
+									},
+									{
+										name : 'O5',
+										title : 'Location of specialist shared facilities',
+
+									},
+									{
+										name : 'O6',
+										title : 'Space reflects organisational identity',
+
+									},
+									{
+										name : 'O7',
+										title : 'Visitor experience',
+									},
+									{
+										name : 'B1',
+										title : 'Appropriate movement levels in the right places',
+									},
+									{
+										name : 'B2',
+										title : 'People can have visible contact of whole business',
+									}, {
+										name : 'B3',
+										title : 'Collaboration supported by space',
+									}, {
+										name : 'B4',
+										title : 'Opportunities for unplanned interaction',
+									}, {
+										name : 'B5',
+										title : 'Balance between local and global interaction',
+
+									}, {
+										name : 'E1',
+										title : 'IT supports desired working practices',
+									}, {
+										name : 'CR1',
+										title : 'Awareness and willingness to change',
+
+									}, {
+										name : 'CR2',
+										title : 'Staff drivers for change',
+
+									}, {
+										name : 'CR3',
+										title : 'Attitude to open plan and flexible working',
+									}
+							];
+							$scope.wantedMetrics = [
+									{
+										name : 'G0',
+										title : 'General project info',
+										metrics : [
+												'project_name', //
+												'nia_total', //
+												'nia_total_sqft', //
+												'no_of_buildings', 'nia_total_per_building' //
+										]
+									},
+									{
+										name : 'S1',
+										title : 'Space planned to suit occupancy levels',
+										metrics : [
+												// 'desk_occupancy_total', //
+												// 'total_expected_headcount',//
+												// 'no_of_seats_canteen',//
+												'no_of_people_per_round_sum',
+												'no_of_people_per_round_max', //
+												'no_of_people_per_round_avg', //
+												'no_of_desks', //
+												'no_of_staff', //
+												'no_of_desks_per_building', //
+												// 'tbl_no_of_desks_wrksp_per_building', //
+												'avg_working_hours',//
+												'avg_out_of_office_hours', //
+												'avg_away_from_desk_hours', //
+												'perceived_hours_in_office', //
+												'nia_per_desk_at_max_occupancy', //
+												// 'q_avg_mark_hoursofworking',//
+												'avg_time_in_office', //
+												'avg_hours_work_from_home',//
+												'desired_avg_hours_work_from_home', //
+												// 'avg_visitor_numbers', //
+												// 'avg_on_leave_or_sick', //
+												'Space planned to suit occupancy levels',
+												'no_of_people_per_round' //
+										]
+									}, //
+									{
+										name : 'S2',
+										title : 'Efficient desk occupation',
+										metrics : [
+												'avg_desk_occupancy_total_prc', //
+												// 'max_desk_occupancy', //
+												'max_desk_occupancy_prc', //
+												'max_desk_occupancy_not_empty_prc',
+												'min_desk_occupancy_prc', //
+												'min_desk_occupancy_not_empty_prc',
+												'avg_not_empty_desk_occupancy_prc',//
+												'no_of_desks', //
+												'no_of_desks_open_plan', //
+												'no_of_desks_cellular',//
+												'no_of_staff', //
+												'no_of_staff_per_building', //
+												'no_of_desks_more_than_staff',
+												'no_of_desks_more_than_staff_prc',
+												'no_of_desks_empty', //
+												// 'q_mark_over_3_imp2workatdesk_over_no_of_staff',
+												'perceived_desk_occupancy',
+												'prc_of_responders_desk_space_is_quite_or_very_important',
+												'quotes_under_efficient_desk_occupation',
+												'no_of_desks_per_team', //
+												'nia_per_team', //
+												'avg_desk_occupancy_per_team', //
+												'max_desk_occupancy_per_team_prc',
+												'occupancy_frequency_grouped', //
+												'choices_of_activities_questions'
+										]
+									},
+									{
+										name : 'S3',
+										title : 'Appropriate workspace densities',
+										metrics : [
+												'nia_prim_circ',//
+												'nia_prim_circ_sqft',//
+												'nia_prim_circ_to_total_prc', //
+												'nia_shared_facilities', //
+												'nia_shared_facilities_sqft', //
+												'nia_shared_facilities_to_total_prc', //
+												'nia_wrksp_per_building',//
+												'nia_wrksp_opn_per_building',//
+												'nia_wrksp_cel_per_building',//
+												'no_of_desks_cellular_per_building',
+												'no_of_desks_open_plan_per_building', 'nia_wrksp', //
+												'nia_wrksp_sqft', //
+												'nia_wrksp_to_total_prc', //
+												'nia_wrksp_open', //
+												'nia_wrksp_open_sqft', //
+												'nia_wrksp_open_to_total_prc', //
+												'nia_wrksp_cel', //
+												'nia_wrksp_cel_sqft', //
+												'nia_wrksp_cel_to_total_prc', //
+
+												'desk_occupancy_wrksp_open_prc',
+												'desk_occupancy_wrksp_cell_prc',
+
+												'nia_total_per_desk', //
+												'nia_wrksp_per_desk', //
+												'nia_wrksp_open_per_desk', //
+												'nia_wrksp_cel_per_desk', //
+
+												'nia_per_desk_per_team', //
+												'nia_wrksp_per_desk_per_space', //
+												'nia_wrksp_per_desk_per_building', //
+												'nia_wrksp_opn_per_desk_per_building',
+												'nia_wrksp_cel_per_desk_per_building',
+												'nia_wrksp_per_person_per_building',
+												'no_of_replies_amount_of_space', //
+												'Appropriate workspace densities'
+										]
+									},
+									{
+										name : 'S4',
+										title : 'Efficient primary circulation',
+										metrics : [
+												'nia_prim_circ',//
+												'nia_prim_circ_sqft',//
+												'nia_prim_circ_to_total_prc', //
+												'nia_prim_circ_per_building', //
+												'nia_prim_circ_to_total_per_building',
+												'nia_prim_circ_to_total_per_space',
+												'Efficient primary circulation',
+												'nia_wrksp_to_total_per_space',
+												'nia_wrksp_to_total_per_building',
+												'nia_shared_facilities_per_building',
+												'nia_shared_facilities_to_total_per_space',
+												'nia_shared_facilities_to_total_per_building'
+										]
+									},
+									{
+										name : 'S5',
+										title : 'Spatial efficiency of bookable meeting rooms',
+										metrics : [
+												'occupancy_of_bookable_meeting_rooms_prc',//
+												'max_occupancy_of_bookable_meeting_rooms_prc', //
+												'min_occupancy_of_bookable_meeting_rooms_prc', //
+												'no_of_meeting_rooms',//
+												'nia_meeting_room_bkb',//
+												'nia_meeting_room_to_total_prc', //
+												'avg_utilisation_when_used_meeting_rooms',//
+												'no_of_replies_can_get_meeting_room',
+												'no_of_replies_important_confidential_mtg',
+												'no_of_replies_important_bookable_mtg',
+												'Spatial efficiency of bookable meeting rooms',
+												'meeting_room_groups_avg', //
+												'meeting_room_groups_max', //
+												'avg_meeting_size', //
+												'occupancy_of_bookable_meeting_rooms_avg',
+												'max_occupancy_of_bookable_meeting_rooms',
+										]
+									},
+									{
+										name : 'S6',
+										title : 'Spatial efficiency of alternative spaces',
+										metrics : [
+												'nia_alternative_spaces', //
+												'nia_alternative_spaces_sqft', //
+												'nia_alternative_spaces_prc', //
+												'nia_per_alternative_space_type', //
+												'no_of_alternative_spaces', //
+												'max_utilisation_of_alternative_spaces',
+												'occupancy_of_alternative_spaces_prc',
+												'choices_of_informal_facilities_questions',
+												'no_of_replies_concentration_spaces_exist',
+												'Spatial efficiency of alternative spaces',
+												'activity_in_alternative_spaces_per_round',
+												'activity_in_canteen_per_round'
+										]
+									},
+									// s7
+									{
+										name : 'S7',
+										title : 'Suitability of storage',
+										metrics : [
+												'nia_storage_to_total_prc',
+												'choices_of_storage_facilities_questions',
+												'Suitability of storage',
+												'stakeholder_cultural_preferences_organised_chaos_current',
+												'stakeholder_cultural_preferences_organised_chaos_future'
+										]
+									}, //
+									{
+										name : 'O1',
+										title : 'Space suits future organisation structure',
+										metrics : [
+												'Space suits future organisation structure',
+
+												'avg_accessibility_mean_depth_per_building', //
+												'avg_visibility_mean_depth_per_building', //
+												'avg_essence_mean_depth_per_building', //
+												'step_depth_essence_to_visibility',
+												'step_depth_essence_to_accessibility'
+										]
+									},
+									{
+										name : 'O2',
+										title : 'Hierarchy suitably reinforced by space',
+										metrics : [
+												'no_of_replies_some_people_better_environment',
+												'quotes_under_hierarchy_suitably_reinforced_by_space',
+												'stakeholder_cultural_preferences_formal_informal_current',
+												'stakeholder_cultural_preferences_formal_informal_future',
+												'nia_wrksp_open_per_desk', //
+												'nia_wrksp_cel_per_desk', //
+												'nia_per_desk_per_team', //
+												'team_with_max_nia_per_desk', //
+												'team_with_min_nia_per_desk', //
+												'nia_wrksp_per_desk_per_space', //
+												'nia_wrksp_per_desk_per_building', //
+										]
+									},
+									{
+										name : 'O3',
+										title : 'Team locations',
+										metrics : [
+												'no_of_replies_needed_teams_close',
+												'in_degree_teams_extreme_usefulness', //
+												'in_degree_teams_current_collaboration',//
+												'in_degree_teams_future_interaction', //
+												'Team locations', //
+												'avg_accessibility_mean_depth_per_team' //
+										]
+									},
+									{
+										name : 'O4',
+										title : 'Spatial suitability for key business processes',
+										metrics : [
+												'prc_on_the_phone',
+												'avg_no_of_people_on_the_phone_per_team_prc',
+												'choices_of_activities_questions',
+												'choices_of_facilities_importance_questions',
+												'no_of_tagged_quotes_improvements',
+												'Spatial suitability for key business processes',
+												'prc_of_responders_uninterrupted_work_is_quite_or_very_important'
+										]
+									},
+									{
+										name : 'O5',
+										title : 'Location of specialist shared facilities',
+										metrics : [
+											'Location of specialist shared facilities'
+										]
+									},
+									{
+										name : 'O6',
+										title : 'Space reflects organisational identity',
+										metrics : [
+												'no_of_replies_brand_reflects_identity',
+												'Space reflects organisational identity'
+										]
+									},
+									{
+										name : 'O7',
+										title : 'Visitor experience',
+										metrics : [
+												'no_of_replies_proud_of_environment',
+												'no_of_replies_meetings_with_externals',
+												'no_of_replies_visitors_like_office',
+												'Visitor experience',
+												'prc_of_responders_in_pre_planned_meetings_with_externals',
+												'prc_of_responders_in_pre_planned_meetings_with_externals_over_10_prc'
+										]
+									},
+									{
+										name : 'B1',
+										title : 'Appropriate movement levels in the right places',
+										metrics : [
+												// //'people_moving_total', //
+												// //'people_any_activity_total', //
+												'avg_moving_total', //
+												'avg_standing_total', //
+												'avg_sitting_total', //
+												'avg_moving_per_building', //
+												'avg_moving_per_space', //
+												'nia_total_per_space', //
+												'people_moving_avg', //
+												'people_moving_avg_per_building',
+												'people_moving_avg_per_space',
+												'people_moving_to_nia_prim_circ',
+												'people_moving_to_nia_prim_circ_per_building',
+												'people_moving_to_nia_prim_circ_per_space',
+												'people_moving_to_nia_total',
+												'people_moving_to_nia_total_per_building',
+												'people_moving_to_nia_total_per_space',
+												'no_of_replies_dynamic_environment',
+												'no_of_replies_free_access', //
+												'no_of_replies_noisy_environment', //
+												'no_of_staff_per_tea_point',
+												'Appropriate movement levels in the right places',
+												'avg_accessibility_mean_depth', //
+												'avg_visibility_mean_depth', //
+												'avg_essence_mean_depth', //
+												'avg_accessibility_mean_depth_of_printers',
+												'avg_accessibility_mean_depth_of_teapoints',
+												'people_any_activity_total_breakdown',
+										]
+									},
+									{
+										name : 'B2',
+										title : 'People can have visible contact of whole business',
+										metrics : [
+												'no_of_staff', //
+												'avg_accessibility_mean_depth_of_canteens',
+												'avg_accessibility_mean_depth_of_social_hubs',
+												'max_accessibility_mean_depth', //
+												'min_accessibility_mean_depth',
+												// 'study_visibility_mean', //
+												// 'study_accessibility_mean', //
+												// 'study_essence_mean', //
+												'no_of_replies_community_environment', //
+												'People can have visible contact of whole business'
+										]
+									},
+									{
+										name : 'B3',
+										title : 'Collaboration supported by space',
+										metrics : [
+												'people_any_activity_interacting_prc',
+												'people_any_activity_interacting_prc_verdict',
+												'people_any_activity_interacting_prc_per_building',
+												'people_any_activity_interacting_prc_per_space',
+												'avg_utlisation_per_sqm', //
+												'avg_utlisation_per_sqm_per_building',
+												'avg_utlisation_per_sqm_per_space',
+												'avg_no_of_contacts_per_person', //
+
+												'nia_total_per_desk', //
+												'nia_total_per_desk_per_building', //
+												'nia_total_per_person_per_building',
+												'nia_total_per_desk_per_space', //
+
+												'avg_no_of_contacts_per_person_seen_over_5',
+												'avg_no_of_contacts_per_person_useful_4',
+												'avg_no_of_contacts_per_person_useful_3',
+												'avg_no_of_contacts_per_person_useful_2',
+												'Collaboration supported by space',
+												'stakeholder_cultural_preferences_alone_together_current',
+												'stakeholder_cultural_preferences_alone_together_future',
+												'avg_visibility_mean_depth', //
+										]
+									}, //
+									{
+										name : 'B4',
+										title : 'Opportunities for unplanned interaction',
+										metrics : [
+												'no_of_replies_env_allows_unplanned_mtg', //
+												'visiting_ratio',
+												'Opportunities for unplanned interaction',
+												'no_of_planned_contacts_per_score',
+												'no_of_unplanned_contacts_per_score',
+												'avg_accessibility_mean_depth', //
+										]
+									},
+									{
+										name : 'B5',
+										title : 'Balance between local and global interaction',
+										metrics : [
+												'avg_no_of_contacts_per_person', //
+												'avg_ties_in_team', //
+												'avg_ties_outside_team', //
+												'avg_possible_ties_in_team', //
+												'avg_possible_ties_outside_team', //
+												'yules_q_team', //
+												'avg_ties_in_floor', //
+												'avg_ties_outside_floor', //
+												'avg_possible_ties_in_floor', //
+												'avg_possible_ties_outside_floor',
+												'avg_ties_in_building', //
+												'avg_ties_outside_building', //
+												'avg_possible_ties_in_building', //
+												'avg_possible_ties_outside_building',
+												'people_workspace_any_activity_interacting_total_per_activity',
+												'Balance between local and global interaction',
+												'no_of_planned_and_unplanned_contacts_per_score_within_team',
+												'no_of_planned_and_unplanned_contacts_per_score_outside_team',
+												'no_of_planned_and_unplanned_contacts_per_score_within_floor',
+												'no_of_planned_and_unplanned_contacts_per_score_outside_floor',
+												'no_of_planned_and_unplanned_contacts_per_score_within_building',
+												'no_of_planned_and_unplanned_contacts_per_score_outside_building',
+												'no_of_replies_face_to_face_spaces_exist_within_team',
+												'no_of_replies_face_to_face_spaces_exist_outside_team'
+
+										// 'no_of_staff_ties_outside_team_per_team',
+										// 'no_of_staff_ties_within_team_per_team',
+										// 'no_of_possible_staff_ties_outside_team_per_team',
+										// 'no_of_possible_staff_ties_within_team_per_team'
+										]
+									},
+									{
+										name : 'E1',
+										title : 'IT supports desired working practices',
+										metrics : [
+												'no_of_replies_printer_importance',
+												'no_of_tagged_quotes_improvements',
+												'no_of_tagged_quotes_best_feature',
+												'choices_of_it_facilities_questions',
+												'IT supports desired working practices'
+										]
+									},
+									{
+										name : 'CR1',
+										title : 'Awareness and willingness to change',
+										metrics : [
+												'choices_of_facilities_importance_questions',
+												'Awareness and willingness to change',
+												'stakeholder_cultural_preferences_risky_cautious_current',
+												'stakeholder_cultural_preferences_risky_cautious_future'
+
+										]
+									},
+									{
+										name : 'CR2',
+										title : 'Staff drivers for change',
+										metrics : [
+												'no_of_replies_community_environment',
+												'no_of_replies_enjoyable_environment',
+												'no_of_replies_proud_of_environment',
+												'Staff drivers for change'
+										]
+									},
+									{
+										name : 'CR3',
+										title : 'Attitude to open plan and flexible working',
+										metrics : [
+												'no_of_replies_own_desk_important',
+												'no_of_replies_variety_of_spaces',
+												'no_of_tagged_quotes_improvements',
+												'no_of_tagged_quotes_best_feature',
+												'Attitude to open plan and flexible working',
+												'stakeholder_cultural_preferences_static_flexible_working_current',
+												'stakeholder_cultural_preferences_static_flexible_working_future'
+										]
+									}
+							];
+							var allMetrics = [
+									'projsect_name', 'activities_split'
+							];
+							// for (var i = 0; i < $scope.wantedMetrics.length; i++)
+							// allMetrics =
+							// allMetrics.concat($scope.wantedMetrics[i].metrics);
+							// StudyFactory
+							// .fetchStudy($scope.id, allMetrics)
+							// .then(
+							// function(response) {
+							// $scope.study = response;
+							// // console.log($scope.study.activities_split);
+							// for (var i = 0; i < $scope.activityLabels.length; i++) {
+							// $scope.activityValues
+							// .push($scope.study.activities_split[$scope.activityLabels[i]]);
+							// }
+							// HTTPFactory
+							// .backendGet(
+							// 'Occupancy?t=occ_per_space_and_round_prc&obsid='
+							// + $scope.study.first_observation_id.content)
+							// .then(
+							// function(response) {
+							// $scope.spaces = response.data;
+							// var spaceMap = {};
+							// for (var i = 0; i < $scope.spaces.length; i++) {
+							// spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
+							// }
+							// if ($scope.study.movement_density_spaces) {
+							// for (var i = 0; i <
+							// $scope.study.movement_density_spaces.content.length; i++) {
+							// var spaceID =
+							// parseInt($scope.study.movement_density_spaces.content[i].space_id);
+							// spaceMap[spaceID].sqm_per_walker = {
+							// content :
+							// parseFloat($scope.study.movement_density_spaces.content[i].sqm_per_walker)
+							// };
+							// }
+							// }
+							// }, function(error) {
+							// console.log(error);
+							// });
+							//
+							// // console.log(response);
+							// }, function(error) {
+							// console.log(error);
+							// });
+							$scope.pageTitle = 'Issues';
+							if (!$scope.issue)
+								$scope.wantedMetrics = [];
+							if ($scope.issue && $scope.issue !== 'all') {
+								var issues = $scope.issue.split(',');
+								var all = false;
+								for (var j = 0; j < issues.length; j++) {
+									if ($scope.issue === 'all') {
+										all = true;
+										break;
+									}
+								}
+								if (!all) {
+									var newMetrics = [];
+									for (var j = 0; j < issues.length; j++) {
+										for (var i = 0; i < $scope.wantedMetrics.length; i++) {
+											if ($scope.wantedMetrics[i].name.slice(0,
+													issues[j].length) === issues[j]
+													&& newMetrics.indexOf($scope.wantedMetrics[i]) === -1) {
+												newMetrics.push($scope.wantedMetrics[i]);
+											}
+										}
+									}
+									$scope.wantedMetrics = newMetrics;
+								}
+							}
+							if (newMetrics && newMetrics.length == 1)
+								$scope.pageTitle = 'Issue ' + newMetrics[0].name + ": "
+										+ newMetrics[0].title;
+
+							for (var i = 0; i < $scope.wantedMetrics.length; i++)
+								allMetrics = allMetrics.concat($scope.wantedMetrics[i].metrics);
+
+							$scope.study = StudyFactory.fetchStudy($scope.id, allMetrics);
+							console.log($scope.study);
+							// .then(
+							// function(response) {
+							// $scope.study = response;
+							// // console.log($scope.study.activities_split);
+							// // for (var i = 0; i < $scope.activityLabels.length; i++) {
+							// // $scope.activityValues
+							// //
+							// .push($scope.study.activities_split[$scope.activityLabels[i]]);
+							// // }
+							// // HTTPFactory
+							// // .backendGet(
+							// // 'Occupancy?t=occ_per_space_and_round_prc&obsid='
+							// // + $scope.study.first_observation_id.content)
+							// // .then(
+							// // function(response) {
+							// // $scope.spaces = response.data;
+							// // var spaceMap = {};
+							// // for (var i = 0; i < $scope.spaces.length; i++) {
+							// // spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
+							// // }
+							// // if ($scope.study.movement_density_spaces) {
+							// // for (var i = 0; i <
+							// $scope.study.movement_density_spaces.content.length; i++) {
+							// // var spaceID =
+							// parseInt($scope.study.movement_density_spaces.content[i].space_id);
+							// // spaceMap[spaceID].sqm_per_walker = {
+							// // content :
+							// parseFloat($scope.study.movement_density_spaces.content[i].sqm_per_walker)
+							// // };
+							// // }
+							// // }
+							// // }, function(error) {
+							// // console.log(error);
+							// // });
+							//
+							// // console.log(response);
+							// }, function(error) {
+							// console.log(error);
+							// })
+							;
+							$scope.getSQM = function(number) {
+								return number.toFixed(1) + 'm' + '\xB2';
+							}
+							$scope.getDepthmapMeasure = function(space, analysis_type) {
+								HTTPFactory.backendGet(
+										"GetDepthmapData?spaceid=" + space.id + "&measure=" + 9
+												+ "&analysis_type=" + analysis_type).then(
+										function(response) {
+											// console.log(response.data);
+											var promise = $modal.open({
+												templateUrl : 'studies/dpmView.html',
+												controller : 'dpmViewController',
+												windowClass : 'planView',
+												resolve : {
+													img : function() {
+														return space.img;
+													},
+													dpmData : function() {
+														return response.data;
+													}
+												}
+											});
+										}, function(error) {
+											console.log(error);
+										});
+							}
+							HTTPFactory.backendGet(
+									'GetAll?t=study_parts&studyid=' + $scope.id).then(
+									function(response) {
+										$scope.observation_id = response.data[0]['id'];
+									}, function(error) {
+									});
 						}
-					});
-				}, function(error) {
-					console.log(error);
-				});
-			}
-			HTTPFactory.backendGet('GetAll?t=study_parts&studyid=' + $scope.id).then(
-					function(response) {
-						$scope.observation_id = response.data[0]['id'];
-					}, function(error) {
-					});
-		}
-]);
+				]);
 app
 		.factory(
 				'StudyFactory',
@@ -1067,6 +1305,30 @@ app
 											}
 										};
 									},
+									'no_of_desks_in_poly_types_per_building' : function(data) {
+										var observation_id = data[0];
+										var type_ids = data[1];
+										return {
+											name : 'No. of desks in polygon type',
+											proc : 'no_of_desks_in_poly_types_per_building',
+											params : function() {
+												return {
+													observation_id : observation_id,
+													type_ids : type_ids
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data && response.data.length > 0)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content,
+													units : 'desks'
+												};
+											}
+										};
+									},
 									'no_of_desks_per_polygon_type' : function(data) {
 										var observation_id = data[0];
 										var type_ids = data[1];
@@ -1112,6 +1374,37 @@ app
 											callback : function(response) {
 												return {
 													content : parseInt(response.data),
+													units : 'times occupied'
+												};
+											}
+										};
+									},
+									'occupancy_of_poly_types_per_round' : function(data) {
+										var observation_id = data[0];
+										var type_ids = data[1];
+										var key_names;
+										if (data[2])
+											key_names = data[2];
+										return {
+											name : 'Occupancy of polygon type per round',
+											proc : 'occupancy_of_poly_types_per_round',
+											params : function() {
+												return {
+													observation_id : observation_id,
+													type_ids : type_ids
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												if (key_names && key_names.content) {
+													// setPropertyData(content, team_names, "id");
+													setKeyData(content, key_names.content, "id");
+												}
+												return {
+													type : 'table',
+													content : content,
 													units : 'times occupied'
 												};
 											}
@@ -1240,6 +1533,9 @@ app
 									'no_of_people_activity_breakdown' : function(data) {
 										var observation_id = data[0];
 										var activity_ids = data[1];
+										var state_names;
+										if (data[2])
+											state_names = data[2];
 										return {
 											name : 'Number of people in Activity breakdown',
 											proc : 'no_of_people_activity_breakdown',
@@ -1253,6 +1549,9 @@ app
 												var content;
 												if (response.data)
 													content = unpack(JSON.parse(response.data[0]));
+												if (state_names && state_names.content)
+													setKeyData(content, state_names.content, "id");
+
 												return {
 													type : 'table',
 													content : content
@@ -1321,6 +1620,55 @@ app
 											callback : function(response) {
 												return {
 													content : response.data
+												};
+											}
+										};
+									},
+									'no_of_people_activity_interacting' : function(data) {
+										var observation_id = data[0];
+										var activity_ids = data[1];
+										return {
+											name : 'Number of people in Activity and Interacting',
+											proc : 'no_of_people_activity_interacting',
+											params : function() {
+												return {
+													observation_id : observation_id,
+													activity_ids : activity_ids,
+												};
+											},
+											callback : function(response) {
+												return {
+													content : response.data
+												};
+											}
+										};
+									},
+									'no_of_people_activity_interacting_per_activity' : function(
+											data) {
+										var observation_id = data[0];
+										var activity_ids = data[1];
+										var state_names;
+										if (data[2])
+											state_names = data[2];
+										return {
+											name : 'Number of people in Activity and Interacting per activity',
+											proc : 'no_of_people_activity_interacting_per_activity',
+											params : function() {
+												return {
+													observation_id : observation_id,
+													activity_ids : activity_ids,
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												if (state_names && state_names.content) {
+													setKeyData(content, state_names.content, "id");
+												}
+												return {
+													type : 'table',
+													content : content
 												};
 											}
 										};
@@ -1402,6 +1750,27 @@ app
 											callback : function(response) {
 												return {
 													content : response.data[0]
+												};
+											}
+										};
+									},
+									'no_of_staff_per_building' : function(data) {
+										var study_id = data[0];
+										return {
+											name : 'Number of staff per building',
+											proc : 'no_of_staff_per_building',
+											params : function() {
+												return {
+													study_id : study_id
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content
 												};
 											}
 										};
@@ -1797,14 +2166,14 @@ app
 									},
 									'no_of_staff_ties_within_team_per_score' : function(data) {
 										var study_id = data[0];
-										var question_id = data[1];
+										var question_ids = data[1];
 										return {
 											name : 'Total number of ties within team of question per score',
 											proc : 'no_of_staff_ties_within_team_per_score',
 											params : function(study) {
 												return {
 													study_id : study_id,
-													question_id : question_id,
+													question_ids : question_ids,
 												};
 											},
 											callback : function(response) {
@@ -1821,14 +2190,110 @@ app
 									},
 									'no_of_staff_ties_outside_team_per_score' : function(data) {
 										var study_id = data[0];
-										var question_id = data[1];
+										var question_ids = data[1];
 										return {
 											name : 'Total number of ties outside team of question per score',
 											proc : 'no_of_staff_ties_outside_team_per_score',
 											params : function(study) {
 												return {
 													study_id : study_id,
-													question_id : question_id,
+													question_ids : question_ids,
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content,
+													units : "ties"
+												};
+											}
+										};
+									},
+									'no_of_staff_ties_within_building_per_score' : function(data) {
+										var study_id = data[0];
+										var question_ids = data[1];
+										return {
+											name : 'Total number of ties within building of question per score',
+											proc : 'no_of_staff_ties_within_building_per_score',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_ids : question_ids,
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content,
+													units : "ties"
+												};
+											}
+										};
+									},
+									'no_of_staff_ties_outside_building_per_score' : function(data) {
+										var study_id = data[0];
+										var question_ids = data[1];
+										return {
+											name : 'Total number of ties outside building of question per score',
+											proc : 'no_of_staff_ties_outside_building_per_score',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_ids : question_ids,
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content,
+													units : "ties"
+												};
+											}
+										};
+									},
+									'no_of_staff_ties_within_floor_per_score' : function(data) {
+										var study_id = data[0];
+										var question_ids = data[1];
+										return {
+											name : 'Total number of ties within floor of question per score',
+											proc : 'no_of_staff_ties_within_floor_per_score',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_ids : question_ids,
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = unpack(JSON.parse(response.data[0]));
+												return {
+													type : 'table',
+													content : content,
+													units : "ties"
+												};
+											}
+										};
+									},
+									'no_of_staff_ties_outside_floor_per_score' : function(data) {
+										var study_id = data[0];
+										var question_ids = data[1];
+										return {
+											name : 'Total number of ties outside floor of question per score',
+											proc : 'no_of_staff_ties_outside_floor_per_score',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_ids : question_ids,
 												};
 											},
 											callback : function(response) {
@@ -2699,6 +3164,78 @@ app
 											}
 										};
 									},
+									'avg_ties_in_building' : function(data) {
+										var study_id = data[0];
+										var question_id = data[1];
+										return {
+											name : 'Average number of ties within building',
+											proc : 'avg_ties_in_building',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_id : question_id
+												};
+											},
+											callback : function(response) {
+												return {
+													content : parseFloat(response.data[0])
+												};
+											}
+										};
+									},
+									'avg_ties_outside_building' : function(data) {
+										var study_id = data[0];
+										var question_id = data[1];
+										return {
+											name : 'Average number of ties outside building',
+											proc : 'avg_ties_outside_building',
+											params : function(study) {
+												return {
+													study_id : study_id,
+													question_id : question_id
+												};
+											},
+											callback : function(response) {
+												return {
+													content : parseFloat(response.data[0])
+												};
+											}
+										};
+									},
+									'avg_possible_ties_in_building' : function(data) {
+										var study_id = data[0];
+										return {
+											name : 'Average possible number of ties within building',
+											proc : 'avg_possible_ties_in_building',
+											params : function(study) {
+												return {
+													study_id : study_id
+												};
+											},
+											callback : function(response) {
+												return {
+													content : parseFloat(response.data[0])
+												};
+											}
+										};
+									},
+									'avg_possible_ties_outside_building' : function(data) {
+										var study_id = data[0];
+										return {
+											name : 'Average possible number of ties outside building',
+											proc : 'avg_possible_ties_outside_building',
+											params : function(study) {
+												return {
+													study_id : study_id
+												};
+											},
+											callback : function(response) {
+												return {
+													content : parseFloat(response.data[0])
+												};
+											}
+										};
+									},
 									'sum_of_interview_choice_scores' : function(data) {
 										var study_id = data[0];
 										var question_id = data[1];
@@ -3013,6 +3550,42 @@ app
 											}
 										};
 									},
+									'activity_interacting_in_polygon_types_per_activity' : function(
+											data) {
+										var observation_id = data[0];
+										var polygon_type_ids = data[1];
+										var entity_states = data[2];
+										var entity_types = data[3];
+										var entity_flag_bits = data[4];
+										var state_names;
+										if (data[5])
+											state_names = data[5];
+										return {
+											name : 'Activity (interacting) in polygon types per activity',
+											proc : 'activity_interacting_in_polygon_types_per_activity',
+											params : function(study) {
+												return {
+													observation_id : observation_id,
+													polygon_type_ids : polygon_type_ids,
+													entity_states : entity_states,
+													entity_types : entity_types,
+													entity_flag_bits : entity_flag_bits
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data && response.data.length > 0)
+													content = unpack(JSON.parse(response.data[0]));
+												if (state_names && state_names.content) {
+													setKeyData(content, state_names.content, "id");
+												}
+												return {
+													type : 'table',
+													content : content
+												};
+											}
+										};
+									},
 									'activity_max_in_polygon_types_per_type' : function(data) {
 										var observation_id = data[0];
 										var polygon_type_ids = data[1];
@@ -3096,6 +3669,44 @@ app
 										return {
 											name : 'Groups of people in polygon types (average number of groups)',
 											proc : 'groups_of_people_in_poly_types_avg',
+											params : function(study) {
+												return {
+													observation_id : observation_id,
+													polygon_type_ids : polygon_type_ids,
+													entity_states : entity_states,
+													entity_types : entity_types,
+													entity_flag_bits : entity_flag_bits,
+													groups : groups
+												};
+											},
+											callback : function(response) {
+												console.log(response.data);
+												var content;
+												if (response.data && response.data.length > 0)
+													content = unpack(JSON.parse(response.data[0]));
+												// if (type_names && type_names.content) {
+												// setKeyData(content, type_names.content, "id");
+												// }
+												return {
+													type : 'table',
+													content : content
+												};
+											}
+										};
+									},
+									'groups_of_people_in_poly_types_sum' : function(data) {
+										var observation_id = data[0];
+										var polygon_type_ids = data[1];
+										var entity_states = data[2];
+										var entity_types = data[3];
+										var entity_flag_bits = data[4];
+										var groups = data[5];
+										var group_names;
+										if (data[6])
+											group_names = data[6];
+										return {
+											name : 'Groups of people in polygon types (sum number of groups)',
+											proc : 'groups_of_people_in_poly_types_sum',
 											params : function(study) {
 												return {
 													observation_id : observation_id,
@@ -3214,9 +3825,9 @@ app
 												var content;
 												if (response.data && response.data.length > 0)
 													content = unpack(JSON.parse(response.data[0]));
-												// if (type_names && type_names.content) {
-												// setKeyData(content, type_names.content, "id");
-												// }
+												if (group_names && group_names.content) {
+													setKeyData(content, group_names.content, "alias");
+												}
 												return {
 													type : 'table',
 													content : content
@@ -3327,8 +3938,36 @@ app
 															if (d.end)
 																str += '-' + d.end;
 															else
-																str += '%2B';
-															return str;
+																str += '+';
+															return {
+																alias : str,
+																name : d.name
+															};
+														});
+														var response = {
+															data : result
+														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												return {
+													content : response.data
+												};
+											}
+										};
+									},
+									'flatten_range' : function(data) {
+										var rr = data[0].content;
+										var property = data[1].content;
+										return {
+											name : 'Get range array (flat)',
+											get : function() {
+												return {
+													then : function(success, error) {
+														var result = rr.map(function(d) {
+															return d[property].replace('+', '%2B');
 														});
 														var response = {
 															data : result
@@ -3422,7 +4061,6 @@ app
 																			/ denom;
 																response.data.data[num.keys[i].alias] = nobj;
 															}
-															console.log(response.data);
 														} else if (numType != 'table'
 																&& denomType == 'table') {
 															response.type = 'table';
@@ -3700,9 +4338,10 @@ app
 															response.data.keys = [];
 															response.data.properties = properties;
 															for (var k = 0; k < data.length; k++) {
-																if (!('keyType' in response.data)) {
+																if (!('keyType' in response.data)
+																		&& 'keyType' in data[k].content) {
 																	response.data.keyType = data[k].content.keyType;
-																} else if (response.data.keyType !== data[k].keyType) {
+																} else if (response.data.keyType !== data[k].content.keyType) {
 																	// TODO: dont allow adding data of different
 																	// types, throw exception
 																	break;
@@ -3729,7 +4368,7 @@ app
 																			&& key.alias in data[k].content.data) {
 																		var prop = data[k].content.properties[0];
 																		nobj += data[k].content.data[key.alias][prop.alias];
-																	} else
+																	} else if (data[k].type !== 'table')
 																		nobj += data[k].content;
 																}
 																response.data.data[key.alias] = {};
@@ -3904,7 +4543,7 @@ app
 											},
 											callback : function(response) {
 												return {
-													content : response.data.toFixed(2),
+													content : parseFloat(response.data),
 													units : "%"
 												};
 											}
@@ -3939,8 +4578,7 @@ app
 															var dt = {};
 															for (var k = 0; k < prop.length; k++) {
 																if (param1.data[keys[j].alias][prop[k].alias])
-																	dt[prop[k].alias + "_prc"] = (100 * param1.data[keys[j].alias][prop[k].alias] / propTotals[prop[k].alias])
-																			.toFixed(2);
+																	dt[prop[k].alias + "_prc"] = (100 * param1.data[keys[j].alias][prop[k].alias] / propTotals[prop[k].alias]);// .toFixed(2);
 															}
 															newData[keys[j].alias] = dt;
 														}
@@ -3973,6 +4611,125 @@ app
 													content : response.data,
 													units : "%"
 												};
+											}
+										};
+									},
+									'table_sum' : function(data) {
+										var table = data[0].content;
+										var property;
+										if (data[1])
+											property = data[1].content;
+										return {
+											name : 'Get average value(s)',
+											get : function() {
+												return {
+													then : function(success, error) {
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														}
+														response.data.properties = angular
+																.copy(table.properties);
+														response.data.keyType = table.keyType;
+														var comparePropIndex = 0;
+														if (property)
+															for (var i = 0; i < table.properties.length; i++) {
+																if (table.properties[i].alias === property) {
+																	comparePropIndex = i;
+																	break;
+																}
+															}
+														var sumVal = 0;
+														for (var i = 0; i < table.keys.length; i++) {
+															sumVal += table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
+
+														}
+														response.type = 'table';
+														response.data.keys = [
+															{
+																alias : 'sum',
+																name : 'Sum'
+															}
+														];
+														response.data.data = {
+															'sum' : {}
+														};
+														response.data.data['sum'][table.properties[comparePropIndex].alias] = sumVal;
+														var propTotals = {};
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+									'table_avg' : function(data) {
+										var table = data[0].content;
+										var property;
+										if (data[1])
+											property = data[1].content;
+										return {
+											name : 'Get average value(s)',
+											get : function() {
+												return {
+													then : function(success, error) {
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														}
+														response.data.properties = angular
+																.copy(table.properties);
+														response.data.keyType = table.keyType;
+														var comparePropIndex = 0;
+														if (property)
+															for (var i = 0; i < table.properties.length; i++) {
+																if (table.properties[i].alias === property) {
+																	comparePropIndex = i;
+																	break;
+																}
+															}
+														var avgVal = 0;
+														for (var i = 0; i < table.keys.length; i++) {
+															avgVal += table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
+
+														}
+														avgVal /= table.keys.length;
+														response.type = 'table';
+														response.data.keys = [
+															{
+																alias : 'avg',
+																name : 'Average'
+															}
+														];
+														response.data.data = {
+															'avg' : {}
+														};
+														response.data.data['avg'][table.properties[comparePropIndex].alias] = avgVal;
+														var propTotals = {};
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
 											}
 										};
 									},
@@ -4017,7 +4774,13 @@ app
 																];
 																continue;
 															}
-															if (newVal === maxVal) {
+															var found = false;
+															for (var j = 0; j < maxKeys.length; j++)
+																if (maxKeys[j].alias === table.keys[i].alias) {
+																	found = true;
+																	break;
+																}
+															if (newVal === maxVal && !found) {
 																maxKeys.push(table.keys[i]);
 															}
 														}
@@ -4079,7 +4842,13 @@ app
 																];
 																continue;
 															}
-															if (newVal === minVal) {
+															var found = false;
+															for (var j = 0; j < minKeys.length; j++)
+																if (minKeys[j].alias === table.keys[i].alias) {
+																	found = true;
+																	break;
+																}
+															if (newVal === minVal && !found) {
 																minKeys.push(table.keys[i]);
 															}
 														}
@@ -4386,14 +5155,17 @@ app
 											})
 										}
 									},
+									// BMARK first_observation_id : First observation ID
 									'first_observation_id' : function() {
 										return {
-											name : "First observation ID",
+											name : 'First observation ID',
 											measure : createMeasure('first_observation_id', {
 												content : study.id
 											})
 										}
 									},
+									// BMARK no_of_desks_per_building : Number of desks per
+									// building
 									'no_of_desks_per_building' : function() {
 										return {
 											name : 'Number of desks per building',
@@ -4402,6 +5174,7 @@ app
 
 										}
 									},
+									// BMARK ids_of_team_polygons : Id of poly types
 									'ids_of_team_polygons' : function() {
 										return {
 											name : 'Id of poly types',
@@ -4412,6 +5185,7 @@ app
 											})
 										}
 									},
+									// BMARK no_of_desks_per_team : Number of desks per team
 									'no_of_desks_per_team' : function() {
 										return {
 											name : 'Number of desks per team',
@@ -4421,9 +5195,10 @@ app
 													measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK nia_per_team : Area per team
 									'nia_per_team' : function() {
 										return {
-											name : 'Area per team',
+											name : 'NIA per team',
 											measure : createMeasure('nia_per_poly_type', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4433,6 +5208,8 @@ app
 											}))
 										}
 									},
+									// BMARK nia_per_alternative_space_type : Area per alternative
+									// space type
 									'nia_per_alternative_space_type' : function() {
 										return {
 											name : 'Area per alternative space type',
@@ -4445,14 +5222,17 @@ app
 											})),
 										}
 									},
+									// BMARK nia_per_desk_per_team : NIA per desk per team
 									'nia_per_desk_per_team' : function() {
 										return {
-											name : 'NIA per desk per team',
+											name : 'Workspace NIA per desk per team',
 											measure : createMeasure('div',
 													measures['nia_per_team']().measure,
 													measures['no_of_desks_per_team']().measure)
 										}
 									},
+									// BMARK team_with_max_nia_per_desk : Team with maximum NIA
+									// per desk
 									'team_with_max_nia_per_desk' : function() {
 										return {
 											name : 'Team with maximum NIA per desk',
@@ -4460,6 +5240,8 @@ app
 													measures['nia_per_desk_per_team']().measure)
 										}
 									},
+									// BMARK team_with_min_nia_per_desk : Team with minimum NIA
+									// per desk
 									'team_with_min_nia_per_desk' : function() {
 										return {
 											name : 'Team with minimum NIA per desk',
@@ -4467,6 +5249,8 @@ app
 													measures['nia_per_desk_per_team']().measure)
 										}
 									},
+									// BMARK nia_alt_spaces_per_building : NIA of alternative
+									// spaces per building
 									'nia_alt_spaces_per_building' : function() {
 										return {
 											name : 'NIA of alternative spaces per building',
@@ -4480,6 +5264,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_other_facilities_per_building : NIA of other
+									// facilities per building
 									'nia_other_facilities_per_building' : function() {
 										return {
 											name : 'NIA of other facilities per building',
@@ -4493,11 +5279,14 @@ app
 													})
 										}
 									},
+									// BMARK nia_shared_facilities_per_building : NIA of shared
+									// facilities per building
 									'nia_shared_facilities_per_building' : function() {
 										return {
 											name : 'NIA of shared facilities per building',
 											measure : createMeasure(
 													'add',
+													measures['nia_meeting_rooms_per_building']().measure,
 													measures['nia_alt_spaces_per_building']().measure,
 													measures['nia_other_facilities_per_building']().measure)
 										}
@@ -4511,9 +5300,11 @@ app
 													measures['nia_total_per_building']().measure)
 										}
 									},
+									// BMARK nia_alt_spaces_per_space : NIA of alternative spaces
+									// per building
 									'nia_alt_spaces_per_space' : function() {
 										return {
-											name : 'NIA of alternative spaces per building',
+											name : 'NIA of alternative spaces per space',
 											measure : createMeasure('nia_of_poly_types_per_space',
 													createMeasure('id_of_poly_types', {
 														content : 'func'
@@ -4524,6 +5315,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_other_facilities_per_space : NIA of other
+									// facilities per building
 									'nia_other_facilities_per_space' : function() {
 										return {
 											name : 'NIA of other facilities per building',
@@ -4537,14 +5330,19 @@ app
 													})
 										}
 									},
+									// BMARK nia_shared_facilities_per_space : NIA of shared
+									// facilities per building
 									'nia_shared_facilities_per_space' : function() {
 										return {
-											name : 'NIA of shared facilities per building',
+											name : 'NIA of shared facilities per space',
 											measure : createMeasure('add',
+													measures['nia_meeting_rooms_per_space']().measure,
 													measures['nia_alt_spaces_per_space']().measure,
 													measures['nia_other_facilities_per_space']().measure)
 										}
 									},
+									// BMARK nia_shared_facilities_to_total_per_space : Shared
+									// Facilities as a % NIA of space
 									'nia_shared_facilities_to_total_per_space' : function() {
 										return {
 											name : 'Shared Facilities as a % NIA of space',
@@ -4554,6 +5352,38 @@ app
 													measures['nia_total_per_space']().measure)
 										}
 									},
+									// BMARK nia_wrksp_cel_per_building : NIA of Cellular
+									// workspace per building
+									'nia_wrksp_cel_per_building' : function() {
+										return {
+											name : 'NIA of Cellular workspace per building',
+											measure : createMeasure('nia_of_poly_types_per_building',
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-CEL'
+													}), {
+														content : study.id
+													})
+										}
+									},
+									// BMARK nia_wrksp_opn_per_building : NIA of Open workspace
+									// per building
+									'nia_wrksp_opn_per_building' : function() {
+										return {
+											name : 'NIA of Open workspace per building',
+											measure : createMeasure('nia_of_poly_types_per_building',
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-OPN'
+													}), {
+														content : study.id
+													})
+										}
+									},
+									// BMARK nia_wrksp_per_building : NIA of workspace per
+									// building
 									'nia_wrksp_per_building' : function() {
 										return {
 											name : 'NIA of workspace per building',
@@ -4567,6 +5397,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_wrksp_to_total_per_building : Workspace as a %
+									// NIA of building
 									'nia_wrksp_to_total_per_building' : function() {
 										return {
 											name : 'Workspace as a % NIA of building',
@@ -4575,9 +5407,11 @@ app
 													measures['nia_total_per_building']().measure)
 										}
 									},
+									// BMARK nia_prim_circ_per_building : NIA of primary
+									// circulation per building
 									'nia_prim_circ_per_building' : function() {
 										return {
-											name : 'NIA of workspace per building',
+											name : 'NIA of primary circulation per building',
 											measure : createMeasure('nia_of_poly_types_per_building',
 													createMeasure('id_of_poly_types', {
 														content : 'func'
@@ -4588,6 +5422,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_prim_circ_to_total_per_building : Primary
+									// Circulation as a % NIA of building
 									'nia_prim_circ_to_total_per_building' : function() {
 										return {
 											name : 'Primary Circulation as a % NIA of building',
@@ -4596,9 +5432,11 @@ app
 													measures['nia_total_per_building']().measure)
 										}
 									},
+									// BMARK nia_prim_circ_per_space : NIA of primary circulation
+									// per space
 									'nia_prim_circ_per_space' : function() {
 										return {
-											name : 'NIA of workspace per building',
+											name : 'NIA of primary circulation per space',
 											measure : createMeasure('nia_of_poly_types_per_space',
 													createMeasure('id_of_poly_types', {
 														content : 'func'
@@ -4609,6 +5447,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_prim_circ_to_total_per_space : Primary
+									// Circulation as a % NIA of space
 									'nia_prim_circ_to_total_per_space' : function() {
 										return {
 											name : 'Primary Circulation as a % NIA of space',
@@ -4617,6 +5457,7 @@ app
 													measures['nia_total_per_space']().measure)
 										}
 									},
+									// BMARK no_of_desks_per_space : Number of desks per space
 									'no_of_desks_per_space' : function() {
 										return {
 											name : 'Number of desks per space',
@@ -4625,6 +5466,7 @@ app
 
 										}
 									},
+									// BMARK nia_wrksp_per_space : NIA of workspace per space
 									'nia_wrksp_per_space' : function() {
 										return {
 											name : 'NIA of workspace per space',
@@ -4638,6 +5480,8 @@ app
 													})
 										}
 									},
+									// BMARK nia_wrksp_to_total_per_space : Workspace as a % NIA
+									// of space
 									'nia_wrksp_to_total_per_space' : function() {
 										return {
 											name : 'Workspace as a % NIA of space',
@@ -4646,6 +5490,8 @@ app
 													measures['nia_total_per_space']().measure)
 										}
 									},
+									// BMARK no_of_desks_per_building_div_2 : Number of desks per
+									// building div 2
 									'no_of_desks_per_building_div_2' : function() {
 										return {
 											name : 'Number of desks per building div 2',
@@ -4656,6 +5502,8 @@ app
 											})
 										}
 									},
+									// BMARK 2_no_of_desks_per_building_div : Number of desks per
+									// building div 2
 									'2_no_of_desks_per_building_div' : function() {
 										return {
 											name : 'Number of desks per building div 2',
@@ -4665,6 +5513,8 @@ app
 													measures['first_observation_id']().measure))
 										}
 									},
+									// BMARK nia_wrksp_per_desk_per_building : Workspace per desk
+									// per building
 									'nia_wrksp_per_desk_per_building' : function() {
 										return {
 											name : 'Workspace per desk per building',
@@ -4673,6 +5523,18 @@ app
 													measures['no_of_desks_per_building']().measure)
 										}
 									},
+									// BMARK nia_wrksp_per_person_per_building : Workspace per
+									// staff member per building
+									'nia_wrksp_per_person_per_building' : function() {
+										return {
+											name : 'Workspace per staff member per building',
+											measure : createMeasure('div',
+													measures['nia_wrksp_per_building']().measure,
+													measures['no_of_staff_per_building']().measure)
+										}
+									},
+									// BMARK nia_wrksp_per_desk_per_space : Workspace per desk per
+									// floor
 									'nia_wrksp_per_desk_per_space' : function() {
 										return {
 											name : 'Workspace per desk per floor',
@@ -4690,9 +5552,12 @@ app
 
 										}
 									},
+									// BMARK avg_desk_occupancy_total_prc : Average desk occupancy
+									// (all desks)
 									'avg_desk_occupancy_total_prc' : function() {
 										return {
 											name : 'Average desk occupancy (all desks)',
+											no_of_decimals : 0,
 											measure : createMeasure('prc', createMeasure('div',
 													measures['desk_occupancy_total']().measure,
 													createMeasure('mult',
@@ -4700,6 +5565,8 @@ app
 															measures['no_of_rounds']().measure)))
 										}
 									},
+									// BMARK max_desk_occupancy : Maximum desk occupancy (all
+									// desks)
 									'max_desk_occupancy' : function() {
 										return {
 											name : 'Maximum desk occupancy (all desks)',
@@ -4707,77 +5574,137 @@ app
 													measures['first_observation_id']().measure)
 										}
 									},
+									// BMARK max_desk_occupancy_prc : Maximum desk occupancy (all
+									// desks)
 									'max_desk_occupancy_prc' : function() {
 										return {
 											name : 'Maximum desk occupancy (all desks)',
+											no_of_decimals : 0,
 											measure : createMeasure('prc', createMeasure('div',
 													measures['max_desk_occupancy']().measure,
 													measures['no_of_desks']().measure))
 										}
 									},
+									// BMARK max_desk_occupancy_not_empty_prc : Maximum desk
+									// occupancy (excluding empty)
+									'max_desk_occupancy_not_empty_prc' : function() {
+										return {
+											name : 'Maximum desk occupancy (excluding empty)',
+											no_of_decimals : 0,
+											measure : createMeasure('prc', createMeasure('div',
+													measures['max_desk_occupancy']().measure,
+													measures['no_of_desks_not_empty']().measure))
+										}
+									},
+									// BMARK nia_per_desk_at_max_occupancy : NIA per desk at max
+									// occupancy
 									'nia_per_desk_at_max_occupancy' : function() {
 										return {
-											name : 'Maximum desk occupancy (all desks)',
+											name : 'NIA per desk at max occupancy',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_total']().measure,
 													measures['max_desk_occupancy']().measure))
 										}
 									},
+									// BMARK nia_per_desk_at_max_occupancy : NIA per desk at max
+									// occupancy
+									'nia_per_head_at_max_occupancy' : function() {
+										return {
+											name : 'NIA per head at max occupancy',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['nia_total']().measure,
+													measures['max_desk_occupancy']().measure))
+										}
+									},
+									// BMARK min_desk_occupancy : Minimum desk occupancy (all
+									// desks)
 									'min_desk_occupancy' : function() {
 										return {
 											name : 'Minimum desk occupancy (all desks)',
+											no_of_decimals : 2,
 											measure : createMeasure('min_desk_occupancy',
 													measures['first_observation_id']().measure)
 										}
 									},
+									// BMARK min_desk_occupancy_prc : Minimum desk occupancy (all
+									// desks)
 									'min_desk_occupancy_prc' : function() {
 										return {
 											name : 'Minimum desk occupancy (all desks)',
+											no_of_decimals : 2,
 											measure : createMeasure('prc', createMeasure('div',
 													measures['min_desk_occupancy']().measure,
 													measures['no_of_desks']().measure))
 										}
 									},
+									// BMARK min_desk_occupancy_not_empty_prc : Minimum desk
+									// occupancy (excluding empty)
+									'min_desk_occupancy_not_empty_prc' : function() {
+										return {
+											name : 'Minimum desk occupancy (excluding empty)',
+											no_of_decimals : 2,
+											measure : createMeasure('prc', createMeasure('div',
+													measures['min_desk_occupancy']().measure,
+													measures['no_of_desks_not_empty']().measure))
+										}
+									},
+									// BMARK no_of_buildings : Number of buildings
 									'no_of_buildings' : function() {
 										return {
-											name : "Number of buildings",
+											name : 'Number of buildings',
 											measure : createMeasure('no_of_buildings', {
 												content : study.id
 											})
 										}
 									},
+									// BMARK no_of_desks : Number of desks
 									'no_of_desks' : function() {
 										return {
-											name : "Number of desks",
+											name : 'Number of desks',
 											measure : createMeasure('no_of_desks',
 													measures['first_observation_id']().measure)
 										}
 									},
+									// BMARK no_of_staff : Number of staff
 									'no_of_staff' : function() {
 										return {
-											name : "Number of staff",
+											name : 'Number of staff',
+											description : 'Number of people in the staff survey',
 											measure : createMeasure('no_of_staff', {
 												content : study.id
 											})
 										}
 									},
+									// BMARK no_of_staff_per_building : Number of staff per
+									// building
+									'no_of_staff_per_building' : function() {
+										return {
+											name : 'Number of staff per building',
+											measure : createMeasure('no_of_staff_per_building', {
+												content : study.id
+											})
+										}
+									},
+									// BMARK no_of_rounds : Number of Rounds
 									'no_of_rounds' : function() {
 										return {
-											name : "Number of Rounds",
+											name : 'Number of Rounds',
 											measure : createMeasure('no_of_rounds',
 													measures['first_observation_id']().measure)
 										}
 									},
+									// BMARK no_of_desks_not_empty : Number of non-empty desks
 									'no_of_desks_not_empty' : function() {
 										return {
-											name : "Number of non-empty desks",
+											name : 'Number of non-empty desks',
 											measure : createMeasure('no_of_desks_not_empty',
 													measures['first_observation_id']().measure)
 										}
 									},
+									// BMARK no_of_meeting_rooms : Number of Meeting Rooms
 									'no_of_meeting_rooms' : function() {
 										return {
-											name : "Number of Meeting Rooms",
+											name : 'Number of Meeting Rooms',
 											measure : createMeasure('no_of_polys_in_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4787,9 +5714,10 @@ app
 											}))
 										}
 									},
+									// BMARK no_of_tea_points : Number of Tea Points
 									'no_of_tea_points' : function() {
 										return {
-											name : "Number of Tea Points",
+											name : 'Number of Tea Points',
 											measure : createMeasure('no_of_polys_in_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4799,6 +5727,8 @@ app
 											}))
 										}
 									},
+									// BMARK ids_of_alternative_space_types : Number of
+									// Alternative Spaces
 									'ids_of_alternative_space_types' : function() {
 										return {
 											measure : createMeasure('id_of_poly_types', {
@@ -4808,17 +5738,21 @@ app
 											})
 										}
 									},
+									// BMARK no_of_alternative_spaces : Number of Alternative
+									// Spaces
 									'no_of_alternative_spaces' : function() {
 										return {
-											name : "Number of Alternative Spaces",
+											name : 'Number of Alternative Spaces',
 											measure : createMeasure('no_of_polys_in_poly_types', {
 												content : study.id
 											}, measures['ids_of_alternative_space_types']().measure)
 										}
 									},
+									// BMARK no_of_desks_cellular : No of Desks in Cellular
+									// Workspace
 									'no_of_desks_cellular' : function() {
 										return {
-											name : "No of Desks in Cellular Workspace",
+											name : 'No of Desks in Cellular Workspace',
 											measure : createMeasure('no_of_desks_in_poly_types',
 													measures['first_observation_id']().measure,
 													createMeasure('id_of_poly_types', {
@@ -4828,9 +5762,25 @@ app
 													}))
 										}
 									},
+									// BMARK no_of_desks_cellular_per_building : No of Desks in
+									// Cellular Workspace per building
+									'no_of_desks_cellular_per_building' : function() {
+										return {
+											name : 'No of Desks in Cellular Workspace per building',
+											measure : createMeasure(
+													'no_of_desks_in_poly_types_per_building',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-CEL'
+													}))
+										}
+									},
+									// BMARK no_of_desks_open_plan : No of Desks in Open Workspace
 									'no_of_desks_open_plan' : function() {
 										return {
-											name : "No of Desks in Open Workspace",
+											name : 'No of Desks in Open Workspace',
 											measure : createMeasure('no_of_desks_in_poly_types',
 													measures['first_observation_id']().measure,
 													createMeasure('id_of_poly_types', {
@@ -4840,9 +5790,101 @@ app
 													}))
 										}
 									},
+									// BMARK no_of_desks_open_plan_per_building : No of Desks in
+									// Open Workspace per building
+									'no_of_desks_open_plan_per_building' : function() {
+										return {
+											name : 'No of Desks in Open Workspace per building',
+											measure : createMeasure(
+													'no_of_desks_in_poly_types_per_building',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-OPN'
+													}))
+										}
+									},
+									// BMARK desk_occupancy_wrksp_open : Desk occupancy of desks
+									// in Open Workspace
+									'desk_occupancy_wrksp_open' : function() {
+										return {
+											name : 'Desk occupancy of desks in Open Workspace',
+											measure : createMeasure('activity_in_polygon_types',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-OPN'
+													}), {
+														content : [
+															1
+														]
+													}, {
+														content : [
+															1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													})
+										}
+									},
+									// BMARK desk_occupancy_wrksp_open_prc : Desk occupancy of
+									// desks in Open Workspace
+									'desk_occupancy_wrksp_open_prc' : function() {
+										return {
+											name : 'Desk occupancy of desks in Open Workspace',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['desk_occupancy_wrksp_open']().measure,
+													createMeasure('mult',
+															measures['no_of_desks_open_plan']().measure,
+															measures['no_of_rounds']().measure)))
+										}
+									},
+									// BMARK desk_occupancy_wrksp_cell : Desk occupancy of desks
+									// in Cellular Workspace
+									'desk_occupancy_wrksp_cell' : function() {
+										return {
+											name : 'Desk occupancy of desks in Cellular Workspace',
+											measure : createMeasure('activity_in_polygon_types',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP-CEL'
+													}), {
+														content : [
+															1
+														]
+													}, {
+														content : [
+															1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													})
+										}
+									},
+									// BMARK desk_occupancy_wrksp_cell_prc : Desk occupancy of
+									// desks in Cellular Workspace
+									'desk_occupancy_wrksp_cell_prc' : function() {
+										return {
+											name : 'Desk occupancy of desks in Cellular Workspace',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['desk_occupancy_wrksp_cell']().measure,
+													createMeasure('mult',
+															measures['no_of_desks_cellular']().measure,
+															measures['no_of_rounds']().measure)))
+										}
+									},
+									// BMARK nia_prim_circ : NIA of Primary Circulation
 									'nia_prim_circ' : function() {
 										return {
-											name : "NIA of Primary Circulation",
+											name : 'NIA of Primary Circulation',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4852,9 +5894,11 @@ app
 											}))
 										}
 									},
+									// BMARK nia_prim_circ_sqft : NIA of Primary Circulation
+									// (ft\xB2)
 									'nia_prim_circ_sqft' : function() {
 										return {
-											name : "NIA of Primary Circulation (ft\xB2)",
+											name : 'NIA of Primary Circulation (ft\xB2)',
 											measure : createMeasure('mult', measures['nia_prim_circ']
 													().measure, {
 												content : 10.7639104
@@ -4862,26 +5906,30 @@ app
 											units : 'ft\xB2'
 										}
 									},
+									// BMARK nia_prim_circ_to_total_prc : NIA Primary Circulation
+									// to total
 									'nia_prim_circ_to_total_prc' : function() {
 										return {
-											name : "NIA Primary Circulation to total",
+											name : 'NIA Primary Circulation to total',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_prim_circ']().measure,
 													measures['nia_total']().measure)),
 										}
 									},
+									// BMARK nia_total_per_desk : Total NIA per desk
 									'nia_total_per_desk' : function() {
 										return {
-											name : "Total NIA per desk",
+											name : 'Total NIA per desk',
 											measure : createMeasure('div',
 													measures['nia_total']().measure,
 													measures['no_of_desks']().measure),
 											units : 'm\xB2/desk'
 										}
 									},
+									// BMARK nia_wrksp : NIA of Workspace
 									'nia_wrksp' : function() {
 										return {
-											name : "NIA of Workspace",
+											name : 'NIA of Workspace',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4891,18 +5939,40 @@ app
 											}))
 										}
 									},
+									// BMARK nia_wrksp_sqft : NIA of Workspace (ft\xB2)
+									'nia_wrksp_sqft' : function() {
+										return {
+											name : 'NIA of Workspace (ft\xB2)',
+											measure : createMeasure('mult',
+													measures['nia_wrksp']().measure, {
+														content : 10.7639104
+													}),
+											units : 'ft\xB2'
+										}
+									},
+									// BMARK nia_wrksp_to_total_prc : NIA of Workspace to total
+									'nia_wrksp_to_total_prc' : function() {
+										return {
+											name : 'NIA of Workspace to total',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['nia_wrksp']().measure,
+													measures['nia_total']().measure)),
+										}
+									},
+									// BMARK nia_wrksp_per_desk : Workspace per desk
 									'nia_wrksp_per_desk' : function() {
 										return {
-											name : "Workspace per desk",
+											name : 'Workspace per desk',
 											measure : createMeasure('div',
 													measures['nia_wrksp']().measure,
 													measures['no_of_desks']().measure),
 											units : 'm\xB2/desk'
 										}
 									},
+									// BMARK nia_wrksp_open : NIA of Open Workspace
 									'nia_wrksp_open' : function() {
 										return {
-											name : "NIA of Open Workspace",
+											name : 'NIA of Open Workspace',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4912,9 +5982,10 @@ app
 											}))
 										}
 									},
+									// BMARK nia_wrksp_open_sqft : NIA of Open Workspace (ft\xB2)
 									'nia_wrksp_open_sqft' : function() {
 										return {
-											name : "NIA of Open Workspace (ft\xB2)",
+											name : 'NIA of Open Workspace (ft\xB2)',
 											measure : createMeasure('mult',
 													measures['nia_wrksp_open']().measure, {
 														content : 10.7639104
@@ -4922,26 +5993,43 @@ app
 											units : 'ft\xB2'
 										}
 									},
+									// BMARK nia_wrksp_open_to_total_prc : NIA of Open Workspace
+									// to total
 									'nia_wrksp_open_to_total_prc' : function() {
 										return {
-											name : "NIA Primary Circulation to total",
+											name : 'NIA of Open Workspace to total',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_wrksp_open']().measure,
 													measures['nia_total']().measure)),
 										}
 									},
+									// BMARK nia_wrksp_open_per_desk : Workspace per desk (Open
+									// plan)
 									'nia_wrksp_open_per_desk' : function() {
 										return {
-											name : "Workspace per desk (Open plan)",
+											name : 'Workspace per desk (Open plan)',
 											measure : createMeasure('div', measures['nia_wrksp_open']
 													().measure,
 													measures['no_of_desks_open_plan']().measure),
 											units : 'm\xB2/desk'
 										}
 									},
+									// BMARK nia_wrksp_opn_per_desk_per_building : Workspace per
+									// desk (Open plan) per building
+									'nia_wrksp_opn_per_desk_per_building' : function() {
+										return {
+											name : 'Workspace per desk (Open plan) per building',
+											measure : createMeasure(
+													'div',
+													measures['nia_wrksp_opn_per_building']().measure,
+													measures['no_of_desks_open_plan_per_building']().measure),
+											units : 'm\xB2/desk'
+										}
+									},
+									// BMARK nia_wrksp_cel : NIA of Cellular Workspace
 									'nia_wrksp_cel' : function() {
 										return {
-											name : "NIA of Cellular Workspace",
+											name : 'NIA of Cellular Workspace',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4951,9 +6039,11 @@ app
 											}))
 										}
 									},
+									// BMARK nia_wrksp_cel_sqft : NIA of Cellular Workspace
+									// (ft\xB2)
 									'nia_wrksp_cel_sqft' : function() {
 										return {
-											name : "NIA of Open Workspace (ft\xB2)",
+											name : 'NIA of Cellular Workspace  (ft\xB2)',
 											measure : createMeasure('mult', measures['nia_wrksp_cel']
 													().measure, {
 												content : 10.7639104
@@ -4961,26 +6051,43 @@ app
 											units : 'ft\xB2'
 										}
 									},
+									// BMARK nia_wrksp_cel_to_total_prc : NIA of Cellular
+									// Workspace to total
 									'nia_wrksp_cel_to_total_prc' : function() {
 										return {
-											name : "NIA Primary Circulation to total",
+											name : 'NIA of Cellular Workspace  to total',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_wrksp_cel']().measure,
 													measures['nia_total']().measure)),
 										}
 									},
+									// BMARK nia_wrksp_cel_per_desk : Workspace per desk
+									// (Cellular)
 									'nia_wrksp_cel_per_desk' : function() {
 										return {
-											name : "Workspace per desk (Cellular)",
+											name : 'Workspace per desk (Cellular)',
 											measure : createMeasure('div', measures['nia_wrksp_cel']
 													().measure,
 													measures['no_of_desks_cellular']().measure),
 											units : 'm\xB2/desk'
 										}
 									},
+									// BMARK nia_wrksp_cel_per_desk_per_building : Workspace per
+									// desk (Cellular) per building
+									'nia_wrksp_cel_per_desk_per_building' : function() {
+										return {
+											name : 'Workspace per desk (Cellular) per building',
+											measure : createMeasure(
+													'div',
+													measures['nia_wrksp_cel_per_building']().measure,
+													measures['no_of_desks_cellular_per_building']().measure),
+											units : 'm\xB2/desk'
+										}
+									},
+									// BMARK nia_storage : NIA of Storage
 									'nia_storage' : function() {
 										return {
-											name : "NIA of Storage",
+											name : 'NIA of Storage',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -4990,17 +6097,19 @@ app
 											}))
 										}
 									},
+									// BMARK nia_storage_to_total_prc : NIA Storage to total
 									'nia_storage_to_total_prc' : function() {
 										return {
-											name : "NIA Storage to total",
+											name : 'NIA Storage to total',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_storage']().measure,
 													measures['nia_total']().measure)),
 										}
 									},
+									// BMARK nia_meeting_room_bkb : NIA of bookable meeting rooms
 									'nia_meeting_room_bkb' : function() {
 										return {
-											name : "NIA of Storage",
+											name : 'NIA of bookable meeting rooms',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -5010,9 +6119,10 @@ app
 											}))
 										}
 									},
+									// BMARK nia_alternative_spaces : NIA of Alternative Spaces
 									'nia_alternative_spaces' : function() {
 										return {
-											name : "NIA of Alternative Spaces",
+											name : 'NIA of Alternative Spaces',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -5022,9 +6132,29 @@ app
 											}))
 										}
 									},
+									'nia_alternative_spaces_sqft' : function() {
+										return {
+											name : 'NIA of Alternative spaces (ft\xB2)',
+											measure : createMeasure('mult',
+													measures['nia_alternative_spaces']().measure, {
+														content : 10.7639104
+													}),
+											units : 'ft\xB2'
+										}
+									},
+									'nia_alternative_spaces_prc' : function() {
+										return {
+											name : 'NIA of Alternative spaces to total',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['nia_alternative_spaces']().measure,
+													measures['nia_total']().measure)),
+											units : '%'
+										}
+									},
+									// BMARK nia_meeting_room : NIA of Meeting rooms
 									'nia_meeting_room' : function() {
 										return {
-											name : "NIA of Meeting rooms",
+											name : 'NIA of Meeting rooms',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -5034,9 +6164,50 @@ app
 											}))
 										}
 									},
+									// BMARK nia_meeting_room_to_total_prc : NIA Meeting rooms to
+									// total
+									'nia_meeting_room_to_total_prc' : function() {
+										return {
+											name : 'NIA Meeting rooms to total',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['nia_meeting_room']().measure,
+													measures['nia_total']().measure)),
+										}
+									},
+									// BMARK nia_meeting_rooms_per_building : NIA of Meeting rooms
+									// per building
+									'nia_meeting_rooms_per_building' : function() {
+										return {
+											name : 'NIA of Meeting rooms per building',
+											measure : createMeasure('nia_of_poly_types_per_building',
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'MTG'
+													}), {
+														content : study.id
+													})
+										}
+									},
+									// BMARK nia_meeting_rooms_per_space : NIA of Meeting rooms
+									// per space
+									'nia_meeting_rooms_per_space' : function() {
+										return {
+											name : 'NIA of Meeting rooms per space',
+											measure : createMeasure('nia_of_poly_types_per_space',
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'MTG'
+													}), {
+														content : study.id
+													})
+										}
+									},
+									// BMARK nia_other_facilities : NIA of Other Facilities
 									'nia_other_facilities' : function() {
 										return {
-											name : "NIA of Other Facilities",
+											name : 'NIA of Other Facilities',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
 											}, createMeasure('id_of_poly_types', {
@@ -5046,18 +6217,21 @@ app
 											}))
 										}
 									},
+									// BMARK nia_shared_facilities : NIA of Shared Facilities
 									'nia_shared_facilities' : function() {
 										return {
-											name : "NIA of Shared Facilities",
+											name : 'NIA of Shared Facilities',
 											measure : createMeasure('add',
 													measures['nia_alternative_spaces']().measure,
 													measures['nia_meeting_room']().measure,
 													measures['nia_other_facilities']().measure)
 										}
 									},
+									// BMARK nia_shared_facilities_sqft : NIA of Shared Facilities
+									// (ft\xB2)
 									'nia_shared_facilities_sqft' : function() {
 										return {
-											name : "NIA of Shared Facilities (ft\xB2)",
+											name : 'NIA of Shared Facilities (ft\xB2)',
 											measure : createMeasure('mult',
 													measures['nia_shared_facilities']().measure, {
 														content : 10.7639104
@@ -5065,14 +6239,17 @@ app
 											units : 'ft\xB2'
 										}
 									},
+									// BMARK nia_shared_facilities_to_total_prc : NIA Shared
+									// Facilities to total
 									'nia_shared_facilities_to_total_prc' : function() {
 										return {
-											name : "NIA Shared Facilities to total",
+											name : 'NIA Shared Facilities to total',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['nia_shared_facilities']().measure,
 													measures['nia_total']().measure)),
 										}
 									},
+									// BMARK no_of_desks_wrksp : No. of desks in workspace
 									'no_of_desks_wrksp' : function() {
 										return {
 											name : 'No. of desks in workspace',
@@ -5081,6 +6258,8 @@ app
 													measures['no_of_desks_open_plan']().measure)
 										}
 									},
+									// BMARK no_of_desks_more_than_staff : No. of desks over
+									// capacity
 									'no_of_desks_more_than_staff' : function() {
 										return {
 											name : 'No. of desks over capacity',
@@ -5089,6 +6268,8 @@ app
 													measures['no_of_staff']().measure)
 										}
 									},
+									// BMARK no_of_desks_more_than_staff_prc : No. of desks over
+									// capacity
 									'no_of_desks_more_than_staff_prc' : function() {
 										return {
 											name : 'No. of desks over capacity',
@@ -5097,9 +6278,22 @@ app
 													measures['no_of_staff']().measure))
 										}
 									},
+									// BMARK no_of_desks_empty : No. of desks empty all
+									// observation
+									'no_of_desks_empty' : function() {
+										return {
+											name : 'No. of desks empty all observation',
+											measure : createMeasure('sub',
+													measures['no_of_desks']().measure,
+													measures['no_of_desks_not_empty']().measure)
+										}
+									},
+									// BMARK avg_not_empty_desk_occupancy_prc : Average desk
+									// occupancy (excluding empty)
 									'avg_not_empty_desk_occupancy_prc' : function() {
 										return {
 											name : 'Average desk occupancy (excluding empty)',
+											no_of_decimals : 0,
 											measure : createMeasure('prc', createMeasure('div',
 													measures['desk_occupancy_total']().measure,
 													createMeasure('mult',
@@ -5110,6 +6304,7 @@ app
 											units : "%"
 										}
 									},
+									// BMARK nia_total : Total NIA
 									'nia_total' : function() {
 										return {
 											name : 'Total NIA',
@@ -5121,6 +6316,18 @@ app
 											units : 'm\xB2'
 										}
 									},
+									// BMARK nia_total_sqft : Total NIA (ft\xB2)
+									'nia_total_sqft' : function() {
+										return {
+											name : 'Total NIA (ft\xB2)',
+											measure : createMeasure('mult',
+													measures['nia_total']().measure, {
+														content : 10.7639104
+													}),
+											units : 'ft\xB2'
+										}
+									},
+									// BMARK nia_total_per_building : Total NIA per building
 									'nia_total_per_building' : function() {
 										return {
 											name : 'Total NIA per building',
@@ -5133,6 +6340,7 @@ app
 											units : 'm\xB2'
 										}
 									},
+									// BMARK nia_total_per_space : Total NIA per space
 									'nia_total_per_space' : function() {
 										return {
 											name : 'Total NIA per space',
@@ -5145,6 +6353,7 @@ app
 											units : 'm\xB2'
 										}
 									},
+									// BMARK people_moving_total : Number of people walking
 									'people_moving_total' : function() {
 										return {
 											name : 'Number of people walking',
@@ -5165,6 +6374,50 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_standing_total : Number of people standing
+									'people_standing_total' : function() {
+										return {
+											name : 'Number of people standing',
+											measure : createMeasure('no_of_people_activity',
+													measures['first_observation_id']().measure, {
+														content : [
+															2
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}),
+											units : 'people'
+										}
+									},
+									// BMARK people_sitting_total : Number of people sitting
+									'people_sitting_total' : function() {
+										return {
+											name : 'Number of people sitting',
+											measure : createMeasure('no_of_people_activity',
+													measures['first_observation_id']().measure, {
+														content : [
+															1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}),
+											units : 'people'
+										}
+									},
+									// BMARK people_on_the_phone_total : Number of people on the
+									// phone
 									'people_on_the_phone_total' : function() {
 										return {
 											name : 'Number of people on the phone',
@@ -5185,6 +6438,7 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_total : Number of people in space
 									'people_any_activity_total' : function() {
 										return {
 											name : 'Number of people in space',
@@ -5205,6 +6459,8 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_total_breakdown : Number of
+									// people in space (broken down by activity)
 									'people_any_activity_total_breakdown' : function() {
 										return {
 											name : 'Number of people in space (broken down by activity)',
@@ -5214,10 +6470,25 @@ app
 														content : [
 																1, 2, 3
 														]
+													}, {
+														content : [
+																{
+																	id : 1,
+																	name : 'Sitting'
+																}, {
+																	id : 2,
+																	name : 'Standing'
+																}, {
+																	id : 3,
+																	name : 'Walking'
+																}
+														]
 													}),
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_total_per_building : Number of
+									// people in building
 									'people_any_activity_total_per_building' : function() {
 										return {
 											name : 'Number of people in building',
@@ -5231,6 +6502,8 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_total_per_space : Number of
+									// people in space
 									'people_any_activity_total_per_space' : function() {
 										return {
 											name : 'Number of people in space',
@@ -5244,6 +6517,8 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK no_of_people_walking_per_building : Number of people
+									// in building
 									'no_of_people_walking_per_building' : function() {
 										return {
 											name : 'Number of people in building',
@@ -5257,6 +6532,8 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK no_of_people_walking_per_space : Number of people in
+									// space
 									'no_of_people_walking_per_space' : function() {
 										return {
 											name : 'Number of people in space',
@@ -5270,35 +6547,42 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK avg_utlisation_per_sqm : Avg utilisation per m\xB2
 									'avg_utlisation_per_sqm' : function() {
 										return {
 											name : 'Avg utilisation per m\xB2',
 											measure : createMeasure('div',
 													measures['people_any_activity_total']().measure,
 													measures['nia_total']().measure),
-											units : 'people'
+											units : 'people/m\xB2'
 										}
 									},
+									// BMARK avg_utlisation_per_sqm_per_building : Avg utilisation
+									// per m\xB2 per building
 									'avg_utlisation_per_sqm_per_building' : function() {
 										return {
-											name : 'Avg utilisation per m\xB2',
+											name : 'Avg utilisation per m\xB2 per building',
 											measure : createMeasure(
 													'div',
 													measures['people_any_activity_total_per_building']().measure,
 													measures['nia_total_per_building']().measure),
-											units : 'people'
+											units : 'people/m\xB2'
 										}
 									},
+									// BMARK avg_utlisation_per_sqm_per_space : Avg utilisation
+									// per m\xB2 per floor
 									'avg_utlisation_per_sqm_per_space' : function() {
 										return {
-											name : 'Avg utilisation per m\xB2',
+											name : 'Avg utilisation per m\xB2 per floor',
 											measure : createMeasure(
 													'div',
 													measures['people_any_activity_total_per_space']().measure,
 													measures['nia_total_per_space']().measure),
-											units : 'people'
+											units : 'people/m\xB2'
 										}
 									},
+									// BMARK people_any_activity_interacting_total : Number of
+									// people in space interacting
 									'people_any_activity_interacting_total' : function() {
 										return {
 											name : 'Number of people in space interacting',
@@ -5312,9 +6596,54 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK
+									// people_workspace_any_activity_interacting_total_per_activity
+									// : Number of people in workspace interacting
+									'people_workspace_any_activity_interacting_total_per_activity' : function() {
+										return {
+											name : 'Number of people in workspace interacting',
+											no_of_decimals : 0,
+											measure : createMeasure('table_prc', createMeasure(
+													'activity_interacting_in_polygon_types_per_activity',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'WRKSP'
+													}), {
+														content : [
+																1, 2, 3
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}, {
+														content : [
+																0, 1
+														]
+													}, {
+														content : [
+																{
+																	id : 1,
+																	name : 'Sitting'
+																}, {
+																	id : 2,
+																	name : 'Standing'
+																}, {
+																	id : 3,
+																	name : 'Walking'
+																}
+														]
+													})),
+											units : 'people'
+										}
+									},
+									// BMARK people_any_activity_interacting_total_per_building :
+									// Number of people in space interacting per building
 									'people_any_activity_interacting_total_per_building' : function() {
 										return {
-											name : 'Number of people in space interacting',
+											name : 'Number of people in space interacting per building',
 											measure : createMeasure(
 													'no_of_people_activity_interacting_per_building',
 													measures['first_observation_id']().measure, {
@@ -5325,9 +6654,11 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_interacting_total_per_space :
+									// Number of people in space interacting per space
 									'people_any_activity_interacting_total_per_space' : function() {
 										return {
-											name : 'Number of people in space interacting',
+											name : 'Number of people in space interacting per space',
 											measure : createMeasure(
 													'no_of_people_activity_interacting_per_space',
 													measures['first_observation_id']().measure, {
@@ -5338,6 +6669,8 @@ app
 											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_interacting_prc : Proportion of
+									// people interacting
 									'people_any_activity_interacting_prc' : function() {
 										return {
 											name : 'Proportion of people interacting',
@@ -5346,9 +6679,11 @@ app
 															measures['people_any_activity_interacting_total']
 																	().measure,
 															measures['people_any_activity_total']().measure)),
-											units : 'people'
+											units : '%'
 										}
 									},
+									// BMARK people_any_activity_interacting_prc_verdict :
+									// Proportion of people interacting (Verdict)
 									'people_any_activity_interacting_prc_verdict' : function() {
 										return {
 											name : 'Proportion of people interacting (Verdict)',
@@ -5360,34 +6695,75 @@ app
 																'0-31:LOW', '31-37:MEDIUM', '37+:HIGH'
 														]
 													})),
-											units : 'people'
 										}
 									},
+									// BMARK people_any_activity_interacting_prc_per_building :
+									// Proportion of people interacting per building
 									'people_any_activity_interacting_prc_per_building' : function() {
 										return {
 											name : 'Proportion of people interacting per building',
 											measure : createMeasure(
-													'div',
-													measures['people_any_activity_interacting_total_per_building']
-															().measure,
-													measures['people_any_activity_total_per_building']().measure),
-											units : 'people'
+													'mult',
+													createMeasure(
+															'div',
+															measures['people_any_activity_interacting_total_per_building']
+																	().measure,
+															measures['people_any_activity_total_per_building']
+																	().measure), {
+														content : 100
+													}),
+											units : '%'
 										}
 									},
+									// BMARK people_any_activity_interacting_prc_per_space :
+									// Proportion of people interacting per space
 									'people_any_activity_interacting_prc_per_space' : function() {
 										return {
 											name : 'Proportion of people interacting per space',
 											measure : createMeasure(
-													'div',
-													measures['people_any_activity_interacting_total_per_space']
-															().measure,
-													measures['people_any_activity_total_per_space']().measure),
-											units : 'people'
+													'mult',
+													createMeasure(
+															'div',
+															measures['people_any_activity_interacting_total_per_space']
+																	().measure,
+															measures['people_any_activity_total_per_space']().measure),
+													{
+														content : 100
+													}),
+											units : '%'
 										}
 									},
+									// BMARK avg_sitting_total : Proportion of people sitting to
+									// total observed
+									'avg_sitting_total' : function() {
+										return {
+											name : 'Proportion of people sitting to total observed',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['people_sitting_total']().measure,
+													measures['people_any_activity_total']().measure)),
+											description : 'Average number of people sitting as a percentage of total in space',
+											units_full : '% people walking',
+											units : "%",
+										}
+									},
+									// BMARK avg_standing_total : Proportion of people standing to
+									// total observed
+									'avg_standing_total' : function() {
+										return {
+											name : 'Proportion of people standing to total observed',
+											measure : createMeasure('prc', createMeasure('div',
+													measures['people_standing_total']().measure,
+													measures['people_any_activity_total']().measure)),
+											description : 'Average number of people standing as a percentage of total in space',
+											units_full : '% people walking',
+											units : "%",
+										}
+									},
+									// BMARK avg_moving_total : Proportion of people walking to
+									// total observed
 									'avg_moving_total' : function() {
 										return {
-											name : 'Average movement',
+											name : 'Proportion of people walking to total observed',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['people_moving_total']().measure,
 													measures['people_any_activity_total']().measure)),
@@ -5396,9 +6772,11 @@ app
 											units : "%",
 										}
 									},
+									// BMARK prc_on_the_phone : Proportion of people on the phone
+									// to total observed
 									'prc_on_the_phone' : function() {
 										return {
-											name : 'Percentage of people on the phone to total observed',
+											name : 'Proportion of people on the phone to total observed',
 											measure : createMeasure('prc', createMeasure('div',
 													measures['people_on_the_phone_total']().measure,
 													measures['people_any_activity_total']().measure)),
@@ -5407,9 +6785,11 @@ app
 											units : "%",
 										}
 									},
+									// BMARK avg_moving_per_building : Proportion of people
+									// walking to total observed per building
 									'avg_moving_per_building' : function() {
 										return {
-											name : 'Average movement per building',
+											name : 'Proportion of people walking to total observed per building',
 											measure : createMeasure(
 													'mult',
 													createMeasure(
@@ -5424,9 +6804,11 @@ app
 											units : "%",
 										}
 									},
+									// BMARK avg_moving_per_space : Proportion of people walking
+									// to total observed per space
 									'avg_moving_per_space' : function() {
 										return {
-											name : 'Average movement per space',
+											name : 'Proportion of people walking to total observed per space',
 											measure : createMeasure(
 													'mult',
 													createMeasure(
@@ -5441,6 +6823,8 @@ app
 											units : "%",
 										}
 									},
+									// BMARK occupancy_of_bookable_meeting_rooms : Overall
+									// occupancy of Bookable Meeting Rooms
 									'occupancy_of_bookable_meeting_rooms' : function() {
 										return {
 											name : 'Overall occupancy of Bookable Meeting Rooms',
@@ -5453,6 +6837,68 @@ app
 													}))
 										}
 									},
+									// BMARK occupancy_of_bookable_meeting_rooms : Overall
+									// occupancy of Bookable Meeting Rooms
+									'occupancy_of_bookable_meeting_rooms_per_round' : function() {
+										return {
+											name : 'Overall occupancy of Bookable Meeting Rooms (per round)',
+											measure : createMeasure(
+													'occupancy_of_poly_types_per_round',
+													measures['first_observation_id']().measure,
+													createMeasure('id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'MTG-BKB'
+													}), createMeasure('round_times',
+															measures['first_observation_id']().measure))
+										}
+									},
+									// BMARK max_occupancy_of_bookable_meeting_rooms_prc : Maximum
+									// occupancy of Bookable Meeting Rooms (%)
+									'max_occupancy_of_bookable_meeting_rooms_prc' : function() {
+										return {
+											name : 'Maximum occupancy of Bookable Meeting Rooms (%)',
+											measure : createMeasure(
+													'table_max',
+													measures['occupancy_of_bookable_meeting_rooms_per_round_prc']
+															().measure)
+										}
+									},
+									// BMARK min_occupancy_of_bookable_meeting_rooms_prc : Minimum
+									// occupancy of Bookable Meeting Rooms (%)
+									'min_occupancy_of_bookable_meeting_rooms_prc' : function() {
+										return {
+											name : 'Minimum occupancy of Bookable Meeting Rooms (%)',
+											measure : createMeasure(
+													'table_min',
+													measures['occupancy_of_bookable_meeting_rooms_per_round_prc']
+															().measure)
+										}
+									},
+									// BMARK max_occupancy_of_bookable_meeting_rooms : Maximum
+									// occupancy of Bookable Meeting Rooms
+									'max_occupancy_of_bookable_meeting_rooms' : function() {
+										return {
+											name : 'Maximum occupancy of Bookable Meeting Rooms [Overall maximum number of meetings]',
+											measure : createMeasure(
+													'table_max',
+													measures['occupancy_of_bookable_meeting_rooms_per_round']
+															().measure)
+										}
+									},
+									// BMARK min_occupancy_of_bookable_meeting_rooms : Minimum
+									// occupancy of Bookable Meeting Rooms
+									'min_occupancy_of_bookable_meeting_rooms' : function() {
+										return {
+											name : 'Minimum occupancy of Bookable Meeting Rooms',
+											measure : createMeasure(
+													'table_min',
+													measures['occupancy_of_bookable_meeting_rooms_per_round']
+															().measure)
+										}
+									},
+									// BMARK utilisation_of_bookable_meeting_rooms : Overall
+									// utilisation of Bookable Meeting Rooms
 									'utilisation_of_bookable_meeting_rooms' : function() {
 										return {
 											name : 'Overall utilisation of Bookable Meeting Rooms',
@@ -5465,6 +6911,8 @@ app
 													}))
 										}
 									},
+									// BMARK standing_wrksp : Number of people sitting in
+									// workspace
 									'standing_wrksp' : function() {
 										return {
 											name : 'Number of people sitting in workspace',
@@ -5482,6 +6930,8 @@ app
 													})
 										}
 									},
+									// BMARK sitting_wrksp : Number of people standing in
+									// workspace
 									'sitting_wrksp' : function() {
 										return {
 											name : 'Number of people standing in workspace',
@@ -5499,6 +6949,7 @@ app
 													})
 										}
 									},
+									// BMARK visiting_ratio : Visiting Ratio
 									'visiting_ratio' : function() {
 										return {
 											name : 'Visiting Ratio',
@@ -5506,9 +6957,11 @@ app
 													().measure, measures['sitting_wrksp']().measure)
 										}
 									},
+									// BMARK occupancy_of_bookable_meeting_rooms_prc : Overall
+									// occupancy of Bookable Meeting Rooms (%)
 									'occupancy_of_bookable_meeting_rooms_prc' : function() {
 										return {
-											name : 'Overall occupancy of Bookable Meeting Rooms',
+											name : 'Overall occupancy of Bookable Meeting Rooms (%)',
 											measure : createMeasure(
 													'prc',
 													createMeasure(
@@ -5519,6 +6972,38 @@ app
 																	measures['no_of_rounds']().measure))),
 										}
 									},
+									// BMARK occupancy_of_bookable_meeting_rooms_prc : Overall
+									// occupancy of Bookable Meeting Rooms (%)
+									'occupancy_of_bookable_meeting_rooms_avg' : function() {
+										return {
+											name : 'Overall average occupancy of Bookable Meeting Rooms (%) [Overall Average number of meetings at any point]',
+											measure : createMeasure(
+													'div',
+													measures['occupancy_of_bookable_meeting_rooms']().measure,
+													measures['no_of_rounds']().measure),
+										}
+									},
+									// BMARK occupancy_of_bookable_meeting_rooms_per_round_prc :
+									// Overall
+									// occupancy of Bookable Meeting Rooms
+									'occupancy_of_bookable_meeting_rooms_per_round_prc' : function() {
+										return {
+											name : 'Overall occupancy of Bookable Meeting Rooms (% per round)',
+											no_of_decimals : 2,
+											measure : createMeasure(
+													'mult',
+													createMeasure(
+															'div',
+															measures['occupancy_of_bookable_meeting_rooms_per_round']
+																	().measure,
+
+															measures['no_of_meeting_rooms']().measure), {
+														content : 100
+													})
+										}
+									},
+									// BMARK occupancy_of_alternative_spaces : Overall occupancy
+									// of Alternative Meeting Spaces
 									'occupancy_of_alternative_spaces' : function() {
 										return {
 											name : 'Overall occupancy of Alternative Meeting Spaces',
@@ -5531,6 +7016,8 @@ app
 													}))
 										}
 									},
+									// BMARK occupancy_of_alternative_spaces_prc : Overall
+									// occupancy of Alternative Meeting Spaces
 									'occupancy_of_alternative_spaces_prc' : function() {
 										return {
 											name : 'Overall occupancy of Alternative Meeting Spaces',
@@ -5545,7 +7032,8 @@ app
 																	measures['no_of_rounds']().measure))),
 										}
 									},
-
+									// BMARK no_of_replies_amount_of_space : Table of responses to
+									// question TheSpaceAtAndAroundMyDeskIsAppro
 									'no_of_replies_amount_of_space' : function() {
 										return {
 											name : 'Table of responses to question TheSpaceAtAndAroundMyDeskIsAppro',
@@ -5558,6 +7046,52 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_face_to_face_spaces_exist_within_team :
+									// Table of responses to question
+									// ThereAreSpacesThatSupportFacetof (within department)
+									'no_of_replies_face_to_face_spaces_exist_within_team' : function() {
+										return {
+											name : 'Table of responses to question ThereAreSpacesThatSupportFacetof (within department)',
+											measure : createMeasure('table_prc', createMeasure(
+													'no_of_staff_replies_per_choice', {
+														content : study.id
+													}, createMeasure('id_of_staff_question', {
+														content : 'ThereAreSpacesThatSupportFacetof'
+													}))),
+											units : 'replies'
+										}
+									},
+									// BMARK no_of_replies_face_to_face_spaces_exist_outside_team
+									// : Table of responses to question
+									// ThereAreSpacesThatSupportFacetof1 (outside department)
+									'no_of_replies_face_to_face_spaces_exist_outside_team' : function() {
+										return {
+											name : 'Table of responses to question ThereAreSpacesThatSupportFacetof1 (outside department)',
+											measure : createMeasure('table_prc', createMeasure(
+													'no_of_staff_replies_per_choice', {
+														content : study.id
+													}, createMeasure('id_of_staff_question', {
+														content : 'ThereAreSpacesThatSupportFacetof1'
+													}))),
+											units : 'replies'
+										}
+									},
+									// BMARK no_of_replies_concentration_spaces_exist : Table of
+									// responses to question ThereAreSpacesThatSupportConcent
+									'no_of_replies_concentration_spaces_exist' : function() {
+										return {
+											name : 'Table of responses to question ThereAreSpacesThatSupportConcent',
+											measure : createMeasure('table_prc', createMeasure(
+													'no_of_staff_replies_per_choice', {
+														content : study.id
+													}, createMeasure('id_of_staff_question', {
+														content : 'ThereAreSpacesThatSupportConcent'
+													}))),
+											units : 'replies'
+										}
+									},
+									// BMARK no_of_tagged_quotes_best_feature : Table of amount of
+									// quotes tagged in XBestFeature
 									'no_of_tagged_quotes_best_feature' : function() {
 										return {
 											name : 'Table of amount of quotes tagged in XBestFeature',
@@ -5569,6 +7103,8 @@ app
 											units : 'quotes'
 										}
 									},
+									// BMARK no_of_tagged_quotes_improvements : Table of amount of
+									// quotes tagged in XImprovements
 									'no_of_tagged_quotes_improvements' : function() {
 										return {
 											name : 'Table of amount of quotes tagged in XImprovements',
@@ -5580,6 +7116,8 @@ app
 											units : 'quotes'
 										}
 									},
+									// BMARK no_of_replies_can_get_meeting_room : Table of
+									// responses to question IAmAbleToGetAMeetingSpaceWhenINe
 									'no_of_replies_can_get_meeting_room' : function() {
 										return {
 											name : 'Table of responses to question IAmAbleToGetAMeetingSpaceWhenINe',
@@ -5592,6 +7130,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_important_confidential_mtg : Table of
+									// responses to question ConfidentialMeetingRooms
 									'no_of_replies_important_confidential_mtg' : function() {
 										return {
 											name : 'Table of responses to question ConfidentialMeetingRooms',
@@ -5604,6 +7144,7 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_important_bookable_mtg : bb
 									'no_of_replies_important_bookable_mtg' : function() {
 										return {
 											name : 'Table of responses to question BookableMeetingRooms',
@@ -5616,6 +7157,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_some_people_better_environment : Table
+									// of responses to question SomePeopleHaveAMuchBetterWorking
 									'no_of_replies_some_people_better_environment' : function() {
 										return {
 											name : 'Table of responses to question SomePeopleHaveAMuchBetterWorking',
@@ -5628,6 +7171,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_proud_of_environment : Table of
+									// responses to question ImProudOfMyOfficeEnvironment
 									'no_of_replies_proud_of_environment' : function() {
 										return {
 											name : 'Table of responses to question ImProudOfMyOfficeEnvironment',
@@ -5640,6 +7185,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_needed_teams_close : Table of responses
+									// to question MyDepartmentIsLocatedCloseToTheO
 									'no_of_replies_needed_teams_close' : function() {
 										return {
 											name : 'Table of responses to question MyDepartmentIsLocatedCloseToTheO',
@@ -5652,6 +7199,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_meetings_with_externals : Table of
+									// responses to question InPreplannedMeetingsWhichInclude
 									'no_of_replies_meetings_with_externals' : function() {
 										return {
 											name : 'Table of responses to question InPreplannedMeetingsWhichInclude',
@@ -5664,9 +7213,11 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_printer_importance : Table of responses
+									// to question PhotocopierPrinterPoints
 									'no_of_replies_printer_importance' : function() {
 										return {
-											name : 'Table of responses to question PhotocopierPrinterPoints',
+											name : 'Importance of photocopier and printer facilities',
 											measure : createMeasure('table_prc', createMeasure(
 													'no_of_staff_replies_per_choice', {
 														content : study.id
@@ -5676,6 +7227,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_env_allows_unplanned_mtg : Table of
+									// responses to question ItAllowsUnplannedMeetingsChatsTo
 									'no_of_replies_env_allows_unplanned_mtg' : function() {
 										return {
 											name : 'Table of responses to question ItAllowsUnplannedMeetingsChatsTo',
@@ -5688,6 +7241,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_computer_importance : Table of
+									// responses to question DesktopComputer
 									'no_of_replies_computer_importance' : function() {
 										return {
 											name : 'Table of responses to question DesktopComputer',
@@ -5700,6 +7255,9 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_own_desk_important : How important is
+									// it for staff members to have their own desk? (Table of
+									// responses to question XOwnDeskImportance)
 									'no_of_replies_own_desk_important' : function() {
 										return {
 											name : 'How important is it for staff members to have their own desk? (Table of responses to question XOwnDeskImportance)',
@@ -5712,7 +7270,10 @@ app
 											units : 'replies'
 										}
 									},
-									'no_of_replies_own_desk_important' : function() {
+									// BMARK no_of_replies_own_desk_important : How open is the
+									// staff to using a variety of spaces? (Table of responses to
+									// question XVarietyOfSpaces)
+									'no_of_replies_variety_of_spaces' : function() {
 										return {
 											name : 'How open is the staff to using a variety of spaces? (Table of responses to question XVarietyOfSpaces)',
 											measure : createMeasure('table_prc', createMeasure(
@@ -5724,6 +7285,9 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_visitors_like_office : Does the staff
+									// think that visitors like the office? (Table of responses to
+									// question VisitorsToOurOfficeLikeWhatTheyS)
 									'no_of_replies_visitors_like_office' : function() {
 										return {
 											name : 'Does the staff think that visitors like the office? (Table of responses to question VisitorsToOurOfficeLikeWhatTheyS)',
@@ -5736,6 +7300,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_community_environment : Table of
+									// responses to question ItContributesToASenseOfCommunity
 									'no_of_replies_community_environment' : function() {
 										return {
 											name : 'Table of responses to question ItContributesToASenseOfCommunity',
@@ -5748,6 +7314,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_enjoyable_environment : Table of
+									// responses to question ItsAnEnjoyablePlaceToWork
 									'no_of_replies_enjoyable_environment' : function() {
 										return {
 											name : 'Table of responses to question ItsAnEnjoyablePlaceToWork',
@@ -5760,6 +7328,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_dynamic_environment : Table of
+									// responses to question ItIsADynamicAndBuzzyEnvironment
 									'no_of_replies_dynamic_environment' : function() {
 										return {
 											name : 'Table of responses to question ItIsADynamicAndBuzzyEnvironment',
@@ -5772,6 +7342,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_free_access : Table of responses to
+									// question ICanFreelyAccessAllPartsOfTheOff
 									'no_of_replies_free_access' : function() {
 										return {
 											name : 'Table of responses to question ICanFreelyAccessAllPartsOfTheOff',
@@ -5784,6 +7356,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_noisy_environment : Table of responses
+									// to question MyWorkingEnvironmentIsTooNoisyAn
 									'no_of_replies_noisy_environment' : function() {
 										return {
 											name : 'Table of responses to question MyWorkingEnvironmentIsTooNoisyAn',
@@ -5796,6 +7370,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_brand_reflects_identity : Table of
+									// responses to question ItReflectsTheIdentityOfOurOrgani
 									'no_of_replies_brand_reflects_identity' : function() {
 										return {
 											name : 'Table of responses to question ItReflectsTheIdentityOfOurOrgani',
@@ -5808,6 +7384,8 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK no_of_replies_understand_why_change : Table of
+									// responses to question IUnderstandWhyTheOrganisationIsL
 									'no_of_replies_understand_why_change' : function() {
 										return {
 											name : 'Table of responses to question IUnderstandWhyTheOrganisationIsL',
@@ -5820,9 +7398,10 @@ app
 											units : 'replies'
 										}
 									},
+									// BMARK avg_working_hours : Average working hours
 									'avg_working_hours' : function() {
 										return {
-											name : 'Average working hours',
+											name : 'Perceived average working hours',
 											measure : createMeasure('avg_question_mark', {
 												content : study.id
 											}, createMeasure('id_of_staff_question', {
@@ -5831,9 +7410,11 @@ app
 											units : 'hours'
 										}
 									},
+									// BMARK avg_out_of_office_hours : Average number of hours out
+									// of office
 									'avg_out_of_office_hours' : function() {
 										return {
-											name : 'Average number of hours out of office',
+											name : 'Perceived average number of hours out of office',
 											measure : createMeasure('avg_question_mark', {
 												content : study.id
 											}, createMeasure('id_of_staff_question', {
@@ -5842,9 +7423,11 @@ app
 											units : 'hours'
 										}
 									},
+									// BMARK avg_away_from_desk_hours : Average number of hours
+									// away from desk
 									'avg_away_from_desk_hours' : function() {
 										return {
-											name : 'Average number of hours away from desk',
+											name : 'Perceived average number of hours away from desk',
 											measure : createMeasure('avg_question_mark', {
 												content : study.id
 											}, createMeasure('id_of_staff_question', {
@@ -5853,9 +7436,11 @@ app
 											units : 'hours'
 										}
 									},
+									// BMARK avg_hours_work_from_home : Average number of hours
+									// out of office
 									'avg_hours_work_from_home' : function() {
 										return {
-											name : 'Average number of hours out of office',
+											name : 'Perceived average number of hours working from home',
 											measure : createMeasure('avg_question_mark', {
 												content : study.id
 											}, createMeasure('id_of_staff_question', {
@@ -5864,9 +7449,11 @@ app
 											units : 'hours'
 										}
 									},
+									// BMARK desired_avg_hours_work_from_home : Average number of
+									// hours away from desk
 									'desired_avg_hours_work_from_home' : function() {
 										return {
-											name : 'Average number of hours away from desk',
+											name : 'Desired average number of hours working from home',
 											measure : createMeasure('avg_question_mark', {
 												content : study.id
 											}, createMeasure('id_of_staff_question', {
@@ -5875,6 +7462,7 @@ app
 											units : 'hours'
 										}
 									},
+									// BMARK perceived_desk_occupancy : Perceived desk occupancy
 									'perceived_desk_occupancy' : function() {
 										return {
 											name : 'Perceived desk occupancy',
@@ -5886,14 +7474,18 @@ app
 													measures['avg_working_hours']().measure))
 										}
 									},
+									// BMARK perceived_hours_in_office : Perceived hours in office
 									'perceived_hours_in_office' : function() {
 										return {
-											name : 'Perceived hours in office',
+											name : 'Perceived average hours in office',
 											measure : createMeasure('sub',
 													measures['avg_working_hours']().measure,
 													measures['avg_out_of_office_hours']().measure)
 										}
 									},
+									// BMARK avg_time_in_office : Pie chart of perceived average
+									// amount of time spent in office per week as a % of perceived
+									// average working hours
 									'avg_time_in_office' : function() {
 										return {
 											name : 'Pie chart of perceived average amount of time spent in office per week as a % of perceived average working hours ',
@@ -5902,6 +7494,8 @@ app
 													measures['avg_working_hours']().measure))
 										}
 									},
+									// BMARK staff_relationship_question_id : ID of relationship
+									// question
 									'staff_relationship_question_id' : function() {
 										return {
 											name : 'ID of relationship question',
@@ -5910,6 +7504,8 @@ app
 											})
 										}
 									},
+									// BMARK staff_interaction_frequency_id : ID of relationship
+									// question
 									'staff_interaction_frequency_id' : function() {
 										return {
 											name : 'ID of relationship question',
@@ -5918,6 +7514,8 @@ app
 											})
 										}
 									},
+									// BMARK staff_interaction_usefulness_id : ID of relationship
+									// question
 									'staff_interaction_usefulness_id' : function() {
 										return {
 											name : 'ID of relationship question',
@@ -5926,6 +7524,8 @@ app
 											})
 										}
 									},
+									// BMARK avg_no_of_contacts_per_person : Average number of
+									// contacts recorded per person
 									'avg_no_of_contacts_per_person' : function() {
 										return {
 											name : 'Average number of contacts recorded per person',
@@ -5945,6 +7545,8 @@ app
 															measures['staff_relationship_question_id']().measure))
 										}
 									},
+									// BMARK avg_ties_outside_team : Average connections outside
+									// team
 									'avg_ties_outside_team' : function() {
 										return {
 											name : 'Average connections outside team',
@@ -5964,6 +7566,9 @@ app
 															measures['staff_relationship_question_id']().measure))
 										}
 									},
+									// BMARK avg_no_of_contacts_per_person_seen_over_5 : Average
+									// number of people per person reported as being seen once per
+									// day or more
 									'avg_no_of_contacts_per_person_seen_over_5' : function() {
 										return {
 											name : 'Average number of people per person reported as being seen once per day or more',
@@ -5983,6 +7588,8 @@ app
 													measures['staff_interaction_frequency_id']().measure))
 										}
 									},
+									// BMARK avg_no_of_contacts_per_person_useful_4 : Average
+									// number of extremely useful contacts per person
 									'avg_no_of_contacts_per_person_useful_4' : function() {
 										return {
 											name : 'Average number of extremely useful contacts per person',
@@ -6007,6 +7614,8 @@ app
 															measures['staff_interaction_usefulness_id']().measure))
 										}
 									},
+									// BMARK avg_no_of_contacts_per_person_useful_3 : Average
+									// number of useful contacts per person
 									'avg_no_of_contacts_per_person_useful_3' : function() {
 										return {
 											name : 'Average number of useful contacts per person',
@@ -6031,6 +7640,8 @@ app
 															measures['staff_interaction_usefulness_id']().measure))
 										}
 									},
+									// BMARK avg_no_of_contacts_per_person_useful_2 : Average
+									// number of quite useful contacts per person
 									'avg_no_of_contacts_per_person_useful_2' : function() {
 										return {
 											name : 'Average number of quite useful contacts per person',
@@ -6055,28 +7666,33 @@ app
 															measures['staff_interaction_usefulness_id']().measure))
 										}
 									},
-									'avg_area_per_desk' : function() {
-										return {
-											name : 'Average area per desk',
-											measure : createMeasure('div',
-													measures['nia_total']().measure,
-													measures['no_of_desks']().measure)
-										};
-									},
-									'avg_area_per_desk_per_building' : function() {
+									// BMARK nia_total_per_desk_per_building : Average area per
+									// desk (Total NIA of building per desk)
+									'nia_total_per_desk_per_building' : function() {
 										return {
 											name : 'Average area per desk (Total NIA of building per desk)',
 											measure : createMeasure('div',
 													measures['nia_total_per_building']().measure,
-													measures['no_of_desks_per_building']().measure)
+													measures['no_of_desks_per_building']().measure),
+											units : 'm\xB2/desk'
 										};
 									},
-									'avg_area_per_desk_per_space' : function() {
+									'nia_total_per_person_per_building' : function() {
+										return {
+											name : 'Average area per staff member (Total NIA of building per staff member)',
+											measure : createMeasure('div',
+													measures['nia_total_per_building']().measure,
+													measures['no_of_staff_per_building']().measure),
+											units : 'm\xB2/person'
+										};
+									},
+									'nia_total_per_desk_per_space' : function() {
 										return {
 											name : 'Average area per desk (Total NIA of space per desk)',
 											measure : createMeasure('div',
 													measures['nia_total_per_space']().measure,
-													measures['no_of_desks_per_space']().measure)
+													measures['no_of_desks_per_space']().measure),
+											units : 'm\xB2/desk'
 										};
 									},
 									'ids_of_informal_facilities_questions' : function() {
@@ -6090,9 +7706,12 @@ app
 											})
 										}
 									},
+									// BMARK choices_of_informal_facilities_questions : Choices of
+									// questions regarding quiet areas, tea/coffee points,
+									// breakout areas, place to eat
 									'choices_of_informal_facilities_questions' : function() {
 										return {
-											name : 'Choices of questions regarding quiet areas, tea/coffee points, breakout areas, place to eat',
+											name : 'How important are: quiet areas, tea/coffee points, breakout areas and places to eat',
 											measure : createMeasure(
 													'table_prc',
 													createMeasure(
@@ -6108,15 +7727,19 @@ app
 																			().measure)))
 										}
 									},
+									// BMARK all_team_names : All team names
 									'all_team_names' : function() {
 										return {
-											name : "All team names",
+											name : 'All team names',
 											measure : createMeasure('team_names', createMeasure(
 													'all_team_ids', {
 														content : study.id
 													}))
 										}
 									},
+									// BMARK in_degree_teams_extreme_usefulness : In-degree
+									// network mapping of teams showing centrality based on
+									// extremely useful connection
 									'in_degree_teams_extreme_usefulness' : function() {
 										return {
 											name : 'In-degree network mapping of teams showing centrality based on extremely useful connection',
@@ -6138,6 +7761,9 @@ app
 											)
 										}
 									},
+									// BMARK in_degree_teams_current_collaboration : In-degree
+									// network mapping of teams showing centrality based on
+									// current interaction (Stakeholders)
 									'in_degree_teams_current_collaboration' : function() {
 										return {
 											name : 'In-degree network mapping of teams showing centrality based on current interaction (Stakeholders)',
@@ -6157,6 +7783,9 @@ app
 											)
 										}
 									},
+									// BMARK in_degree_teams_future_interaction : In-degree
+									// network mapping of teams showing centrality based on future
+									// interaction (Stakeholders)
 									'in_degree_teams_future_interaction' : function() {
 										return {
 											name : 'In-degree network mapping of teams showing centrality based on future interaction (Stakeholders)',
@@ -6176,6 +7805,9 @@ app
 											)
 										}
 									},
+									// BMARK ids_of_storage_facilities_questions : IDs of
+									// questions regarding departmental, personal and archive
+									// storage
 									'ids_of_storage_facilities_questions' : function() {
 										return {
 											name : 'IDs of questions regarding departmental, personal and archive storage',
@@ -6187,9 +7819,12 @@ app
 											})
 										}
 									},
+									// BMARK choices_of_storage_facilities_questions : Choices of
+									// questions regarding departmental, personal and archive
+									// storage
 									'choices_of_storage_facilities_questions' : function() {
 										return {
-											name : 'Choices of questions regarding departmental, personal and archive storage',
+											name : 'How important are: departmental, personal and archive storage',
 											measure : createMeasure(
 													'table_prc',
 													createMeasure(
@@ -6204,6 +7839,8 @@ app
 																			().measure)))
 										}
 									},
+									// BMARK ids_of_it_facilities_questions : IDs of questions
+									// regarding IT facilities
 									'ids_of_it_facilities_questions' : function() {
 										return {
 											name : 'IDs of questions regarding IT facilities',
@@ -6216,9 +7853,11 @@ app
 											})
 										}
 									},
+									// BMARK choices_of_it_facilities_questions : Choices of
+									// questions regarding IT facilities
 									'choices_of_it_facilities_questions' : function() {
 										return {
-											name : 'Choices of questions regarding IT facilities',
+											name : 'How important are IT facilities',
 											measure : createMeasure(
 													'table_prc',
 													createMeasure(
@@ -6232,6 +7871,8 @@ app
 																	measures['ids_of_it_facilities_questions']().measure)))
 										}
 									},
+									// BMARK ids_of_activities_questions : IDs of questions under
+									// XActivitiesSplit
 									'ids_of_activities_questions' : function() {
 										return {
 											name : 'IDs of questions under XActivitiesSplit',
@@ -6240,6 +7881,8 @@ app
 											})
 										}
 									},
+									// BMARK choices_of_activities_questions : Choices of
+									// questions under XActivitiesSplit
 									'choices_of_activities_questions' : function() {
 										return {
 											name : 'Choices of questions under XActivitiesSplit',
@@ -6256,6 +7899,8 @@ app
 																	measures['ids_of_activities_questions']().measure)))
 										}
 									},
+									// BMARK ids_of_facilities_importance_questions : IDs of
+									// questions under XFacilitiesImportance
 									'ids_of_facilities_importance_questions' : function() {
 										return {
 											name : 'IDs of questions under XFacilitiesImportance',
@@ -6264,6 +7909,8 @@ app
 											})
 										}
 									},
+									// BMARK choices_of_facilities_importance_questions : Choices
+									// of questions under XFacilitiesImportance
 									'choices_of_facilities_importance_questions' : function() {
 										return {
 											name : 'Choices of questions under XFacilitiesImportance',
@@ -6282,6 +7929,33 @@ app
 																			().measure)))
 										}
 									},
+									// BMARK ids_of_change_readiness_questions : IDs of
+									// questions under XChangeReadiness
+									'ids_of_change_readiness_questions' : function() {
+										return {
+											name : 'IDs of questions under XChangeReadiness',
+											measure : createMeasure('ids_of_questions_in_group', {
+												content : 'XChangeReadiness'
+											})
+										}
+									},
+									// BMARK choices_of_facilities_importance_questions : Choices
+									// of questions under XChangeReadiness
+									'choices_of_facilities_importance_questions' : function() {
+										return {
+											name : 'Choices of questions under XChangeReadiness',
+											measure : createMeasure('table_prc',
+													createMeasure(
+															'no_of_staff_replies_per_choice_multi_q', {
+																content : study.id
+															}, measures['ids_of_change_readiness_questions']
+																	().measure, createMeasure('question_names',
+																	measures['ids_of_change_readiness_questions']
+																			().measure)))
+										}
+									},
+									// BMARK id_of_desk_space_question : ID of "DeskSpace"
+									// question
 									'id_of_desk_space_question' : function() {
 										return {
 											name : 'ID of "DeskSpace" question',
@@ -6290,6 +7964,8 @@ app
 											})
 										}
 									},
+									// BMARK no_of_responders_in_desk_space_question : Number of
+									// responders in "DeskSpace" question
 									'no_of_responders_in_desk_space_question' : function() {
 										return {
 											name : 'Number of responders in "DeskSpace" question',
@@ -6301,6 +7977,9 @@ app
 															measures['id_of_desk_space_question']().measure))
 										}
 									},
+									// BMARK no_of_responders_quite_important_desk_space_question
+									// : Number of responders who chose "Quite Important" in
+									// "DeskSpace" question
 									'no_of_responders_quite_important_desk_space_question' : function() {
 										return {
 											name : 'Number of responders who chose "Quite Important" in "DeskSpace" question',
@@ -6314,6 +7993,9 @@ app
 													})
 										}
 									},
+									// BMARK no_of_responders_very_important_desk_space_question :
+									// Number of responders who chose "Very Important" in
+									// "DeskSpace" question
 									'no_of_responders_very_important_desk_space_question' : function() {
 										return {
 											name : 'Number of responders who chose "Very Important" in "DeskSpace" question',
@@ -6327,9 +8009,14 @@ app
 													})
 										}
 									},
+									// BMARK
+									// prc_of_responders_desk_space_is_quite_or_very_important : %
+									// staff who think desk space is quite important or very
+									// important
 									'prc_of_responders_desk_space_is_quite_or_very_important' : function() {
 										return {
 											name : '% staff who think desk space is quite important or very important',
+											no_of_decimals : 0,
 											measure : createMeasure(
 													'prc',
 													createMeasure(
@@ -6344,6 +8031,8 @@ app
 																	().measure))
 										}
 									},
+									// BMARK id_of_uninterrupted_work_question : ID of
+									// "UninterruptedConcentratedWork" question
 									'id_of_uninterrupted_work_question' : function() {
 										return {
 											name : 'ID of "UninterruptedConcentratedWork" question',
@@ -6352,6 +8041,9 @@ app
 											})
 										}
 									},
+									// BMARK no_of_responders_in_uninterrupted_work_question :
+									// Number of responders in "UninterruptedConcentratedWork"
+									// question
 									'no_of_responders_in_uninterrupted_work_question' : function() {
 										return {
 											name : 'Number of responders in "UninterruptedConcentratedWork" question',
@@ -6366,6 +8058,9 @@ app
 															measures['id_of_uninterrupted_work_question']().measure))
 										}
 									},
+									// BMARK no_of_responders_a_lot_uninterrupted_work_question :
+									// Number of responders who chose "A lot" in
+									// "UninterruptedConcentratedWork" question
 									'no_of_responders_a_lot_uninterrupted_work_question' : function() {
 										return {
 											name : 'Number of responders who chose "A lot" in "UninterruptedConcentratedWork" question',
@@ -6382,6 +8077,10 @@ app
 													})
 										}
 									},
+									// BMARK
+									// no_of_responders_quite_a_lot_uninterrupted_work_question :
+									// Number of responders who chose "Quite a lot" in
+									// "UninterruptedConcentratedWork" question
 									'no_of_responders_quite_a_lot_uninterrupted_work_question' : function() {
 										return {
 											name : 'Number of responders who chose "Quite a lot" in "UninterruptedConcentratedWork" question',
@@ -6398,6 +8097,10 @@ app
 													})
 										}
 									},
+									// BMARK
+									// prc_of_responders_uninterrupted_work_is_quite_or_very_important
+									// : % respondents who think uninterrupted concentrated work
+									// is ‘a lot’ or ‘quite a lot’ a requirement of their job role
 									'prc_of_responders_uninterrupted_work_is_quite_or_very_important' : function() {
 										return {
 											name : '% respondents who think uninterrupted concentrated work is ‘a lot’ or ‘quite a lot’ a requirement of their job role',
@@ -6415,6 +8118,8 @@ app
 																	().measure))
 										}
 									},
+									// BMARK id_of_pre_planned_meetings_question_with_externals :
+									// ID of "DeskSpace" question
 									'id_of_pre_planned_meetings_question_with_externals' : function() {
 										return {
 											name : 'ID of "DeskSpace" question',
@@ -6440,6 +8145,11 @@ app
 																	().measure))
 										}
 									},
+									// BMARK
+									// prc_of_responders_in_pre_planned_meetings_with_externals :
+									// % staff (responders) who rate >0% time in pre-planned
+									// meetings including external visitors (q:
+									// InPreplannedMeetingsWhichInclude)
 									'prc_of_responders_in_pre_planned_meetings_with_externals' : function() {
 										return {
 											name : '% staff (responders) who rate >0% time in pre-planned meetings including external visitors (q: InPreplannedMeetingsWhichInclude)',
@@ -6462,6 +8172,11 @@ app
 																	().measure))
 										}
 									},
+									// BMARK
+									// prc_of_responders_in_pre_planned_meetings_with_externals_over_10_prc
+									// : % staff (responders) who rate >10% time in pre-planned
+									// meetings including external visitors (q:
+									// InPreplannedMeetingsWhichInclude)
 									'prc_of_responders_in_pre_planned_meetings_with_externals_over_10_prc' : function() {
 										return {
 											name : '% staff (responders) who rate >10% time in pre-planned meetings including external visitors (q: InPreplannedMeetingsWhichInclude)',
@@ -6484,6 +8199,8 @@ app
 																	().measure))
 										}
 									},
+									// BMARK no_of_staff_per_tea_point : Total headcount per tea
+									// point
 									'no_of_staff_per_tea_point' : function() {
 										return {
 											name : 'Total headcount per tea point',
@@ -6492,33 +8209,40 @@ app
 													measures['no_of_tea_points']().measure)
 										}
 									},
+									// BMARK avg_ties_in_team : Average number of ties within team
 									'avg_ties_in_team' : function() {
 										return {
-											name : "Average number of ties within team",
+											name : 'Average number of ties within team',
 											measure : createMeasure('avg_ties_in_team', {
 												content : study.id
 											}, measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK avg_ties_outside_team : Average number of ties
+									// outside team
 									'avg_ties_outside_team' : function() {
 										return {
-											name : "Average number of ties outside team",
+											name : 'Average number of ties outside team',
 											measure : createMeasure('avg_ties_outside_team', {
 												content : study.id
 											}, measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK avg_possible_ties_in_team : Average possible number
+									// of ties within team
 									'avg_possible_ties_in_team' : function() {
 										return {
-											name : "Average possible number of ties within team",
+											name : 'Average possible number of ties within team',
 											measure : createMeasure('avg_possible_ties_in_team', {
 												content : study.id
 											})
 										}
 									},
+									// BMARK avg_possible_ties_outside_team : Average possible
+									// number of ties outside team
 									'avg_possible_ties_outside_team' : function() {
 										return {
-											name : "Average possible number of ties outside team",
+											name : 'Average possible number of ties outside team',
 											measure : createMeasure('avg_possible_ties_outside_team',
 													{
 														content : study.id
@@ -6675,42 +8399,94 @@ app
 											)
 										}
 									},
+									// BMARK avg_ties_in_floor : Average number of ties within
+									// floor
 									'avg_ties_in_floor' : function() {
 										return {
-											name : "Average number of ties within floor",
+											name : 'Average number of ties within floor',
 											measure : createMeasure('avg_ties_in_floor', {
 												content : study.id
 											}, measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK avg_ties_outside_floor : Average number of ties
+									// outside floor
 									'avg_ties_outside_floor' : function() {
 										return {
-											name : "Average number of ties outside floor",
+											name : 'Average number of ties outside floor',
 											measure : createMeasure('avg_ties_outside_floor', {
 												content : study.id
 											}, measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK avg_possible_ties_in_floor : Average possible number
+									// of ties within floor
 									'avg_possible_ties_in_floor' : function() {
 										return {
-											name : "Average possible number of ties within floor",
+											name : 'Average possible number of ties within floor',
 											measure : createMeasure('avg_possible_ties_in_floor', {
 												content : study.id
 											})
 										}
 									},
+									// BMARK avg_possible_ties_outside_floor : Average possible
+									// number of ties outside floor
 									'avg_possible_ties_outside_floor' : function() {
 										return {
-											name : "Average possible number of ties outside floor",
+											name : 'Average possible number of ties outside floor',
 											measure : createMeasure(
 													'avg_possible_ties_outside_floor', {
 														content : study.id
 													})
 										}
 									},
+									// BMARK avg_ties_in_building : Average number of ties within
+									// building
+									'avg_ties_in_building' : function() {
+										return {
+											name : 'Average number of ties within building',
+											measure : createMeasure('avg_ties_in_building', {
+												content : study.id
+											}, measures['staff_relationship_question_id']().measure)
+										}
+									},
+									// BMARK avg_ties_outside_building : Average number of ties
+									// outside building
+									'avg_ties_outside_building' : function() {
+										return {
+											name : 'Average number of ties outside building',
+											measure : createMeasure('avg_ties_outside_building', {
+												content : study.id
+											}, measures['staff_relationship_question_id']().measure)
+										}
+									},
+									// BMARK avg_possible_ties_in_building : Average possible
+									// number of ties within building
+									'avg_possible_ties_in_building' : function() {
+										return {
+											name : 'Average possible number of ties within building',
+											measure : createMeasure('avg_possible_ties_in_building',
+													{
+														content : study.id
+													})
+										}
+									},
+									// BMARK avg_possible_ties_outside_building : Average possible
+									// number of ties outside building
+									'avg_possible_ties_outside_building' : function() {
+										return {
+											name : 'Average possible number of ties outside building',
+											measure : createMeasure(
+													'avg_possible_ties_outside_building', {
+														content : study.id
+													})
+										}
+									},
+									// BMARK quotes_under_hierarchy_suitably_reinforced_by_space :
+									// Quotes under issue: Hierarchy suitably reinforced by space
 									'quotes_under_hierarchy_suitably_reinforced_by_space' : function() {
 										return {
-											name : "Quotes under issue: Hierarchy suitably reinforced by space",
+											name : 'Quotes under issue: Hierarchy suitably reinforced by space',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6718,9 +8494,11 @@ app
 											}))
 										}
 									},
+									// BMARK quotes_under_efficient_desk_occupation : Quotes under
+									// issue: Efficient desk occupation
 									'quotes_under_efficient_desk_occupation' : function() {
 										return {
-											name : "Quotes under issue: Efficient desk occupation",
+											name : 'Quotes under issue: Efficient desk occupation',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6728,9 +8506,12 @@ app
 											}))
 										}
 									},
+									// BMARK Appropriate movement levels in the right places :
+									// Quotes under issue: Appropriate movement levels in the
+									// right places
 									'Appropriate movement levels in the right places' : function() {
 										return {
-											name : "Quotes under issue: Appropriate movement levels in the right places",
+											name : 'Quotes under issue: Appropriate movement levels in the right places',
 											measure : createMeasure(
 													'quotes_under_issue_flagged',
 													{
@@ -6743,9 +8524,11 @@ app
 															}))
 										}
 									},
+									// BMARK Appropriate workspace densities : Quotes under issue:
+									// Appropriate workspace densities
 									'Appropriate workspace densities' : function() {
 										return {
-											name : "Quotes under issue: Appropriate workspace densities",
+											name : 'Quotes under issue: Appropriate workspace densities',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6753,9 +8536,11 @@ app
 											}))
 										}
 									},
+									// BMARK Attitude to open plan and flexible working : Quotes
+									// under issue: Attitude to open plan and flexible working
 									'Attitude to open plan and flexible working' : function() {
 										return {
-											name : "Quotes under issue: Attitude to open plan and flexible working",
+											name : 'Quotes under issue: Attitude to open plan and flexible working',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6763,9 +8548,11 @@ app
 											}))
 										}
 									},
+									// BMARK Awareness and willingness to change : Quotes under
+									// issue: Awareness and willingness to change
 									'Awareness and willingness to change' : function() {
 										return {
-											name : "Quotes under issue: Awareness and willingness to change",
+											name : 'Quotes under issue: Awareness and willingness to change',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6773,9 +8560,11 @@ app
 											}))
 										}
 									},
+									// BMARK Balance between local and global interaction : Quotes
+									// under issue: Balance between local and global interaction
 									'Balance between local and global interaction' : function() {
 										return {
-											name : "Quotes under issue: Balance between local and global interaction",
+											name : 'Quotes under issue: Balance between local and global interaction',
 											measure : createMeasure(
 													'quotes_under_issue_flagged',
 													{
@@ -6788,9 +8577,11 @@ app
 															}))
 										}
 									},
+									// BMARK Collaboration supported by space : Quotes under
+									// issue: Collaboration supported by space
 									'Collaboration supported by space' : function() {
 										return {
-											name : "Quotes under issue: Collaboration supported by space",
+											name : 'Quotes under issue: Collaboration supported by space',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6798,9 +8589,11 @@ app
 											}))
 										}
 									},
+									// BMARK Staff drivers for change : Quotes under issue: Staff
+									// drivers for change
 									'Staff drivers for change' : function() {
 										return {
-											name : "Quotes under issue: Staff drivers for change",
+											name : 'Quotes under issue: Staff drivers for change',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6808,9 +8601,11 @@ app
 											}))
 										}
 									},
+									// BMARK Space reflects organisational identity : Quotes under
+									// issue: Space reflects organisational identity
 									'Space reflects organisational identity' : function() {
 										return {
-											name : "Quotes under issue: Space reflects organisational identity",
+											name : 'Quotes under issue: Space reflects organisational identity',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6818,9 +8613,11 @@ app
 											}))
 										}
 									},
+									// BMARK Suitability of storage : Quotes under issue:
+									// Suitability of storage
 									'Suitability of storage' : function() {
 										return {
-											name : "Quotes under issue: Suitability of storage",
+											name : 'Quotes under issue: Suitability of storage',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6828,9 +8625,12 @@ app
 											}))
 										}
 									},
+									// BMARK People can have visible contact of whole business :
+									// Quotes under issue: People can have visible contact of
+									// whole business
 									'People can have visible contact of whole business' : function() {
 										return {
-											name : "Quotes under issue: People can have visible contact of whole business",
+											name : 'Quotes under issue: People can have visible contact of whole business',
 											measure : createMeasure(
 													'quotes_under_issue_flagged',
 													{
@@ -6843,9 +8643,11 @@ app
 															}))
 										}
 									},
+									// BMARK Efficient primary circulation : Quotes under issue:
+									// Efficient primary circulation
 									'Efficient primary circulation' : function() {
 										return {
-											name : "Quotes under issue: Efficient primary circulation",
+											name : 'Quotes under issue: Efficient primary circulation',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6853,9 +8655,11 @@ app
 											}))
 										}
 									},
+									// BMARK Opportunities for unplanned interaction : Quotes
+									// under issue: Opportunities for unplanned interaction
 									'Opportunities for unplanned interaction' : function() {
 										return {
-											name : "Quotes under issue: Opportunities for unplanned interaction",
+											name : 'Quotes under issue: Opportunities for unplanned interaction',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6863,9 +8667,10 @@ app
 											}))
 										}
 									},
+									// BMARK Team locations : Quotes under issue: Team locations
 									'Team locations' : function() {
 										return {
-											name : "Quotes under issue: Team locations",
+											name : 'Quotes under issue: Team locations',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6873,9 +8678,11 @@ app
 											}))
 										}
 									},
+									// BMARK Visitor experience : Quotes under issue: Visitor
+									// experience
 									'Visitor experience' : function() {
 										return {
-											name : "Quotes under issue: Visitor experience",
+											name : 'Quotes under issue: Visitor experience',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6883,9 +8690,11 @@ app
 											}))
 										}
 									},
+									// BMARK IT supports desired working practices : Quotes under
+									// issue: IT supports desired working practices
 									'IT supports desired working practices' : function() {
 										return {
-											name : "Quotes under issue: IT supports desired working practices",
+											name : 'Quotes under issue: IT supports desired working practices',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6893,9 +8702,11 @@ app
 											}))
 										}
 									},
+									// BMARK Spatial efficiency of bookable meeting rooms : Quotes
+									// under issue: Spatial efficiency of bookable meeting rooms
 									'Spatial efficiency of bookable meeting rooms' : function() {
 										return {
-											name : "Quotes under issue: Spatial efficiency of bookable meeting rooms",
+											name : 'Quotes under issue: Spatial efficiency of bookable meeting rooms',
 											measure : createMeasure(
 													'quotes_under_issue_flagged',
 													{
@@ -6908,9 +8719,11 @@ app
 															}))
 										}
 									},
+									// BMARK Location of specialist shared facilities : Quotes
+									// under issue: Location of specialist shared facilities
 									'Location of specialist shared facilities' : function() {
 										return {
-											name : "Quotes under issue: Location of specialist shared facilities",
+											name : 'Quotes under issue: Location of specialist shared facilities',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6918,9 +8731,11 @@ app
 											}))
 										}
 									},
+									// BMARK Space planned to suit occupancy levels : Quotes under
+									// issue: Space planned to suit occupancy levels
 									'Space planned to suit occupancy levels' : function() {
 										return {
-											name : "Quotes under issue: Space planned to suit occupancy levels",
+											name : 'Quotes under issue: Space planned to suit occupancy levels',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6928,9 +8743,11 @@ app
 											}))
 										}
 									},
+									// BMARK Spatial efficiency of alternative spaces : Quotes
+									// under issue: Spatial efficiency of alternative spaces
 									'Spatial efficiency of alternative spaces' : function() {
 										return {
-											name : "Quotes under issue: Spatial efficiency of alternative spaces",
+											name : 'Quotes under issue: Spatial efficiency of alternative spaces',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6938,9 +8755,11 @@ app
 											}))
 										}
 									},
+									// BMARK Space suits future organisation structure : Quotes
+									// under issue: Space suits future organisation structure
 									'Space suits future organisation structure' : function() {
 										return {
-											name : "Quotes under issue: Space suits future organisation structure",
+											name : 'Quotes under issue: Space suits future organisation structure',
 											measure : createMeasure('quotes_under_issue_flagged', {
 												content : study.id
 											}, createMeasure('id_of_interview_issue', {
@@ -6948,9 +8767,12 @@ app
 											}))
 										}
 									},
+									// BMARK Spatial suitability for key business processes :
+									// Quotes under issue: Spatial suitability for key business
+									// processes
 									'Spatial suitability for key business processes' : function() {
 										return {
-											name : "Quotes under issue: Spatial suitability for key business processes",
+											name : 'Quotes under issue: Spatial suitability for key business processes',
 											measure : createMeasure(
 													'quotes_under_issue_flagged',
 													{
@@ -6963,9 +8785,13 @@ app
 															}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_static_flexible_working_current
+									// : Stakeholder cultural preferences for static or flexible
+									// working (Current)
 									'stakeholder_cultural_preferences_static_flexible_working_current' : function() {
 										return {
-											name : "Stakeholder cultural preferences for static or flexible working (Current)",
+											name : 'Stakeholder cultural preferences for static or flexible working (Current)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -6976,9 +8802,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_static_flexible_working_future
+									// : Stakeholder cultural preferences for static or flexible
+									// working (Future)
 									'stakeholder_cultural_preferences_static_flexible_working_future' : function() {
 										return {
-											name : "Stakeholder cultural preferences for static or flexible working (Future)",
+											name : 'Stakeholder cultural preferences for static or flexible working (Future)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -6989,9 +8819,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_risky_cautious_current :
+									// Stakeholder cultural preferences for risk-taking or caution
+									// (Current)
 									'stakeholder_cultural_preferences_risky_cautious_current' : function() {
 										return {
-											name : "Stakeholder cultural preferences for risk-taking or caution (Current)",
+											name : 'Stakeholder cultural preferences for risk-taking or caution (Current)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7002,9 +8836,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_risky_cautious_future :
+									// Stakeholder cultural preferences for risk-taking or caution
+									// (Future)
 									'stakeholder_cultural_preferences_risky_cautious_future' : function() {
 										return {
-											name : "Stakeholder cultural preferences for risk-taking or caution (Future)",
+											name : 'Stakeholder cultural preferences for risk-taking or caution (Future)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7015,9 +8853,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_alone_together_current :
+									// Stakeholder cultural preferences for working alone or
+									// together (Current)
 									'stakeholder_cultural_preferences_alone_together_current' : function() {
 										return {
-											name : "Stakeholder cultural preferences for working alone or together (Current)",
+											name : 'Stakeholder cultural preferences for working alone or together (Current)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7028,9 +8870,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_alone_together_future :
+									// Stakeholder cultural preferences for working alone or
+									// together (Future)
 									'stakeholder_cultural_preferences_alone_together_future' : function() {
 										return {
-											name : "Stakeholder cultural preferences for working alone or together (Future)",
+											name : 'Stakeholder cultural preferences for working alone or together (Future)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7041,9 +8887,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_formal_informal_current :
+									// Visual of preferences from stakeholder interviews for
+									// formality or informality (Current)
 									'stakeholder_cultural_preferences_formal_informal_current' : function() {
 										return {
-											name : "Visual of preferences from stakeholder interviews for formality or informality (Current)",
+											name : 'Visual of preferences from stakeholder interviews for formality or informality (Current)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7054,9 +8904,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_formal_informal_future :
+									// Visual of preferences from stakeholder interviews for
+									// formality or informality (Future)
 									'stakeholder_cultural_preferences_formal_informal_future' : function() {
 										return {
-											name : "Visual of preferences from stakeholder interviews for formality or informality (Future)",
+											name : 'Visual of preferences from stakeholder interviews for formality or informality (Future)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7067,9 +8921,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_organised_chaos_current :
+									// Stakeholder cultural preference for organised or organised
+									// chaos (Current)
 									'stakeholder_cultural_preferences_organised_chaos_current' : function() {
 										return {
-											name : "Stakeholder cultural preference for organised or organised chaos (Current)",
+											name : 'Stakeholder cultural preference for organised or organised chaos (Current)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7080,9 +8938,13 @@ app
 													}))
 										}
 									},
+									// BMARK
+									// stakeholder_cultural_preferences_organised_chaos_future :
+									// Stakeholder cultural preference for organised or organised
+									// chaos (Future)
 									'stakeholder_cultural_preferences_organised_chaos_future' : function() {
 										return {
-											name : "Stakeholder cultural preference for organised or organised chaos (Future)",
+											name : 'Stakeholder cultural preference for organised or organised chaos (Future)',
 											measure : createMeasure('sum_of_interview_choice_scores',
 													{
 														content : study.id
@@ -7093,9 +8955,11 @@ app
 													}))
 										}
 									},
+									// BMARK no_of_planned_contacts_per_score : Number of planned
+									// contacts per frequency of contact
 									'no_of_planned_contacts_per_score' : function() {
 										return {
-											name : "Number of planned contacts per frequency of contact",
+											name : 'Number of planned contacts per frequency of contact',
 											measure : createMeasure(
 													'no_of_staff_ties_of_question_per_score', {
 														content : study.id
@@ -7104,9 +8968,11 @@ app
 													}))
 										}
 									},
+									// BMARK no_of_unplanned_contacts_per_score : Number of
+									// unplanned contacts per frequency of contact
 									'no_of_unplanned_contacts_per_score' : function() {
 										return {
-											name : "Number of unplanned contacts per frequency of contact",
+											name : 'Number of unplanned contacts per frequency of contact',
 											measure : createMeasure(
 													'no_of_staff_ties_of_question_per_score', {
 														content : study.id
@@ -7115,75 +8981,119 @@ app
 													}))
 										}
 									},
-									'no_of_planned_contacts_per_score_within_team' : function() {
-										return {
-											name : "Number of planned contacts per frequency of contact within team",
-											measure : createMeasure(
-													'no_of_staff_ties_within_team_per_score', {
-														content : study.id
-													}, createMeasure('id_of_staff_question', {
-														content : 'XPlannedFrequencyFace'
-													}))
-										}
-									},
-									'no_of_unplanned_contacts_per_score_within_team' : function() {
-										return {
-											name : "Number of unplanned contacts per frequency of contact within team",
-											measure : createMeasure(
-													'no_of_staff_ties_within_team_per_score', {
-														content : study.id
-													}, createMeasure('id_of_staff_question', {
-														content : 'XUnplannedFrequencyFace'
-													}))
-										}
-									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_within_team
+									// : Number of planned and unplanned contacts per frequency of
+									// contact within team
 									'no_of_planned_and_unplanned_contacts_per_score_within_team' : function() {
 										return {
-											name : "Number of planned and unplanned contacts per frequency of contact within team",
+											name : 'Number of planned and unplanned contacts per frequency of contact within team',
 											measure : createMeasure(
-													'add',
-													measures['no_of_planned_contacts_per_score_within_team']
-															().measure,
-													measures['no_of_unplanned_contacts_per_score_within_team']
-															().measure)
-										}
-									},
-									'no_of_planned_contacts_per_score_outside_team' : function() {
-										return {
-											name : "Number of planned contacts per frequency of contact outside team",
-											measure : createMeasure(
-													'no_of_staff_ties_outside_team_per_score', {
+													'no_of_staff_ties_within_team_per_score', {
 														content : study.id
-													}, createMeasure('id_of_staff_question', {
-														content : 'XPlannedFrequencyFace'
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
 													}))
 										}
 									},
-									'no_of_unplanned_contacts_per_score_outside_team' : function() {
-										return {
-											name : "Number of unplanned contacts per frequency of contact outside team",
-											measure : createMeasure(
-													'no_of_staff_ties_outside_team_per_score', {
-														content : study.id
-													}, createMeasure('id_of_staff_question', {
-														content : 'XUnplannedFrequencyFace'
-													}))
-										}
-									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_outside_team
+									// : Number of planned and unplanned contacts per frequency of
+									// contact outside team
 									'no_of_planned_and_unplanned_contacts_per_score_outside_team' : function() {
 										return {
-											name : "Number of planned and unplanned contacts per frequency of contact outside team",
+											name : 'Number of planned and unplanned contacts per frequency of contact outside team',
 											measure : createMeasure(
-													'add',
-													measures['no_of_planned_contacts_per_score_outside_team']
-															().measure,
-													measures['no_of_unplanned_contacts_per_score_outside_team']
-															().measure)
+													'no_of_staff_ties_outside_team_per_score', {
+														content : study.id
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
+													}))
 										}
 									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_within_floor
+									// : Number of planned and unplanned contacts per frequency of
+									// contact within floor
+									'no_of_planned_and_unplanned_contacts_per_score_within_floor' : function() {
+										return {
+											name : 'Number of planned and unplanned contacts per frequency of contact within floor',
+											measure : createMeasure(
+													'no_of_staff_ties_within_floor_per_score', {
+														content : study.id
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
+													}))
+										}
+									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_outside_floor
+									// : Number of planned and unplanned contacts per frequency of
+									// contact outside floor
+									'no_of_planned_and_unplanned_contacts_per_score_outside_floor' : function() {
+										return {
+											name : 'Number of planned and unplanned contacts per frequency of contact outside floor',
+											measure : createMeasure(
+													'no_of_staff_ties_outside_floor_per_score', {
+														content : study.id
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
+													}))
+										}
+									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_within_building
+									// : Number of planned and unplanned contacts per frequency of
+									// contact within building
+									'no_of_planned_and_unplanned_contacts_per_score_within_building' : function() {
+										return {
+											name : 'Number of planned and unplanned contacts per frequency of contact within building',
+											measure : createMeasure(
+													'no_of_staff_ties_within_building_per_score', {
+														content : study.id
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
+													}))
+										}
+									},
+									// BMARK
+									// no_of_planned_and_unplanned_contacts_per_score_outside_building
+									// : Number of planned and unplanned contacts per frequency of
+									// contact outside building
+									'no_of_planned_and_unplanned_contacts_per_score_outside_building' : function() {
+										return {
+											name : 'Number of planned and unplanned contacts per frequency of contact outside building',
+											measure : createMeasure(
+													'no_of_staff_ties_outside_building_per_score', {
+														content : study.id
+													}, createMeasure('id_of_staff_questions', {
+														content : [
+																'XPlannedFrequencyFace',
+																'XUnplannedFrequencyFace'
+														]
+													}))
+										}
+									},
+									// BMARK avg_accessibility_mean_depth_of_printers : Average
+									// accessibility mean depth of printer areas
 									'avg_accessibility_mean_depth_of_printers' : function() {
 										return {
-											name : "Average accessibility mean depth of printer areas",
+											name : 'Average accessibility mean depth of printer areas',
 											measure : createMeasure(
 													'avg_depthmap_value_of_poly_type', createMeasure(
 															'id_of_poly_types', {
@@ -7200,9 +9110,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_accessibility_mean_depth_of_teapoints : Average
+									// accessibility mean depth of teapoint areas
 									'avg_accessibility_mean_depth_of_teapoints' : function() {
 										return {
-											name : "Average accessibility mean depth of teapoint areas",
+											name : 'Average accessibility mean depth of teapoint areas',
 											measure : createMeasure(
 													'avg_depthmap_value_of_poly_type', createMeasure(
 															'id_of_poly_types', {
@@ -7219,9 +9131,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_accessibility_mean_depth_of_canteens : Average
+									// accessibility mean depth of canteen areas
 									'avg_accessibility_mean_depth_of_canteens' : function() {
 										return {
-											name : "Average accessibility mean depth of canteen areas",
+											name : 'Average accessibility mean depth of canteen areas',
 											measure : createMeasure(
 													'avg_depthmap_value_of_poly_type', createMeasure(
 															'id_of_poly_types', {
@@ -7238,9 +9152,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_accessibility_mean_depth_of_social_hubs : Average
+									// accessibility mean depth of social hub areas
 									'avg_accessibility_mean_depth_of_social_hubs' : function() {
 										return {
-											name : "Average accessibility mean depth of social hub areas",
+											name : 'Average accessibility mean depth of social hub areas',
 											measure : createMeasure(
 													'avg_depthmap_value_of_poly_type', createMeasure(
 															'id_of_poly_types', {
@@ -7257,16 +9173,19 @@ app
 													})
 										}
 									},
+									// BMARK names_of_teams_polygons : All team polygons
 									'names_of_teams_polygons' : function() {
 										return {
-											name : "All team polygons",
+											name : 'All team polygons',
 											measure : createMeasure('poly_types_names',
 													measures['ids_of_team_polygons']().measure)
 										}
 									},
+									// BMARK avg_accessibility_mean_depth_per_team : Average
+									// accessibility mean depth per team
 									'avg_accessibility_mean_depth_per_team' : function() {
 										return {
-											name : "Average accessibility mean depth per team",
+											name : 'Average accessibility mean depth per team',
 											measure : createMeasure(
 													'avg_depthmap_value_per_poly_type',
 													measures['ids_of_team_polygons']().measure,
@@ -7280,9 +9199,11 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK avg_accessibility_mean_depth : Average accessibility
+									// mean depth
 									'avg_accessibility_mean_depth' : function() {
 										return {
-											name : "Average accessibility mean depth",
+											name : 'Average accessibility mean depth',
 											measure : createMeasure('avg_depthmap_value',
 													createMeasure('id_of_depthmaps', {
 														content : // 39
@@ -7294,9 +9215,11 @@ app
 													})
 										}
 									},
+									// BMARK max_accessibility_mean_depth : Maximum accessibility
+									// mean depth
 									'max_accessibility_mean_depth' : function() {
 										return {
-											name : "Maximum accessibility mean depth",
+											name : 'Maximum accessibility mean depth',
 											measure : createMeasure('max_depthmap_value',
 													createMeasure('id_of_depthmaps', {
 														content : // 39
@@ -7308,9 +9231,11 @@ app
 													})
 										}
 									},
+									// BMARK min_accessibility_mean_depth : Minimum accessibility
+									// mean depth
 									'min_accessibility_mean_depth' : function() {
 										return {
-											name : "Minimum accessibility mean depth",
+											name : 'Minimum accessibility mean depth',
 											measure : createMeasure('min_depthmap_value',
 													createMeasure('id_of_depthmaps', {
 														content : // 39
@@ -7322,9 +9247,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_visibility_mean_depth : Average vibility mean
+									// depth
 									'avg_visibility_mean_depth' : function() {
 										return {
-											name : "Average vibility mean depth",
+											name : 'Average vibility mean depth',
 											measure : createMeasure('avg_depthmap_value',
 													createMeasure('id_of_depthmaps', {
 														content : // 39
@@ -7336,9 +9263,10 @@ app
 													})
 										}
 									},
+									// BMARK avg_essence_mean_depth : Average essence mean depth
 									'avg_essence_mean_depth' : function() {
 										return {
-											name : "Average essence mean depth",
+											name : 'Average essence mean depth',
 											measure : createMeasure('avg_depthmap_value',
 													createMeasure('id_of_depthmaps', {
 														content : // 39
@@ -7350,25 +9278,31 @@ app
 													})
 										}
 									},
+									// BMARK step_depth_essence_to_visibility : Step depth change:
+									// Essence to visibility
 									'step_depth_essence_to_visibility' : function() {
 										return {
-											name : "Step depth change: Essence to visibility",
+											name : 'Step depth change: Essence to visibility',
 											measure : createMeasure('sub',
 													measures['avg_visibility_mean_depth']().measure,
 													measures['avg_essence_mean_depth']().measure)
 										}
 									},
+									// BMARK step_depth_essence_to_accessibility : Step depth
+									// change; Essence to Accessibility
 									'step_depth_essence_to_accessibility' : function() {
 										return {
-											name : "Step depth change; Essence to Accessibility",
+											name : 'Step depth change; Essence to Accessibility',
 											measure : createMeasure('sub',
 													measures['avg_accessibility_mean_depth']().measure,
 													measures['avg_essence_mean_depth']().measure)
 										}
 									},
+									// BMARK avg_accessibility_mean_depth_per_building : Average
+									// accessibility mean depth per building
 									'avg_accessibility_mean_depth_per_building' : function() {
 										return {
-											name : "Average accessibility mean depth per building",
+											name : 'Average accessibility mean depth per building',
 											measure : createMeasure(
 													'avg_depthmap_value_per_building', createMeasure(
 															'id_of_depthmaps', {
@@ -7381,9 +9315,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_visibility_mean_depth_per_building : Average
+									// vibility mean depth per building
 									'avg_visibility_mean_depth_per_building' : function() {
 										return {
-											name : "Average vibility mean depth per building",
+											name : 'Average vibility mean depth per building',
 											measure : createMeasure(
 													'avg_depthmap_value_per_building', createMeasure(
 															'id_of_depthmaps', {
@@ -7396,9 +9332,11 @@ app
 													})
 										}
 									},
+									// BMARK avg_essence_mean_depth_per_building : Average essence
+									// mean depth per building
 									'avg_essence_mean_depth_per_building' : function() {
 										return {
-											name : "Average essence mean depth per building",
+											name : 'Average essence mean depth per building',
 											measure : createMeasure(
 													'avg_depthmap_value_per_building', createMeasure(
 															'id_of_depthmaps', {
@@ -7411,9 +9349,10 @@ app
 													})
 										}
 									},
+									// BMARK no_of_people_per_round : Number of people per round
 									'no_of_people_per_round' : function() {
 										return {
-											name : "Number of people per round",
+											name : 'Number of people per round',
 											measure : createMeasure('no_of_people_per_round',
 													measures['first_observation_id']().measure, {
 														content : [
@@ -7423,82 +9362,184 @@ app
 															measures['first_observation_id']().measure))
 										}
 									},
-									'people_moving_to_nia_prim_circ' : function() {
+									// BMARK no_of_people_per_round_max : Maximum number of people
+									// in the space
+									'no_of_people_per_round_max' : function() {
 										return {
-											name : 'Movement density to primary circulation NIA',
-											measure : createMeasure('div',
-													measures['people_moving_total']().measure,
-													measures['nia_prim_circ']().measure),
-											description : 'Number of people walking per sqm of circulation',
-											units_full : 'people walking/m\xB2',
-											units : "ppl/m\xB2",
+											name : 'Maximum number of people in the space',
+											measure : createMeasure('table_max',
+													measures['no_of_people_per_round']().measure)
 										}
 									},
-									'people_moving_to_nia_prim_circ_per_building' : function() {
+									// BMARK no_of_people_per_round_sum : Average number of people
+									// in the space
+									'no_of_people_per_round_sum' : function() {
 										return {
-											name : 'Movement density to primary circulation NIA per building',
+											name : 'Total number of people in the space (all rounds)',
+											measure : createMeasure('table_sum',
+													measures['no_of_people_per_round']().measure)
+										}
+									},
+									// BMARK no_of_people_per_round_avg : Average number of people
+									// in the space
+									'no_of_people_per_round_avg' : function() {
+										return {
+											name : 'Average number of people in the space',
+											measure : createMeasure('table_avg',
+													measures['no_of_people_per_round']().measure)
+										}
+									},
+									// BMARK people_moving_avg : Average number of people walking
+									'people_moving_avg' : function() {
+										return {
+											name : 'Average number of people walking',
+											measure : createMeasure('div',
+													measures['people_moving_total']().measure,
+													measures['no_of_rounds']().measure),
+											units_full : 'people',
+											units : "people",
+										}
+									},
+									// BMARK people_moving_avg_per_building : Average number of
+									// people walking per building
+									'people_moving_avg_per_building' : function() {
+										return {
+											name : 'Average number of people walking per building',
 											measure : createMeasure(
 													'div',
 													measures['no_of_people_walking_per_building']().measure,
-													measures['nia_prim_circ_per_building']().measure),
-											description : 'Number of people walking per sqm of circulation per building',
-											units_full : 'people walking/m\xB2',
-											units : "ppl/m\xB2",
+													measures['no_of_rounds']().measure),
+											units : "people",
 										}
 									},
-									'people_moving_to_nia_prim_circ_per_space' : function() {
+									// BMARK people_moving_avg_per_space : Average number of
+									// people walking per floor
+									'people_moving_avg_per_space' : function() {
 										return {
-											name : 'Movement density to primary circulation NIA per space',
+											name : 'Average number of people walking per floor',
 											measure : createMeasure('div',
 													measures['no_of_people_walking_per_space']().measure,
-													measures['nia_prim_circ_per_space']().measure),
-											description : 'Number of people walking per sqm of circulation per floor',
-											units_full : 'people walking/m\xB2',
-											units : "ppl/m\xB2",
+													measures['no_of_rounds']().measure),
+											units : "people",
 										}
 									},
+									// BMARK people_moving_to_nia_prim_circ : Movement density to
+									// primary circulation NIA (x1000)
+									'people_moving_to_nia_prim_circ' : function() {
+										return {
+											name : 'Movement density to primary circulation NIA (x1000)',
+											measure : createMeasure('div', createMeasure('mult',
+													createMeasure('div', measures['people_moving_total']
+															().measure, measures['nia_prim_circ']().measure),
+													{
+														content : 1000
+													}), measures['no_of_rounds']().measure),
+											description : 'Number of people walking per sqm of circulation',
+											units_full : 'people walking/m\xB2',
+											units : "ppl/1000m\xB2",
+										}
+									},
+									// BMARK people_moving_to_nia_prim_circ_per_building :
+									// Movement density to primary circulation NIA (x1000) per
+									// building
+									'people_moving_to_nia_prim_circ_per_building' : function() {
+										return {
+											name : 'Movement density to primary circulation NIA (x1000) per building',
+											measure : createMeasure(
+													'div',
+													createMeasure(
+															'mult',
+															createMeasure(
+																	'div',
+																	measures['no_of_people_walking_per_building']
+																			().measure,
+																	measures['nia_prim_circ_per_building']().measure),
+															{
+																content : 1000
+															}), measures['no_of_rounds']().measure),
+											description : 'Number of people walking per sqm of circulation per building',
+											units_full : 'people walking/m\xB2',
+											units : "ppl/1000m\xB2",
+										}
+									},
+									// BMARK people_moving_to_nia_prim_circ_per_space : Movement
+									// density to primary circulation NIA (x1000) per space
+									'people_moving_to_nia_prim_circ_per_space' : function() {
+										return {
+											name : 'Movement density to primary circulation NIA (x1000) per space',
+											measure : createMeasure(
+													'div',
+													createMeasure(
+															'mult',
+															createMeasure(
+																	'div',
+																	measures['no_of_people_walking_per_space']().measure,
+																	measures['nia_prim_circ_per_space']().measure),
+															{
+																content : 1000
+															}), measures['no_of_rounds']().measure),
+											description : 'Number of people walking per sqm of circulation per floor',
+											units_full : 'people walking/m\xB2',
+											units : "ppl/1000m\xB2",
+										}
+									},
+									// BMARK people_moving_to_nia_total : Movement density to
+									// total NIA (x1000)
 									'people_moving_to_nia_total' : function() {
 										return {
 											name : 'Movement density to total NIA (x1000)',
-											measure : createMeasure('mult', createMeasure('div',
-													measures['people_moving_total']().measure,
-													measures['nia_total']().measure), {
-												content : 1000
-											}),
+											measure : createMeasure('div', createMeasure('mult',
+													createMeasure('div', measures['people_moving_total']
+															().measure, measures['nia_total']().measure), {
+														content : 1000
+													}), measures['no_of_rounds']().measure),
 											description : 'Number of people walking per 1000 sqm of total NIA',
 											units_full : 'people walking/m\xB2',
 											units : "ppl/1000m\xB2",
 										}
 									},
+									// BMARK people_moving_to_nia_total_per_building : Movement
+									// density to total NIA (x1000) per building
 									'people_moving_to_nia_total_per_building' : function() {
 										return {
 											name : 'Movement density to total NIA (x1000) per building',
 											measure : createMeasure(
-													'mult',
+													'div',
 													createMeasure(
-															'div',
-															measures['no_of_people_walking_per_building']().measure,
-															measures['nia_total_per_building']().measure), {
-														content : 1000
-													}),
+															'mult',
+															createMeasure('div',
+																	measures['no_of_people_walking_per_building']
+																			().measure,
+																	measures['nia_total_per_building']().measure),
+															{
+																content : 1000
+															}), measures['no_of_rounds']().measure),
 											description : 'Number of people walking per 1000 sqm of building NIA',
 											units_full : 'people walking/m\xB2',
 											units : "ppl/1000m\xB2",
 										}
 									},
+									// BMARK people_moving_to_nia_total_per_space : Movement
+									// density to total NIA (x1000) per space
 									'people_moving_to_nia_total_per_space' : function() {
 										return {
 											name : 'Movement density to total NIA (x1000) per space',
-											measure : createMeasure('mult', createMeasure('div',
-													measures['no_of_people_walking_per_space']().measure,
-													measures['nia_total_per_space']().measure), {
-												content : 1000
-											}),
+											measure : createMeasure(
+													'div',
+													createMeasure(
+															'mult',
+															createMeasure(
+																	'div',
+																	measures['no_of_people_walking_per_space']().measure,
+																	measures['nia_total_per_space']().measure), {
+																content : 1000
+															}), measures['no_of_rounds']().measure),
 											description : 'Number of people walking per 1000 sqm of space NIA',
 											units_full : 'people walking/m\xB2',
 											units : "ppl/1000m\xB2",
 										}
 									},
+									// BMARK desk_occupancy_per_team : Desk occupancy per team
 									'desk_occupancy_per_team' : function() {
 										return {
 											name : 'Desk occupancy per team',
@@ -7520,6 +9561,8 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK max_desk_occupancy_per_team : Max desk occupancy per
+									// team
 									'max_desk_occupancy_per_team' : function() {
 										return {
 											name : 'Max desk occupancy per team',
@@ -7541,6 +9584,8 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK min_desk_occupancy_per_team : Min desk occupancy per
+									// team
 									'min_desk_occupancy_per_team' : function() {
 										return {
 											name : 'Min desk occupancy per team',
@@ -7562,6 +9607,8 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK no_of_people_on_the_phone_per_team : Number of people
+									// on the phone per team
 									'no_of_people_on_the_phone_per_team' : function() {
 										return {
 											name : 'Number of people on the phone per team',
@@ -7583,6 +9630,7 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK total_activity_per_team : Total Activity per team
 									'total_activity_per_team' : function() {
 										return {
 											name : 'Total Activity per team',
@@ -7604,32 +9652,54 @@ app
 													}, measures['names_of_teams_polygons']().measure)
 										}
 									},
+									// BMARK avg_desk_occupancy_per_team : Average desk occupancy
+									// per team
 									'avg_desk_occupancy_per_team' : function() {
 										return {
 											name : 'Average desk occupancy per team',
-											measure : createMeasure('div',
+											no_of_decimals : 0,
+											measure : createMeasure('mult', createMeasure('div',
 													measures['desk_occupancy_per_team']().measure,
 													createMeasure('mult',
 															measures['no_of_rounds']().measure,
-															measures['no_of_desks_per_team']().measure))
+															measures['no_of_desks_per_team']().measure)), {
+												content : 100
+											}),
+											units : '%'
 										}
 									},
+									// BMARK max_desk_occupancy_per_team_prc : Maximum desk
+									// occupancy per team
 									'max_desk_occupancy_per_team_prc' : function() {
 										return {
 											name : 'Maximum desk occupancy per team',
-											measure : createMeasure('div',
+											no_of_decimals : 0,
+											measure : createMeasure('mult', createMeasure('div',
 													measures['max_desk_occupancy_per_team']().measure,
-													measures['no_of_desks_per_team']().measure)
+													measures['no_of_desks_per_team']().measure), {
+												content : 100
+											}),
+											units : '%'
+
 										}
 									},
+									// BMARK min_desk_occupancy_per_team_prc : Minimum desk
+									// occupancy per team
 									'min_desk_occupancy_per_team_prc' : function() {
 										return {
 											name : 'Minimum desk occupancy per team',
-											measure : createMeasure('div',
+											no_of_decimals : 0,
+											measure : createMeasure('mult', createMeasure('div',
 													measures['min_desk_occupancy_per_team']().measure,
-													measures['no_of_desks_per_team']().measure)
+													measures['no_of_desks_per_team']().measure), {
+												content : 100
+											}),
+											units : '%'
+
 										}
 									},
+									// BMARK avg_no_of_people_on_the_phone_per_team_prc : % of
+									// people on the phone
 									'avg_no_of_people_on_the_phone_per_team_prc' : function() {
 										return {
 											name : '% of people on the phone',
@@ -7639,6 +9709,7 @@ app
 													measures['total_activity_per_team']().measure)
 										}
 									},
+									// BMARK meeting_room_groups_avg : Average meeting size
 									'meeting_room_groups_avg' : function() {
 										return {
 											name : 'Average meeting size',
@@ -7669,6 +9740,7 @@ app
 													})
 										}
 									},
+									// BMARK meeting_room_groups_max : Maximum meeting size
 									'meeting_room_groups_max' : function() {
 										return {
 											name : 'Maximum meeting size',
@@ -7699,6 +9771,8 @@ app
 													})
 										}
 									},
+									// BMARK meeting_room_groups_min : Minumum bookable meeting
+									// size
 									'meeting_room_groups_min' : function() {
 										return {
 											name : 'Minumum bookable meeting size',
@@ -7729,6 +9803,8 @@ app
 													})
 										}
 									},
+									// BMARK no_of_people_in_meeting_rooms : Number of people in
+									// bookable meeting rooms
 									'no_of_people_in_meeting_rooms' : function() {
 										return {
 											name : 'Number of people in bookable meeting rooms',
@@ -7753,6 +9829,7 @@ app
 													})
 										}
 									},
+									// BMARK avg_meeting_size : Average size of meeting
 									'avg_meeting_size' : function() {
 										return {
 											name : 'Average size of meeting',
@@ -7762,28 +9839,35 @@ app
 													measures['occupancy_of_bookable_meeting_rooms']().measure)
 										}
 									},
+									// BMARK round_prc_range_array : Array of round ranges
+									'round_prc_range_array' : function() {
+										return {
+											name : 'Array of round ranges',
+											measure : createMeasure('get_range_array', createMeasure(
+													'mult', createMeasure('construct_ranges', {
+														content : [
+																'0-0.5:0 - 50%', '0.5-0.7:50 - 70%', '0.7+:70% - 100%'
+														]
+													}), measures['no_of_rounds']().measure))
+										}
+									},
+									// BMARK occupancy_frequency_grouped : Distribution of average
+									// occupancy (all desks)
 									'occupancy_frequency_grouped' : function() {
 										return {
 											name : 'Distribution of average occupancy (all desks)',
 											description : 'Distribution of desk occupancy i.e. what proportion of desks are occupied less than 70% and less than 50% of the time',
 											measure : createMeasure('occupancy_frequency_grouped',
 													measures['first_observation_id']().measure,
-
-													// {content:['0-10','10-20','30+']}
-
-													createMeasure('get_range_array', createMeasure(
-															'mult', createMeasure('construct_ranges', {
-																content : [
-																		'0-0.5:0-50%', '0.5-0.7:50-70%',
-																		'0.7+:70%+'
-																]
-															}), measures['no_of_rounds']().measure)))
+													createMeasure('flatten_range',
+															measures['round_prc_range_array']().measure, {
+																content : 'alias'
+															}), measures['round_prc_range_array']().measure)
 										}
-
 									},
 									'activity_in_alternative_spaces_per_round' : function() {
 										return {
-											name : "Number of people per round in alternative spaces",
+											name : 'Number of people per round in alternative spaces',
 											measure : createMeasure(
 													'activity_in_poly_types_per_round',
 													measures['first_observation_id']().measure,
@@ -7804,6 +9888,18 @@ app
 															measures['first_observation_id']().measure))
 										}
 									},
+									// BMARK max_utilisation_of_alternative_spaces : Maximum
+									// number of people in alternative spaces
+									'max_utilisation_of_alternative_spaces' : function() {
+										return {
+											name : 'Maximum number of people in alternative spaces',
+											measure : createMeasure('table_max',
+													measures['activity_in_alternative_spaces_per_round']
+															().measure)
+										}
+									},
+									// BMARK id_of_canteen_spaces : Number of people per round in
+									// alternative spaces
 									'id_of_canteen_spaces' : function() {
 										return {
 											measure : createMeasure('id_of_poly_types', {
@@ -7813,9 +9909,11 @@ app
 											})
 										}
 									},
+									// BMARK activity_in_canteen_per_round : Number of people per
+									// round in alternative spaces
 									'activity_in_canteen_per_round' : function() {
 										return {
-											name : "Number of people per round in alternative spaces",
+											name : 'Number of people per round in canteen',
 											measure : createMeasure(
 													'activity_in_poly_types_per_round',
 													measures['first_observation_id']().measure,
@@ -7835,9 +9933,11 @@ app
 															measures['first_observation_id']().measure))
 										}
 									},
+									// BMARK no_of_staff_ties_outside_team_per_team : Number of
+									// staff ties outside team
 									'no_of_staff_ties_outside_team_per_team' : function() {
 										return {
-											name : "Number of staff ties outside team",
+											name : 'Number of staff ties outside team',
 											measure : createMeasure(
 													'no_of_staff_ties_outside_team_per_team', {
 														content : study.id
@@ -7845,9 +9945,11 @@ app
 													measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK no_of_staff_ties_within_team_per_team : Number of
+									// staff ties within team
 									'no_of_staff_ties_within_team_per_team' : function() {
 										return {
-											name : "Number of staff ties within team",
+											name : 'Number of staff ties within team',
 											measure : createMeasure(
 													'no_of_staff_ties_within_team_per_team', {
 														content : study.id
@@ -7855,18 +9957,22 @@ app
 													measures['staff_relationship_question_id']().measure)
 										}
 									},
+									// BMARK no_of_possible_staff_ties_outside_team_per_team :
+									// Number of possible staff ties outside team
 									'no_of_possible_staff_ties_outside_team_per_team' : function() {
 										return {
-											name : "Number of possible staff ties outside team",
+											name : 'Number of possible staff ties outside team',
 											measure : createMeasure(
 													'no_of_possible_staff_ties_outside_team_per_team', {
 														content : study.id
 													})
 										}
 									},
+									// BMARK no_of_possible_staff_ties_within_team_per_team :
+									// Number of possible staff ties within team
 									'no_of_possible_staff_ties_within_team_per_team' : function() {
 										return {
-											name : "Number of possible staff ties within team",
+											name : 'Number of possible staff ties within team',
 											measure : createMeasure(
 													'no_of_possible_staff_ties_within_team_per_team', {
 														content : study.id
@@ -7880,1402 +9986,7 @@ app
 								return measures;
 							}
 							// TODO: Delete stuff below
-							var oldMeasures = {
-								// 'observations' : {
-								// name : 'Observations',
-								// url : 'GetAll?t=study_parts&studyid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data
-								// }
-								// }
-								// },
-								// 'first_observation_id' : {
-								// name : 'First Observation',
-								// url : 'GetAll?t=study_parts&studyid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : parseInt(response.data[0]['id'])
-								// }
-								// }
-								// },
-								// 'project_name' : {
-								// name : 'Project Name',
-								// url : 'Occupancy?t=project_name&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id', 'spaces'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data
-								// }
-								// }
-								// },
-								'spaces' : {
-									name : 'Spaces',
-									url : 'GetAll?t=spaces&studyid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : response.data.length
-										}
-									}
-								},
-								// 'no_of_desks' : {
-								// name : 'No. of desks observed',
-								// proc : 'no_of_desks',
-								// params : function(study) {
-								// return {
-								// observation_id : study['first_observation_id'].content
-								// }
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data,
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_rounds' : {
-								// name : 'Number of desks',
-								// proc : 'no_of_rounds',
-								// params : function(study) {
-								// return {
-								// observation_id : study['first_observation_id'].content
-								// }
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data
-								// }
-								// }
-								// },
-								// 'no_of_desks_not_empty' : {
-								// name : 'Number of non empty desks',
-								// proc : 'no_of_desks_not_empty',
-								// params : function(study) {
-								// return {
-								// observation_id : study['first_observation_id'].content
-								// }
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data
-								// }
-								// }
-								// },
-								// 'no_of_meeting_rooms' : {
-								// name : 'No. of Bookable Meeting Rooms',
-								// proc : 'no_of_polys_in_func',
-								// params : function(study) {
-								// return {
-								// func_alias : 'MTG-BKB',
-								// study_id : study.id
-								// }
-								// },
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : parseFloat(response.data)
-								// }
-								// }
-								// },
-								// 'no_of_alternative_spaces' : {
-								// name : 'No. of Alternative Spaces',
-								// proc : 'no_of_polys_in_func',
-								// params : function(study) {
-								// return {
-								// func_alias : 'ALT',
-								// study_id : study.id
-								// }
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : parseFloat(response.data)
-								// }
-								// }
-								// },
-								// 'no_of_desks_cellular' : {
-								// name : 'No. of desks cellular',
-								// proc : 'no_of_desks_in_poly_types',
-								// params : function(study) {
-								// return {
-								// observation_id : study['first_observation_id'].content,
-								// type_ids : study['id_of_poly_types_func_WRKSP-CEL'].content
-								// }
-								// },
-								// // precompute : function(observation_id, type_ids) {
-								// // return [
-								// // {
-								// // proc : 'no_of_desks_in_poly_types',
-								// // params : {
-								// // observation_id : observation_id,
-								// // type_ids : type_ids
-								// // }
-								// // }
-								// // ]
-								// // },
-								// requires : [
-								// 'first_observation_id',
-								// // createMeasure('no_of_desks_in_poly', 'func',
-								// // 'WRKSP-CEL')
-								// {
-								// 'no_of_desks_in_cellular' :
-								// knownFunctions['no_of_desks_in_poly']
-								// ('func', 'WRKSP-CEL')
-								// }
-								// // knownFunctions['no_of_desks_in_poly']
-								// // ('func', 'WRKSP-CEL')
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : parseInt(response.data),
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_desks_cellular' :
-								// knownFunctions['no_of_desks_in_poly_types']
-								// (study['first_observation_id'], 'func', 'WRKSP-CEL'),
-								// 'id_of_cellular' : {
-								// name : 'ID of Cellular type',
-								// proc : 'id_of_poly_types',
-								// params : function(study) {
-								// return {
-								// type_group : 'func',
-								// type_alias : 'WRKSP-CEL',
-								// }
-								// },
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data.map(function(d) {
-								// return parseInt(d);
-								// }),
-								// }
-								// }
-								// },
 
-								// 'id_of_polygon_type' : function(type_group, type_alias) {
-								// return {
-								// name : 'ID of type',
-								// proc : 'id_of_poly_types',
-								// id : type_group + "_" + type_alias,
-								// params : function(study) {
-								// return {
-								// type_group : type_group,
-								// type_alias : type_alias,
-								// }
-								// },
-								// callback : function(response) {
-								// console.log(response);
-								// return {
-								// name : this.name,
-								// content : response.data.map(function(d) {
-								// return parseInt(d);
-								// }),
-								// }
-								// }
-								// }
-								// },
-								// 'no_of_desks_cellular' : {
-								// name : 'No. of desks cellular',
-								// proc : 'no_of_desks_in_poly_type',
-								// params : function(study) {
-								// return {
-								// type_group : 'func',
-								// type_alias : 'WRKSP-CLD',
-								// observation_id : study['first_observation_id'].content
-								// }
-								// },
-								// // url : 'Occupancy?t=no_of_desks_cellular&obsid=',
-								// // get : function(study) {
-								// // return HTTPFactory.backendGet(this.url
-								// // + study.first_observation_id.content);
-								// // },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data,
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_desks_cellular' : {
-								// name : 'No. of desks cellular',
-								// url : 'Occupancy?t=no_of_desks_cellular&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data,
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_desks_open_plan' : {
-								// name : 'No. of desks open plan',
-								// url : 'Occupancy?t=no_of_desks_open_plan&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data,
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_staff' : {
-								// name : 'Number of staff',
-								// url : 'Occupancy?t=no_of_staff&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : response.data
-								// }
-								// }
-								// },
-								// 'desk_occupancy_total' : {
-								// name : 'Total desk occupancy',
-								// url : 'Occupancy?t=gross_occupancy&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(1),
-								// description : 'Total number of times desks were found
-								// occupied across all the observation',
-								// units : "%"
-								// }
-								// }
-								// },
-								// 'max_desk_occupancy' : {
-								// name : 'Maximum desk occupancy',
-								// url : 'Occupancy?t=max_occupancy&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(1),
-								// description : 'Highest number occupied desks',
-								// units : "%"
-								// }
-								// }
-								// },
-								// 'max_desk_occupancy_prc' : {
-								// name : 'Maximum desk occupancy',
-								// requires : [
-								// 'max_desk_occupancy', 'no_of_desks'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : ((response['max_desk_occupancy'] /
-								// response['no_of_desks']) * 100)
-								// .toFixed(1),
-								// description : 'Highest percentage of occupied desks to total
-								// desks',
-								// units_full : '% people walking',
-								// units : "%"
-								// }
-								// }
-								// },
-								// 'no_of_desks_wrksp' : {
-								// name : 'No. of desks in workspace',
-								// requires : [
-								// 'no_of_desks_open_plan', 'no_of_desks_cellular'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : parseInt(response['no_of_desks_open_plan'])
-								// + parseInt(response['no_of_desks_cellular']),
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_desks_more_than_staff' : {
-								// name : 'No. of desks over capacity',
-								// requires : [
-								// 'no_of_desks', 'no_of_staff'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : (parseInt(response['no_of_desks']) -
-								// parseInt(response['no_of_staff'])),
-								// units : 'desks'
-								// }
-								// }
-								// },
-								// 'no_of_desks_more_than_staff_prc' : {
-								// name : 'Desks over capacity',
-								// requires : [
-								// 'no_of_desks_more_than_staff', 'no_of_staff'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : (100 *
-								// parseFloat(response['no_of_desks_more_than_staff']) /
-								// parseFloat(response['no_of_staff']))
-								// .toFixed(2),
-								// units : '%',
-								// other : " (" + response['no_of_desks_more_than_staff']
-								// + " desks)"
-								// }
-								// }
-								// },
-								// 'avg_desk_occupancy_total_prc' : {
-								// name : 'Average desk occupancy (all desks)',
-								// requires : [
-								// 'desk_occupancy_total', 'no_of_desks', 'no_of_rounds'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (((response['desk_occupancy_total'] /
-								// (response['no_of_desks'] * response['no_of_rounds']))) * 100)
-								// .toFixed(1),
-								// description : 'Average occupied desks to total number of
-								// desks',
-								// units_full : '% people walking',
-								// units : "%"
-								// }
-								// }
-								// },
-								// 'avg_not_empty_desk_occupancy_prc' : {
-								// name : 'Average desk occupancy (excluding empty)',
-								// requires : [
-								// 'desk_occupancy_total', 'no_of_desks_not_empty',
-								// 'no_of_rounds'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (((response['desk_occupancy_total'] /
-								// (response['no_of_desks_not_empty'] *
-								// response['no_of_rounds']))) * 100)
-								// .toFixed(1),
-								// description : 'Average occupied desks to total number of
-								// desks excluding the ones that were empty for all the
-								// observation',
-								// units_full : '% people walking',
-								// units : "%"
-								// }
-								// }
-								// },
-								// 'avg_moving_total' : {
-								// name : 'Average movement',
-								// url : 'Occupancy?t=avg_moving_total&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data) * 100).toFixed(1),
-								// description : 'Average number of people walking as a
-								// percentage of total in space',
-								// units_full : '% people walking',
-								// units : "%"
-								// }
-								// }
-								// },
-								'avg_moving_spaces' : {
-									name : 'Spaces',
-									url : 'Occupancy?t=avg_moving_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : response.data
-										}
-									}
-								},
-								'movement_density_total' : {
-									name : 'Movement density',
-									url : 'Occupancy?t=movement_density_total&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2)
-										}
-									}
-								},
-								'movement_density_spaces' : {
-									name : 'Spaces',
-									url : 'Occupancy?t=movement_density_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : response.data
-										}
-									}
-								},
-								'study_accessibility_mean' : {
-									name : 'Accessibility Mean Depth',
-									url : 'Occupancy?t=study_accessibility_mean&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2)
-										}
-									}
-								},
-								'study_visibility_mean' : {
-									name : 'Visibility Mean Depth',
-									url : 'Occupancy?t=study_visibility_mean&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2)
-										}
-									}
-								},
-								'study_essence_mean' : {
-									name : 'Essence Mean Depth',
-									url : 'Occupancy?t=study_essence_mean&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2)
-										}
-									}
-								},
-								'printer_accessibility_mean_depth' : {
-									name : 'Printer Mean Depth (Accessibility)',
-									url : 'Occupancy?t=printer_accessibility_mean_depth&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2)
-										}
-									}
-								},
-								// 'nia_total' : {
-								// name : 'Total NIA',
-								// url : 'Occupancy?t=nia_total&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_alternative_spaces' : {
-								// name : 'Alternative Spaces NIA',
-								// url : 'Occupancy?t=nia_alternative_spaces&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_shared_facilities' : {
-								// name : 'Shared Facilities NIA',
-								// url : 'Occupancy?t=nia_shared_facilities&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_shared_facilities_sqft' : {
-								// name : 'Shared Facilities NIA (ft\xB2)',
-								// url : 'Occupancy?t=nia_shared_facilities&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data) * 10.7639104)
-								// .toFixed(2),
-								// units : 'ft\xB2'
-								// }
-								// }
-								// },
-								// 'nia_shared_facilities_to_total_prc' : {
-								// name : 'Shared Facilities NIA to Total',
-								// requires : [
-								// 'nia_shared_facilities', 'nia_total'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (100 *
-								// (parseFloat(response['nia_shared_facilities']) /
-								// parseFloat(response['nia_total'])))
-								// .toFixed(2),
-								// units : '%'
-								// }
-								// }
-								// },
-								// 'nia_storage' : {
-								// name : 'Storage NIA',
-								// url : 'Occupancy?t=nia_storage&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_storage_to_total_prc' : {
-								// name : 'Storage NIA to Total',
-								// requires : [
-								// 'nia_storage', 'nia_total'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (100 * (parseFloat(response['nia_storage']) /
-								// parseFloat(response['nia_total'])))
-								// .toFixed(2),
-								// units : '%'
-								// }
-								// }
-								// },
-								// 'nia_meeting_room_bkb' : {
-								// name : 'Meeting room (BKB) NIA',
-								// url : 'Occupancy?t=nia_meeting_room_bkb&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_prim_circ' : {
-								// name : 'Primary Circulation NIA',
-								// url : 'Occupancy?t=nia_prim_circ&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_prim_circ_sqft' : {
-								// name : 'Primary Circulation NIA (ft\xB2)',
-								// requires : [
-								// 'nia_prim_circ'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (response['nia_prim_circ'] * 10.7639104)
-								// .toFixed(2),
-								// units : 'ft\xB2'
-								// }
-								// }
-								// },
-								// 'nia_prim_circ_to_total_prc' : {
-								// name : 'Primary Circulation to total',
-								// requires : [
-								// 'nia_prim_circ', 'nia_total'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (100 * (parseFloat(response['nia_prim_circ']) /
-								// parseFloat(response['nia_total'])))
-								// .toFixed(2),
-								// units : '%'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_open' : {
-								// name : 'Open Workspace NIA',
-								// url : 'Occupancy?t=nia_wrksp_open&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_open_sqft' : {
-								// name : 'Open Workspace NIA (ft\xB2)',
-								// requires : [
-								// 'nia_wrksp_open'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response['nia_wrksp_open']) *
-								// 10.7639104)
-								// .toFixed(2),
-								// units : 'ft\xB2'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_open_to_total_prc' : {
-								// name : 'Open workspace to total',
-								// requires : [
-								// 'nia_wrksp_open', 'nia_total'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (100 * (parseFloat(response['nia_wrksp_open']) /
-								// parseFloat(response['nia_total'])))
-								// .toFixed(2),
-								// units : '%'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_cel' : {
-								// name : 'Cellular Workspace NIA',
-								// url : 'Occupancy?t=nia_wrksp_cel&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url + study.id);
-								// },
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response.data)).toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_cel_sqft' : {
-								// name : 'Cellular Workspace NIA (ft\xB2)',
-								// requires : [
-								// 'nia_wrksp_cel'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (response['nia_wrksp_cel'] * 10.7639104)
-								// .toFixed(2),
-								// units : 'ft\xB2'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_cel_to_total_prc' : {
-								// name : 'Cellular workspace to total',
-								// requires : [
-								// 'nia_wrksp_cel', 'nia_total'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : (100 * (parseFloat(response['nia_wrksp_cel']) /
-								// parseFloat(response['nia_total'])))
-								// .toFixed(2),
-								// units : '%'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_total' : {
-								// name : 'Total Workspace NIA (sqm)',
-								// requires : [
-								// 'nia_wrksp_open', 'nia_wrksp_cel'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response['nia_wrksp_open']) +
-								// parseFloat(response['nia_wrksp_cel']))
-								// .toFixed(2),
-								// units : 'm\xB2'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_open_total_sqft' : {
-								// name : 'Total Workspace NIA (ft\xB2)',
-								// requires : [
-								// 'nia_wrksp_open_total'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : (parseFloat(response['nia_wrksp_open_total']) *
-								// 10.7639104)
-								// .toFixed(2),
-								// units : 'ft\xB2'
-								// }
-								// }
-								// },
-								'nia_total_per_head_at_peak_occ' : {
-									name : 'NIA per head at peak Occupancy',
-									requires : [
-										'nia_total'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : 'error',
-											units : 'm\xB2'
-										}
-									}
-								},
-								// 'nia_total_per_desk' : {
-								// name : 'Total NIA per desk',
-								// requires : [
-								// 'nia_total', 'no_of_desks'
-								// ],
-								// callback : function(response) {
-								// return {
-								// name : this.name,
-								// content : (response['nia_total'] / response['no_of_desks'])
-								// .toFixed(2),
-								// units_full : "square meters per desk",
-								// units : 'm\xB2/desk'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_per_desk' : {
-								// name : 'Workspace NIA per desk',
-								// requires : [
-								// 'nia_wrksp_total', 'no_of_desks_wrksp'
-								// ],
-								// callback : function(response) {
-								// var data = response['nia_wrksp_total']
-								// / response['no_of_desks_wrksp'];
-								// return {
-								// name : this.name,
-								// content : (parseFloat(data)).toFixed(2),
-								// units_full : "square meters per desk",
-								// units : 'm\xB2/desk'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_open_per_desk' : {
-								// name : 'Open workspace NIA per desk',
-								// requires : [
-								// 'nia_wrksp_open', 'no_of_desks_open_plan'
-								// ],
-								// callback : function(response) {
-								// var data = parseFloat(response['nia_wrksp_open'])
-								// / parseFloat(response['no_of_desks_open_plan']);
-								// return {
-								// name : this.name,
-								// content : (parseFloat(data)).toFixed(2),
-								// units_full : "square meters per desk",
-								// units : 'm\xB2/desk'
-								// }
-								// }
-								// },
-								// 'nia_wrksp_cel_per_desk' : {
-								// name : 'Cellular workspace NIA per desk',
-								// requires : [
-								// 'nia_wrksp_cel', 'no_of_desks_cellular'
-								// ],
-								// callback : function(response) {
-								// var data = response['nia_wrksp_cel']
-								// / response['no_of_desks_cellular'];
-								// return {
-								// name : this.name,
-								// content : (parseFloat(data)).toFixed(2),
-								// units_full : "square meters per desk",
-								// units : 'm\xB2/desk'
-								// }
-								// }
-								// },
-								'max_cellular_workspace_nia_per_desk' : {
-									name : 'Max Cellular workspace NIA per desk',
-									url : 'Occupancy?t=max_cellular_workspace_nia_per_desk&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2),
-											units : 'm\xB2/desk'
-										}
-									}
-								},
-								'min_cellular_workspace_nia_per_desk' : {
-									name : 'Min Cellular workspace NIA per desk',
-									url : 'Occupancy?t=min_cellular_workspace_nia_per_desk&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : (parseFloat(response.data)).toFixed(2),
-											units : 'm\xB2/desk'
-										}
-									}
-								},
-								'utilisation_of_meeting_rooms' : {
-									name : 'Overall Utilisation of Bookable Meeting Rooms',
-									url : 'Occupancy?t=utilisation_of_meeting_rooms&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								// 'occupancy_of_meeting_rooms' : {
-								// name : 'Overall Occupancy of Bookable Meeting Rooms',
-								// url : 'Occupancy?t=occupancy_of_meeting_rooms&obsid=',
-								// get : function(study) {
-								// return HTTPFactory.backendGet(this.url
-								// + study.first_observation_id.content);
-								// },
-								// requires : [
-								// 'first_observation_id'
-								// ],
-								// callback : function(response) {
-								// // console.log(response);
-								// return {
-								// name : this.name,
-								// content : parseFloat(response.data)
-								// }
-								// }
-								// },
-								'avg_utilisation_when_used_meeting_rooms' : {
-									name : 'Average size of meeting',
-									requires : [
-											'utilisation_of_meeting_rooms',
-											'occupancy_of_meeting_rooms'
-									],
-									callback : function(response) {
-										var data = parseFloat(response['utilisation_of_meeting_rooms'])
-												/ parseFloat(response['occupancy_of_meeting_rooms']);
-										return {
-											name : this.name,
-											content : parseFloat(data).toFixed(2),
-											units : 'people'
-										}
-									}
-								},
-								// 'occupancy_of_meeting_rooms_prc' : {
-								// name : 'Overall Occupancy of Bookable Meeting Rooms',
-								// requires : [
-								// 'occupancy_of_meeting_rooms', 'no_of_meeting_rooms',
-								// 'no_of_rounds'
-								// ],
-								// callback : function(response) {
-								//
-								// var data = parseFloat(response['occupancy_of_meeting_rooms'])
-								// / (parseFloat(response['no_of_meeting_rooms']) *
-								// parseFloat(response['no_of_rounds']));
-								//
-								// return {
-								// name : this.name,
-								// content : (100 * data).toFixed(2),
-								// units : "%"
-								// }
-								// }
-								// },
-								'max_occupancy_of_meeting_rooms' : {
-									name : 'Max Occupancy of Bookable Meeting Rooms',
-									url : 'Occupancy?t=max_occupancy_of_meeting_rooms&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'max_occupancy_of_meeting_rooms_prc' : {
-									name : 'Peak Bookable Meeting Room Occupancy',
-									requires : [
-											'max_occupancy_of_meeting_rooms', 'no_of_meeting_rooms'
-									],
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : (100 * parseFloat(response['max_occupancy_of_meeting_rooms']
-													/ parseFloat(response['no_of_meeting_rooms'])))
-													.toFixed(2),
-											units : "%",
-											other : " (" + response['max_occupancy_of_meeting_rooms']
-													+ "/" + response['no_of_meeting_rooms'] + ")"
-										}
-									}
-								},
-								'min_occupancy_of_meeting_rooms' : {
-									name : 'Min Occupancy of Bookable Meeting Rooms',
-									url : 'Occupancy?t=min_occupancy_of_meeting_rooms&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'min_occupancy_of_meeting_rooms_prc' : {
-									name : 'Lowest Bookable Meeting Room Occupancy',
-									requires : [
-											'min_occupancy_of_meeting_rooms', 'no_of_meeting_rooms'
-									],
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : (100 * parseFloat(response['min_occupancy_of_meeting_rooms']
-													/ parseFloat(response['no_of_meeting_rooms'])))
-													.toFixed(2),
-											units : "%",
-											other : " (" + response['min_occupancy_of_meeting_rooms']
-													+ "/" + response['no_of_meeting_rooms'] + ")"
-										}
-									}
-								},
-								'occupancy_of_alternative_spaces' : {
-									name : 'Occupancy of Alternative Spaces',
-									url : 'Occupancy?t=occupancy_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'max_occupancy_of_alternative_spaces' : {
-									name : 'Max Occupancy of Alternative Spaces',
-									url : 'Occupancy?t=max_occupancy_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'min_occupancy_of_alternative_spaces' : {
-									name : 'Min Occupancy of Alternative Spaces',
-									url : 'Occupancy?t=min_occupancy_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'occupancy_of_alternative_spaces_prc' : {
-									name : 'Overall Occupancy of Alternative Spaces Rooms',
-									requires : [
-											'occupancy_of_alternative_spaces',
-											'no_of_alternative_spaces', 'no_of_rounds'
-									],
-									callback : function(response) {
-										// console.log(response);
-										var data = parseFloat(response['occupancy_of_alternative_spaces'])
-												/ (parseFloat(response['no_of_alternative_spaces']) * parseFloat(response['no_of_rounds']));
-										return {
-											name : this.name,
-											content : (100 * parseFloat(data)).toFixed(2),
-											units : "%"
-										}
-									}
-								},
-								'utilisation_of_alternative_spaces' : {
-									name : 'Min Utilisation of Bookable Meeting Rooms',
-									url : 'Occupancy?t=utilisation_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'max_utilisation_of_alternative_spaces' : {
-									name : 'Peak Utilisation of Alternative Spaces',
-									url : 'Occupancy?t=max_utilisation_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data),
-											units : 'people'
-										}
-									}
-								},
-								'min_utilisation_of_alternative_spaces' : {
-									name : 'Min Utilisation of Alternative Spaces',
-									url : 'Occupancy?t=min_utilisation_of_alternative_spaces&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'activities_split' : {
-									name : 'Activities Split',
-									url : 'Occupancy?t=activities_split&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										// console.log(response);
-										return {
-											name : this.name,
-											content : parseFloat(response.data)
-										}
-									}
-								},
-								'tbl_no_of_desks_wrksp_per_building' : {
-									name : 'Number of desks per building',
-									url : 'Occupancy?t=tbl_no_of_desks_wrksp_per_building&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url
-												+ study.first_observation_id.content);
-									},
-									requires : [
-										'first_observation_id'
-									],
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : response.data
-										}
-									}
-								},
-								'q_avg_mark_hoursofworking' : {
-									name : 'Perceived average working hours (survey)',
-									url : 'Occupancy?t=q_avg_mark_hoursofworking&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : parseFloat(response.data).toFixed(2)
-										}
-									}
-								},
-								'q_mark_over_3_imp2workatdesk' : {
-									name : 'Perceived average working hours (survey)',
-									url : 'Occupancy?t=q_mark_over_3_imp2workatdesk&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : parseFloat(response.data).toFixed(2)
-										}
-									}
-								},
-								'q_mark_over_3_imp2workatdesk_over_no_of_staff' : {
-									name : '% staff who think desk space is important or very important',
-									requires : [
-											'q_mark_over_3_imp2workatdesk', 'no_of_staff'
-									],
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : (100 * parseFloat(response['q_mark_over_3_imp2workatdesk']) / parseFloat(response['no_of_staff']))
-													.toFixed(2),
-											units : '%',
-											other : "("
-													+ parseInt(response['q_mark_over_3_imp2workatdesk'])
-													+ "/" + response['no_of_staff'] + ")"
-										}
-									}
-								},
-								'tbl_nia_wrksp_per_team' : {
-									name : 'NIA of Workspace per team',
-									url : 'Occupancy?t=tbl_nia_wrksp_per_team&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : response.data
-										}
-									}
-								},
-								'tbl_no_of_desks_wrksp_per_team' : {
-									name : 'Number of desks in Workspace per team',
-									url : 'Occupancy?t=tbl_no_of_desks_wrksp_per_team&obsid=',
-									get : function(study) {
-										return HTTPFactory.backendGet(this.url + study.id);
-									},
-									callback : function(response) {
-										return {
-											name : this.name,
-											content : response.data
-										}
-									}
-								},
-								'tbl_nia_per_desk_by_team' : {
-									name : 'Workspace per desk split by team',
-									requires : [
-											'tbl_nia_wrksp_per_team',
-											'tbl_no_of_desks_wrksp_per_team'
-									],
-									callback : function(response) {
-										var tbl_nia_wrksp_per_team = response['tbl_nia_wrksp_per_team'];
-										var tbl_no_of_desks_wrksp_per_team = response['tbl_no_of_desks_wrksp_per_team'];
-										var clean = [];
-										for (var i = 0; i < tbl_no_of_desks_wrksp_per_team.lenth; i++) {
-											clean.push(tbl_no_of_desks_wrksp_per_team[i]);
-										}
-										var tbl_nia_per_desk_by_team = [];
-										for (var i = 0; i < tbl_nia_wrksp_per_team.length; i++) {
-											var o = tbl_nia_wrksp_per_team[i];
-											for (var j = 0; j < clean.length; j++) {
-												var p = tbl_no_of_desks_wrksp_per_team[j];
-												if (o.alias === p.alias) {
-													tbl_nia_per_desk_by_team.push({
-														name : o.alias,
-														content : (parseFloat(o.sum) / parseFloat(p.sum)),
-														units : 'm\xB2'
-													});
-													// clean.remove();
-												}
-											}
-										}
-										return {
-											name : this.name,
-											content : response
-										}
-									}
-								}
-							};
 							// function checkDependencies(study, requires) {
 							// for (var i = 0; i < requires.length; i++) {
 							// if (study[requires[i]].status

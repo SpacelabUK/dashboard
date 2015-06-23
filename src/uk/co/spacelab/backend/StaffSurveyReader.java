@@ -28,15 +28,20 @@ public class StaffSurveyReader {
 	// TEXT, CHOICE, ATTRIBUTE, TIESCORE;
 	// }
 
-	private static String IN_COL_ID = "id", IN_COL_NAME = "name",
-			IN_COL_EMAIL = "email", IN_COL_COMPLETED = "completed",
-			IN_COL_TEAM = "department";
+	private static String IN_COL_ID = "id", //
+			IN_COL_NAME = "name", //
+			IN_COL_EMAIL = "email", //
+			IN_COL_COMPLETED = "completed", //
+			IN_COL_TEAM = "department", //
+			IN_COL_LOCATION = "location", //
+			IN_COL_BUILDING = "building", //
+			IN_COL_FLOOR = "floor";
 	// IN_COL_COMPLETED_COMPLETE = "Complete",
 	// IN_COL_COMPLETED_NOT_STARTED = "NotStarted",
 	// IN_COL_COMPLETED_INCOMPLETE = "Incomplete",
 	// IN_COL_COMPLETED_BOUNCES = "Bounced",
 	private static final String //
-	TABLE_QUESTIONS = "staff_survey_questions",
+			TABLE_QUESTIONS = "staff_survey_questions",
 			TABLE_QUESTIONS_SEQ = "staff_survey_questions_id_seq",
 			QUESTION_ID = "id",
 			QUESTION_ALIAS = "alias",
@@ -124,6 +129,7 @@ public class StaffSurveyReader {
 			STAFF_ID = "id",
 			STAFF_SURVEY_ID = "survey_id",
 			STAFF_TEAM_ID = "team_id",
+			STAFF_FLOOR_ID = "floor_id",
 			STAFF_ID_ON_SURVEY = "id_on_survey",
 			STAFF_COMPLETED = "survey_completed", //
 			// CREATE_TABLE_STAFF = "create table " + TABLE_STAFF //
@@ -144,14 +150,14 @@ public class StaffSurveyReader {
 			TIE_TO = "to_staff_id", //
 			TIE_QUESTION_ID = "question_id", //
 			TIE_SCORE = "score", //
-			TIE_STUDY_ID = "study_id", //
-			CREATE_TABLE_TIES = "create table " + TABLE_TIES //
-					+ "(" //
-					+ TIE_FROM + " bigint not null, " //
-					+ TIE_TO + " bigint not null, " //
-					+ TIE_QUESTION_ID + " bigint not null, " //
-					+ TIE_SCORE + " real not null " //
-					+ ");";
+			TIE_STUDY_ID = "study_id"; //
+	// CREATE_TABLE_TIES = "create table " + TABLE_TIES //
+	// + "(" //
+	// + TIE_FROM + " bigint not null, " //
+	// + TIE_TO + " bigint not null, " //
+	// + TIE_QUESTION_ID + " bigint not null, " //
+	// + TIE_SCORE + " real not null " //
+	// + ");";
 	abstract class Question {
 		String alias;
 		String group;
@@ -243,13 +249,13 @@ public class StaffSurveyReader {
 				String [] node =
 						(line.substring(1, line.length() - 1) + " ")
 								.split("\" \"");
-				for (Integer i : answerStrings.keySet()) {
-					String name = answerStrings.get(i).get(0);
-					if (name.equals("XAwayFromDesk")) {
-						// System.out.println(answerStrings.get(i));
-						System.out.println(node[i]);
-					}
-				}
+				// for (Integer i : answerStrings.keySet()) {
+				// String name = answerStrings.get(i).get(0);
+				// if (name.equals("XAwayFromDesk")) {
+				// // System.out.println(answerStrings.get(i));
+				// System.out.println(node[i]);
+				// }
+				// }
 				if (node.length != head.length)
 					throw new RuntimeException(
 							"Error parsing! Check for double quotes(\") in the answers and convert them to single(') ones. Error on line: "
@@ -268,6 +274,11 @@ public class StaffSurveyReader {
 				if (name.equalsIgnoreCase(IN_COL_NAME)) IN_COL_NAME = name;
 				if (name.equalsIgnoreCase(IN_COL_EMAIL)) IN_COL_EMAIL = name;
 				if (name.equalsIgnoreCase(IN_COL_TEAM)) IN_COL_TEAM = name;
+				if (name.equalsIgnoreCase(IN_COL_LOCATION))
+					IN_COL_LOCATION = name;
+				if (name.equalsIgnoreCase(IN_COL_BUILDING))
+					IN_COL_BUILDING = name;
+				if (name.equalsIgnoreCase(IN_COL_FLOOR)) IN_COL_FLOOR = name;
 				if (name.equalsIgnoreCase(IN_COL_COMPLETED))
 					IN_COL_COMPLETED = name;
 			}
@@ -333,11 +344,17 @@ public class StaffSurveyReader {
 			for (int i = 0; i < answers.get(IN_COL_ID).size(); i++) {
 				try {
 					int id = Integer.parseInt(answers.get(IN_COL_ID).get(i));
-					String name = answers.get(IN_COL_NAME).get(i);
-					String email = answers.get(IN_COL_EMAIL).get(i);
-					String completed = answers.get(IN_COL_COMPLETED).get(i);
+					String name = answers.get(IN_COL_NAME).get(i).trim();
+					String email = answers.get(IN_COL_EMAIL).get(i).trim();
+					String completed =
+							answers.get(IN_COL_COMPLETED).get(i).trim();
 					Person p = new Person(id, name, email);
-					p.team = answers.get(IN_COL_TEAM).get(i);
+					p.team = answers.get(IN_COL_TEAM).get(i).trim();
+					p.location = answers.get(IN_COL_LOCATION).get(i).trim();
+					if(IN_COL_BUILDING != null && answers.containsKey(IN_COL_BUILDING))
+					p.building = answers.get(IN_COL_BUILDING).get(i).trim();
+					if(IN_COL_FLOOR != null && answers.containsKey(IN_COL_FLOOR))
+					p.floor = answers.get(IN_COL_FLOOR).get(i).trim();
 					for (String q : answers.keySet()) {
 						if (q.equals(IN_COL_COMPLETED))
 							p.setCompleted(completed);
@@ -356,6 +373,9 @@ public class StaffSurveyReader {
 			answers.remove(IN_COL_EMAIL);
 			answers.remove(IN_COL_COMPLETED);
 			answers.remove(IN_COL_TEAM);
+			answers.remove(IN_COL_LOCATION);
+			answers.remove(IN_COL_BUILDING);
+			answers.remove(IN_COL_FLOOR);
 			questions = new HashMap<String, Question>();
 			// Map<String, Set<String>> choices = new HashMap<String,
 			// Set<String>>();
@@ -494,13 +514,121 @@ public class StaffSurveyReader {
 
 		return teams;
 	}
+	Map<String, Integer> processFloors(JSONArray floorsIn, int studyID)
+			throws ClassNotFoundException, SQLException, ParseException {
+		Map<String, Integer> floors = new HashMap<String, Integer>();
+		Map<String, JSONObject> floorsJSON = new HashMap<String, JSONObject>();
+		for (int i = 0; i < floorsIn.length(); i++) {
+			JSONObject q = floorsIn.getJSONObject(i);
+			if (q.optString("match").equals("*")) {
+				// is new
+				System.out.println(q.getString("alias") + " is new");
+				floors.put(q.getString("alias"), -1);
+
+			} else if (q.optString("match").equals("-")) {
+				// ignore this
+				System.out.println(q.getString("alias") + " to be ingored");
+				continue;
+			} else if (q.has("match")) {
+				JSONObject match = q.getJSONObject("match");
+				floors.put(q.getString("alias"), match.getInt("id"));
+			}
+			floorsJSON.put(q.getString("alias"), q);
+		}
+		System.out.println(floors);
+		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		for (String floor : floors.keySet()) {
+			if (floors.get(floor) == -1) {
+				// List<String> validTeams = new ArrayList<String>();
+				String q = floor;
+				// validTeams.add(q);
+				// int breakcounter = 100;
+				// Integer parentID = null;
+				// while (breakcounter > 1) {
+				String buildingName = null;
+				String floorName = null;
+				String location = null;
+				if (floorsJSON.get(q).has("building")) {
+					buildingName = floorsJSON.get(q).getString("building");
+				}
+				if (floorsJSON.get(q).has("floor")) {
+					floorName = floorsJSON.get(q).getString("floor");
+				}
+				if (floorsJSON.get(q).has("location")) {
+					location = floorsJSON.get(q).getString("location");
+				}
+				if (location != null) {
+					if (buildingName != null && floorName == null) {
+						int index = location.indexOf(buildingName);
+						if (index + buildingName.length() < location.length())
+							floorName =
+									location.substring(index
+											+ buildingName.length());
+					} else if (floorName != null && buildingName == null) {
+						int index = location.indexOf(floorName);
+						if (index != 0)
+							buildingName = location.substring(0, index);
+					}
+				}
+				// q = floorsJSON.get(q).getString("parent");
+				// if (!floors.containsKey(q))
+				// throw new MalformedDataException("Parent '" + q
+				// + "' missing");
+				// if (floors.get(q) == -1)
+				// validTeams.add(q);
+				// else {
+				// parentID = floors.get(q);
+				// break;
+				// }
+				// } else {
+				// break;
+				// }
+				// breakcounter--;
+				// }
+				// if (breakcounter < 1) return null;
+				// // int
+				// for (int i = validTeams.size() - 1; i >= 0; i--) {
+				// String clearQ = validTeams.get(i);
+				String colString = "study_id,alias,name";
+				String valString = "?,?,?";
+				List<Object> args = new ArrayList<Object>();
+				args.add(studyID);
+				args.add(q);
+				args.add(q);
+				if (buildingName != null) {
+					colString += ",building";
+					valString += ",?";
+					args.add(buildingName);
+				}
+				if (floorName != null) {
+					colString += ",floor";
+					valString += ",?";
+					args.add(floorName);
+				}
+				Database.insertInto(psql, "spaces", colString, valString,
+						args.toArray());
+				int currval =
+						Database.getSequenceCurrVal(psql, "spaces_id_seq")
+								.getJSONObject(0).getInt("currval");
+				floors.put(q, currval);
+				// }
+			}
+		}
+		psql.commit();
+		psql.setAutoCommit(true);
+
+		return floors;
+	}
 	public void convert(String inFile, Integer studyID,
 			JSONObject staticDataJSON) throws ClassNotFoundException,
 			SQLException, ParseException {
 
 		Map<String, Integer> teams =
 				processTeams(staticDataJSON.getJSONArray("teams"), studyID);
-		System.out.println(teams);
+		Map<String, Integer> floors =
+				processFloors(staticDataJSON.getJSONArray("floors"), studyID);
+		// System.out.println(teams);
 		// Logger.getLogger("com.almworks.sqlite4java").setLevel(Level.OFF);
 		Dataset dst = new Dataset().expand(inFile);
 
@@ -633,8 +761,9 @@ public class StaffSurveyReader {
 		Database.deleteFrom(psql, TABLE_STAFF, STAFF_SURVEY_ID + "=?", studyID);
 		String columnString =
 				STAFF_ID_ON_SURVEY + "," + STAFF_COMPLETED + ","
-						+ STAFF_SURVEY_ID + "," + STAFF_TEAM_ID;
-		String valueString = "?,?,?,?";
+						+ STAFF_SURVEY_ID + "," + STAFF_TEAM_ID + ","
+						+ STAFF_FLOOR_ID;
+		String valueString = "?,?,?,?,?";
 
 		System.out.println("-- adding people");
 		Map<Person, Integer> peopleMap = new HashMap<Person, Integer>();
@@ -650,9 +779,13 @@ public class StaffSurveyReader {
 				String team = dst.people.get(i).team;
 				if (!teams.containsKey(team)) continue;
 				int teamID = teams.get(team);
+				String floor = dst.people.get(i).location;
+				if (!floors.containsKey(floor)) continue;
+				int floorID = floors.get(floor);
 				Object [] args =
 						new Object [] {dst.people.get(i).ID,
-								dst.people.get(i).completed, studyID, teamID};
+								dst.people.get(i).completed, studyID, teamID,
+								floorID};
 				Database.insertInto(psql, TABLE_STAFF, columnString,
 						valueString, args);
 				peopleMap.put(dst.people.get(i),
@@ -905,6 +1038,7 @@ public class StaffSurveyReader {
 		Map<String, String> answers = new HashMap<String, String>();
 		Map<String, String> attributes = new HashMap<String, String>();
 		String name, email, completed, team;
+		String location, building, floor;
 		Person(int ID, String name, String email) {
 			this.ID = ID;
 			this.name = name;
@@ -920,6 +1054,12 @@ public class StaffSurveyReader {
 			attributes.put(question, attribute);
 		}
 	}
+	class Floor {
+		String building, name, alias;
+		Floor(String alias) {
+			this.alias = alias;
+		}
+	}
 	public JSONObject
 			getStaticData(String filePath, String fileid, int studyID)
 					throws SQLException, ParseException {
@@ -928,12 +1068,26 @@ public class StaffSurveyReader {
 		Map<String, List<String>> staticData =
 				new HashMap<String, List<String>>();
 		Set<String> teams = new HashSet<String>();
-		for (Person p : dst.people.values())
+		for (Person p : dst.people.values()) {
+			// System.out.println(p.);
 			teams.add(p.team);
+		}
 		staticData.put("DEPARTMENT_LIST", new ArrayList<String>(teams));
+		Map<String, Floor> floors = new HashMap<String, Floor>();
+		for (Person p : dst.people.values()) {
+			// System.out.println(p.);
+			if (floors.containsKey(p.location)) continue;
+			Floor f = new Floor(p.location);
+			if (p.building != null) f.building = p.building;
+			if (p.floor != null) f.name = p.floor;
+			floors.put(p.location, f);
+		}
+		staticData.put("FLOOR_LIST", new ArrayList<String>(floors.keySet()));
 		JSONArray databaseTeams =
-				Database.selectAllFromTableWhere("teams", "study_id=?",
-						String.valueOf(studyID));
+				Database.selectAllFromTableWhere("teams", "study_id=?", studyID);
+		JSONArray databaseFloors =
+				Database.selectAllFromTableWhere("spaces", "study_id=?",
+						studyID);
 		JSONArray databaseQuestions = new JSONArray();
 		// Database.customQuery("SELECT interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
 		// + "(SELECT alias FROM interview_questions "
@@ -1016,6 +1170,7 @@ public class StaffSurveyReader {
 				// }
 			} else if (key.equalsIgnoreCase("DEPARTMENT_LIST")) {
 				for (String alias : staticData.get(key)) {
+					alias = alias.trim();
 					JSONObject o = new JSONObject();
 					o.put("alias", alias);
 					arr.put(o);
@@ -1031,6 +1186,25 @@ public class StaffSurveyReader {
 						}
 					}
 				}
+			} else if (key.equalsIgnoreCase("FLOOR_LIST")) {
+				for (String alias : staticData.get(key)) {
+					Floor f = floors.get(alias);
+					JSONObject o = new JSONObject();
+					o.put("alias", alias);
+					if (f.building != null) o.put("building", f.building);
+					if (f.name != null) o.put("floor", f.name);
+					arr.put(o);
+					for (int i = 0; i < databaseFloors.length(); i++) {
+						String floorDB =
+								databaseFloors.getJSONObject(i).getString(
+										"alias");
+						if (floorDB.equalsIgnoreCase(alias)) {
+							o.put("prematchproperty", "id");
+							o.put("prematch", floorDB);
+							break;
+						}
+					}
+				}
 			} else {
 				for (String alias : staticData.get(key)) {
 					JSONObject o = new JSONObject();
@@ -1041,6 +1215,7 @@ public class StaffSurveyReader {
 			out.put(key, arr);
 		}
 		out.put("DATABASE_TEAMS", databaseTeams);
+		out.put("DATABASE_FLOORS", databaseFloors);
 		out.put("DATABASE_QUESTIONS", databaseQuestions);
 		out.put("fileid", fileid);
 		return out;

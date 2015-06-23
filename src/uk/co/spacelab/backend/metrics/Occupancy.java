@@ -76,6 +76,13 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("activity_in_polygon_types_per_type", new String [] {
 				"observation_id", "polygon_type_ids", "entity_states",
 				"entity_types", "entity_flag_bits"});
+		knownFunctions.put(
+				"activity_interacting_in_polygon_types_per_activity",
+				new String [] {"observation_id", "polygon_type_ids",
+						"entity_states", "entity_types", "entity_flag_bits"});
+		knownFunctions.put("activity_in_polygon_types_per_activity",
+				new String [] {"observation_id", "polygon_type_ids",
+						"entity_states", "entity_types", "entity_flag_bits"});
 		knownFunctions.put("activity_in_poly_types_per_round", new String [] {
 				"observation_id", "polygon_type_ids", "entity_states",
 				"entity_types", "entity_flag_bits"});
@@ -115,6 +122,15 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("avg_possible_ties_outside_floor",
 				new String [] {"study_id"});
 
+		knownFunctions.put("avg_ties_in_building", new String [] {"study_id",
+				"question_id"});
+		knownFunctions.put("avg_ties_outside_building", new String [] {
+				"study_id", "question_id"});
+		knownFunctions.put("avg_possible_ties_in_building",
+				new String [] {"study_id"});
+		knownFunctions.put("avg_possible_ties_outside_building",
+				new String [] {"study_id"});
+
 		knownFunctions.put("avg_depthmap_value_of_poly_type", new String [] {
 				"type_ids", "depthmap_ids", "band_alias"});
 		knownFunctions.put("avg_depthmap_value_per_poly_type", new String [] {
@@ -132,6 +148,9 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("get_project_name", new String [] {"study_id"});
 		knownFunctions.put("gross_occupancy", new String [] {"observation_id"});
 
+		knownFunctions.put("groups_of_people_in_poly_types_sum", new String [] {
+				"observation_id", "polygon_type_ids", "entity_states",
+				"entity_types", "entity_flag_bits", "groups::text []"});
 		knownFunctions.put("groups_of_people_in_poly_types_avg", new String [] {
 				"observation_id", "polygon_type_ids", "entity_states",
 				"entity_types", "entity_flag_bits", "groups::text []"});
@@ -195,6 +214,8 @@ public class Occupancy extends HttpServlet {
 		}
 		knownFunctions.put("no_of_desks_in_poly_types", new String [] {
 				"type_ids", "observation_id"});
+		knownFunctions.put("no_of_desks_in_poly_types_per_building",
+				new String [] {"type_ids", "observation_id"});
 		knownFunctions.put("no_of_desks_per_polygon_type", new String [] {
 				"observation_id", "type_ids"});
 		knownFunctions.put("no_of_people_activity", new String [] {
@@ -209,6 +230,8 @@ public class Occupancy extends HttpServlet {
 				"observation_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting", new String [] {
 				"observation_id", "activity_ids"});
+		knownFunctions.put("no_of_people_activity_interacting_per_activity",
+				new String [] {"observation_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting_per_building",
 				new String [] {"observation_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting_per_space",
@@ -228,6 +251,8 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("no_of_unique_contacts_per_question", new String [] {
 				"study_id", "question_id"});
 		knownFunctions.put("no_of_staff", new String [] {"study_id"});
+		knownFunctions.put("no_of_staff_per_building",
+				new String [] {"study_id"});
 		knownFunctions.put("no_of_staff_replies_per_choice", new String [] {
 				"study_id", "question_id"});
 		knownFunctions.put("no_of_staff_replies_within_marks", new String [] {
@@ -261,10 +286,20 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id", "question_id", "scores"});
 		knownFunctions.put("no_of_staff_ties_of_question_per_score",
 				new String [] {"study_id", "question_id"});
+		knownFunctions.put("no_of_staff_ties_of_questions_per_score",
+				new String [] {"study_id", "question_ids"});
 		knownFunctions.put("no_of_staff_ties_outside_team_per_score",
-				new String [] {"study_id", "question_id"});
+				new String [] {"study_id", "question_ids"});
 		knownFunctions.put("no_of_staff_ties_within_team_per_score",
-				new String [] {"study_id", "question_id"});
+				new String [] {"study_id", "question_ids"});
+		knownFunctions.put("no_of_staff_ties_outside_floor_per_score",
+				new String [] {"study_id", "question_ids"});
+		knownFunctions.put("no_of_staff_ties_within_floor_per_score",
+				new String [] {"study_id", "question_ids"});
+		knownFunctions.put("no_of_staff_ties_outside_building_per_score",
+				new String [] {"study_id", "question_ids"});
+		knownFunctions.put("no_of_staff_ties_within_building_per_score",
+				new String [] {"study_id", "question_ids"});
 
 		knownFunctions.put("no_of_staff_ties_outside_team_per_team",
 				new String [] {"study_id", "question_id"});
@@ -276,6 +311,8 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id"});
 
 		knownFunctions.put("occupancy_of_poly_types", new String [] {
+				"observation_id", "type_ids"});
+		knownFunctions.put("occupancy_of_poly_types_per_round", new String [] {
 				"observation_id", "type_ids"});
 		knownFunctions.put("occupancy_frequency_grouped", new String [] {
 				"observation_id", "groups::text []"});
@@ -290,6 +327,7 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("sum_of_interview_choice_scores", new String [] {
 				"study_id", "question_id"});
 		knownFunctions.put("team_names", new String [] {"team_ids"});
+		// utilisation measures can be achieved with "activity_in_poly_types"
 		knownFunctions.put("utilisation_of_poly_types", new String [] {
 				"observation_id", "type_ids"});
 		knownFunctions.put("utilisation_activity_of_poly_types", new String [] {
@@ -386,7 +424,7 @@ public class Occupancy extends HttpServlet {
 						"SELECT * FROM " + prefix + type + "(" + qmString + ")";
 				// System.out.println(type);
 
-				// if (type.equals("occupancy_frequency_grouped")) {
+				// if (type.equals("no_of_desks_in_poly_types")) {
 				// System.out.println(sql);
 				// for (Object o : args)
 				// System.out.println(o.toString());

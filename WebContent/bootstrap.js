@@ -850,7 +850,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
 		templateUrl : "studies/studyIssues.html",
 		controller : 'StudyIssuesCtrl'
 	}).state('allstudyissues', {
-		url : "/studies/allissues/{studyid}", //
+		url : "/studies/issue/{issue}/{studyid}", //
 		templateUrl : "studies/allStudyIssues.html",
 		controller : 'AllStudyIssuesCtrl'
 	}).state('comparestudies', {
