@@ -31,7 +31,10 @@ app.factory('HTTPFactory', [
 				},
 				all : function(promises) {
 					return $q.all(promises);
-				}
+				},
+				getBackend : function() {
+					return backend;
+				},
 			}
 			return public;
 		}

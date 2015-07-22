@@ -156,7 +156,10 @@ app.directive("doughnutChartEr", [
 				showOnlyFirst : '=',
 				colours : '=',
 				showLegend : '=',
-				title : '='
+				title : '=',
+				noOfDecimals : '=',
+				units : '='
+
 			},
 			link : function(scope, element, attrs) {
 
@@ -182,6 +185,9 @@ app.directive("doughnutChartEr", [
 
 				scope.$watch('data', function(newData) {
 					svg.selectAll("path").remove();
+					console.log(scope);
+					if (!scope.noOfDecimals && scope.noOfDecimals != 0)
+						scope.noOfDecimals = 2;
 					var prop = newData.properties[0].alias;
 					var data = [];
 					for (var i = 0; i < newData.keys.length; i++) {
@@ -233,10 +239,14 @@ app.directive("doughnutChartEr", [
 								return "translate(" + arc.centroid(d) + ")";
 							}).attr("dy", ".25em").style("text-anchor", "middle").attr(
 									'font-family', 'Apercu,serif').style('font-size', '10px')
+									.style('fill','#ffffff')
 									.text(function(d) {
 										// return d.data.age;
 										// return d.data.key;
-										return d.value.toFixed(2);
+										var r = d.value.toFixed(scope.noOfDecimals);
+										if (scope.units)
+											r += scope.units;
+										return r;
 									});
 						}
 					}
@@ -267,6 +277,7 @@ app.directive("doughnutChartEr", [
 						legend.append('text') // NEW
 						.attr('x', legendRectSize + legendSpacing) // NEW
 						.attr('y', legendRectSize - legendSpacing * 0.5) // NEW
+						.attr('font-family', 'Apercu,serif')
 						.style('font-size', '10px').text(function(d) {
 							return d.key;
 						}); // NEW

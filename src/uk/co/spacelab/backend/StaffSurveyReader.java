@@ -36,6 +36,7 @@ public class StaffSurveyReader {
 			IN_COL_LOCATION = "location", //
 			IN_COL_BUILDING = "building", //
 			IN_COL_FLOOR = "floor";
+	boolean locationColExists = false;
 	// IN_COL_COMPLETED_COMPLETE = "Complete",
 	// IN_COL_COMPLETED_NOT_STARTED = "NotStarted",
 	// IN_COL_COMPLETED_INCOMPLETE = "Incomplete",
@@ -274,8 +275,10 @@ public class StaffSurveyReader {
 				if (name.equalsIgnoreCase(IN_COL_NAME)) IN_COL_NAME = name;
 				if (name.equalsIgnoreCase(IN_COL_EMAIL)) IN_COL_EMAIL = name;
 				if (name.equalsIgnoreCase(IN_COL_TEAM)) IN_COL_TEAM = name;
-				if (name.equalsIgnoreCase(IN_COL_LOCATION))
+				if (name.equalsIgnoreCase(IN_COL_LOCATION)) {
 					IN_COL_LOCATION = name;
+					locationColExists = true;
+				}
 				if (name.equalsIgnoreCase(IN_COL_BUILDING))
 					IN_COL_BUILDING = name;
 				if (name.equalsIgnoreCase(IN_COL_FLOOR)) IN_COL_FLOOR = name;
@@ -317,6 +320,7 @@ public class StaffSurveyReader {
 				from = Integer.parseInt(tie[fromCol]);
 				to = Integer.parseInt(tie[toCol]);
 				for (int i = 0; i < tie.length; i++) {
+					if (tie[i].equals("-")) continue;
 					if (i == fromCol || i == toCol || i == ownerCol) continue;
 					Tie t = null;
 					for (Tie nt : ties)
@@ -350,11 +354,23 @@ public class StaffSurveyReader {
 							answers.get(IN_COL_COMPLETED).get(i).trim();
 					Person p = new Person(id, name, email);
 					p.team = answers.get(IN_COL_TEAM).get(i).trim();
-					p.location = answers.get(IN_COL_LOCATION).get(i).trim();
-					if(IN_COL_BUILDING != null && answers.containsKey(IN_COL_BUILDING))
-					p.building = answers.get(IN_COL_BUILDING).get(i).trim();
-					if(IN_COL_FLOOR != null && answers.containsKey(IN_COL_FLOOR))
-					p.floor = answers.get(IN_COL_FLOOR).get(i).trim();
+					if (IN_COL_BUILDING != null
+							&& answers.containsKey(IN_COL_BUILDING))
+						p.building = answers.get(IN_COL_BUILDING).get(i).trim();
+					if (IN_COL_FLOOR != null
+							&& answers.containsKey(IN_COL_FLOOR))
+						p.floor = answers.get(IN_COL_FLOOR).get(i).trim();
+					if (locationColExists)
+						p.location = answers.get(IN_COL_LOCATION).get(i).trim();
+					else if (IN_COL_BUILDING != null
+							&& answers.containsKey(IN_COL_BUILDING)
+							&& IN_COL_FLOOR != null
+							&& answers.containsKey(IN_COL_FLOOR)) {
+						p.location = p.building + "_" + p.floor;
+					} else if (IN_COL_FLOOR != null
+							&& answers.containsKey(IN_COL_FLOOR)) {
+						p.location = p.floor;
+					}
 					for (String q : answers.keySet()) {
 						if (q.equals(IN_COL_COMPLETED))
 							p.setCompleted(completed);

@@ -319,6 +319,8 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("poly_types_names", new String [] {"poly_type_ids"});
 		knownFunctions.put("possible_choices_in_question",
 				new String [] {"question_id"});
+		knownFunctions.put("possible_choices_in_questions",
+				new String [] {"question_ids"});
 		knownFunctions.put("question_names", new String [] {"question_ids"});
 		knownFunctions.put("quotes_under_issue", new String [] {"study_id",
 				"issue_id"});

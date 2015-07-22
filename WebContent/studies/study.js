@@ -398,8 +398,9 @@ app
 						'$timeout',
 						'StudyFactory',
 						'HTTPFactory',
+						'$http',
 						function($scope, $stateParams, $modal, $timeout, StudyFactory,
-								HTTPFactory) {
+								HTTPFactory, $http) {
 							$scope.id = $stateParams.studyid;
 							// $scope.viewAlias = $stateParams.viewAlias;
 							$scope.issue = $stateParams.issue;
@@ -434,10 +435,92 @@ app
 									return '__' + ('000' + c.toString(16)).slice(-4);
 								});
 							}
-							$scope.copyToClipboard = function(metric, id) {
+							$scope.hoverIn = function(metric) {
+								$scope.hovered = metric;
+							};
+
+							$scope.hoverOut = function() {
+								$scope.hovered = null;
+							};
+							$scope.isHovered = function(metric) {
+								return $scope.hovered && $scope.hovered === metric;
+							};
+							$scope.toggle_no_of_decimals = function(metric) {
+								if (metric.no_of_decimals
+										&& typeof metric.no_of_decimals === 'string'
+										&& metric.no_of_decimals.slice(0, 1) === 'i') {
+									metric.no_of_decimals = metric.no_of_decimals.slice(1);
+									return;
+								}
 								if (metric.no_of_decimals || metric.no_of_decimals === 0)
 									metric.no_of_decimals = 'i' + metric.no_of_decimals;
-								console.log(metric.no_of_decimals);
+							}
+							$scope.downloadSVG = function(id) {
+								var nid = $scope.toAliasString(id);
+								var svgpar = document.getElementById(nid);
+
+								var svg = svgpar.getElementsByTagName("svg")[0];
+
+								svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+								var image_data = '<?xml version="1.0" encoding="utf-8" standalone="no"?>'
+										+ '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
+										+ '"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
+								image_data += svg.outerHTML;
+
+								window.open('data:image/svg+xml;utf8,' + image_data, '_blank');
+
+							}
+							$scope.downloadEMF = function(id) {
+								var nid = $scope.toAliasString(id);
+								var svgpar = document.getElementById(nid);
+
+								var svg = svgpar.getElementsByTagName("svg")[0];
+
+								svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+								var image_data = '<?xml version="1.0" encoding="utf-8" standalone="no"?>'
+										+ '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
+										+ '"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
+								image_data += svg.outerHTML;
+								var transform = function(data) {
+									return $.param(data);
+								}
+								$http
+										.post(
+												HTTPFactory.getBackend() + "ConvertSVGToEMF",
+												{
+													data : image_data
+												},
+												{
+													headers : {
+														'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8'
+													},
+													transformRequest : transform
+												}).success(function(data, status, headers, config) {
+											var file = new Blob([
+												data
+											], {
+												type : 'application/csv'
+											});
+											// trick to download store a file having its URL
+											var fileURL = URL.createObjectURL(file);
+											var a = document.createElement('a');
+											a.href = fileURL;
+											a.target = '_blank';
+											a.download = 'chart.emf';
+											document.body.appendChild(a);
+											a.click();
+										}).error(function(data, status, headers, config) {
+
+										});
+								// HTTPFactory.backendPost("ConvertSVGToEMF", {
+								// data : image_data
+								// }).then(function(response) {
+								// console.log(response);
+								// });
+
+							}
+							$scope.copyToClipboard = function(metric, id) {
+								$scope.toggle_no_of_decimals(metric);
 								$timeout(function() {
 									var nid = $scope.toAliasString(id);
 									var tbl = document.getElementById(nid);
@@ -458,10 +541,7 @@ app
 									inliner(el);
 									window.prompt("Copy to clipboard: Ctrl+C, Enter",
 											el.outerHTML);
-									if (metric.no_of_decimals
-											&& metric.no_of_decimals.slice(0, 1) === 'i')
-										metric.no_of_decimals = metric.no_of_decimals.slice(1);
-									console.log(metric.no_of_decimals);
+									$scope.toggle_no_of_decimals(metric);
 								}, 200);
 
 								// return defer.promise;
@@ -681,7 +761,8 @@ app
 												'avg_desk_occupancy_per_team', //
 												'max_desk_occupancy_per_team_prc',
 												'occupancy_frequency_grouped', //
-												'choices_of_activities_questions'
+												// 'choices_of_activities_questions_prc',
+												'choices_of_activities_questions_sum_transpose_prc'
 										]
 									},
 									{
@@ -754,7 +835,7 @@ app
 												'no_of_meeting_rooms',//
 												'nia_meeting_room_bkb',//
 												'nia_meeting_room_to_total_prc', //
-												'avg_utilisation_when_used_meeting_rooms',//
+												// 'avg_utilisation_when_used_meeting_rooms',//
 												'no_of_replies_can_get_meeting_room',
 												'no_of_replies_important_confidential_mtg',
 												'no_of_replies_important_bookable_mtg',
@@ -771,12 +852,15 @@ app
 										title : 'Spatial efficiency of alternative spaces',
 										metrics : [
 												'nia_alternative_spaces', //
+												'nia_canteen', //
 												'nia_alternative_spaces_sqft', //
 												'nia_alternative_spaces_prc', //
 												'nia_per_alternative_space_type', //
 												'no_of_alternative_spaces', //
 												'max_utilisation_of_alternative_spaces',
 												'occupancy_of_alternative_spaces_prc',
+												'max_occupancy_of_alternative_spaces_prc',
+												'min_occupancy_of_alternative_spaces_prc',
 												'choices_of_informal_facilities_questions',
 												'no_of_replies_concentration_spaces_exist',
 												'Spatial efficiency of alternative spaces',
@@ -789,6 +873,8 @@ app
 										name : 'S7',
 										title : 'Suitability of storage',
 										metrics : [
+												'nia_storage',
+												'nia_storage_sqft',
 												'nia_storage_to_total_prc',
 												'choices_of_storage_facilities_questions',
 												'Suitability of storage',
@@ -813,7 +899,6 @@ app
 										name : 'O2',
 										title : 'Hierarchy suitably reinforced by space',
 										metrics : [
-												'no_of_replies_some_people_better_environment',
 												'quotes_under_hierarchy_suitably_reinforced_by_space',
 												'stakeholder_cultural_preferences_formal_informal_current',
 												'stakeholder_cultural_preferences_formal_informal_future',
@@ -844,7 +929,7 @@ app
 										metrics : [
 												'prc_on_the_phone',
 												'avg_no_of_people_on_the_phone_per_team_prc',
-												'choices_of_activities_questions',
+												'choices_of_activities_questions_sum_transpose_prc',
 												'choices_of_facilities_importance_questions',
 												'no_of_tagged_quotes_improvements',
 												'Spatial suitability for key business processes',
@@ -965,6 +1050,9 @@ app
 												'Opportunities for unplanned interaction',
 												'no_of_planned_contacts_per_score',
 												'no_of_unplanned_contacts_per_score',
+												'avg_monthly_unplanned_contact',
+												'avg_monthly_planned_contact',//
+												'avg_monthly_contact', //
 												'avg_accessibility_mean_depth', //
 										]
 									},
@@ -1018,7 +1106,7 @@ app
 										name : 'CR1',
 										title : 'Awareness and willingness to change',
 										metrics : [
-												'choices_of_facilities_importance_questions',
+												'choices_of_change_readiness_questions',
 												'Awareness and willingness to change',
 												'stakeholder_cultural_preferences_risky_cautious_current',
 												'stakeholder_cultural_preferences_risky_cautious_future'
@@ -1030,6 +1118,7 @@ app
 										title : 'Staff drivers for change',
 										metrics : [
 												'no_of_replies_community_environment',
+												'no_of_replies_some_people_better_environment',
 												'no_of_replies_enjoyable_environment',
 												'no_of_replies_proud_of_environment',
 												'Staff drivers for change'
@@ -1210,7 +1299,8 @@ app
 				[
 						'HTTPFactory',
 						'$q',
-						function(HTTPFactory, $q) {
+						'$http',
+						function(HTTPFactory, $q, $http) {
 							var loadedStudies = {};
 							var knownFunctions = function() {
 								var that = this;
@@ -2998,6 +3088,26 @@ app
 											}
 										};
 									},
+									'possible_choices_in_questions' : function(data) {
+										var question_ids = data[0];
+										return {
+											name : 'Possible choices in Questions',
+											proc : 'possible_choices_in_questions',
+											params : function(study) {
+												return {
+													question_ids : question_ids
+												};
+											},
+											callback : function(response) {
+												var content;
+												if (response.data)
+													content = JSON.parse(response.data);
+												return {
+													content : content
+												};
+											}
+										};
+									},
 									'no_of_responders_for_choice_question_and_choices' : function(
 											data) {
 										var study_id = data[0];
@@ -4614,13 +4724,11 @@ app
 											}
 										};
 									},
-									'table_sum' : function(data) {
-										var table = data[0].content;
-										var property;
-										if (data[1])
-											property = data[1].content;
+									'join_arrays' : function(data) {
+										var array1 = data[0].content;
+										var array2 = data[1].content;
 										return {
-											name : 'Get average value(s)',
+											name : 'Transpose table',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -4629,36 +4737,8 @@ app
 															return;
 														}
 														var response = {
-															data : {}
+															data : array1.concat(array2)
 														}
-														response.data.properties = angular
-																.copy(table.properties);
-														response.data.keyType = table.keyType;
-														var comparePropIndex = 0;
-														if (property)
-															for (var i = 0; i < table.properties.length; i++) {
-																if (table.properties[i].alias === property) {
-																	comparePropIndex = i;
-																	break;
-																}
-															}
-														var sumVal = 0;
-														for (var i = 0; i < table.keys.length; i++) {
-															sumVal += table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
-
-														}
-														response.type = 'table';
-														response.data.keys = [
-															{
-																alias : 'sum',
-																name : 'Sum'
-															}
-														];
-														response.data.data = {
-															'sum' : {}
-														};
-														response.data.data['sum'][table.properties[comparePropIndex].alias] = sumVal;
-														var propTotals = {};
 														success(response);
 													}
 												};
@@ -4673,6 +4753,318 @@ app
 											}
 										};
 									},
+									'table_transpose' : function(data) {
+										var table = data[0].content;
+										return {
+											name : 'Transpose table',
+											get : function() {
+												return {
+													then : function(success, error) {
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														}
+														response.data.properties = table.keys;
+														response.data.keys = table.properties;
+														response.data.keyType = table.keyType;
+														response.type = 'table';
+														response.data.data = {}
+														for (var i = 0; i < table.properties.length; i++) {
+															var prop = table.properties[i].alias;
+															response.data.data[prop] = {};
+															for (var j = 0; j < table.keys.length; j++) {
+																var key = table.keys[j].alias;
+																response.data.data[prop][key] = table.data[key][prop];
+
+															}
+														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+									'table_union' : function(data) {
+										var t1info = data[0].content;
+										var table1 = data[1].content;
+										var t2info = data[2].content;
+										var table2 = data[3].content;
+										return {
+											name : 'Union tables',
+											get : function() {
+												return {
+													then : function(success, error) {
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														}
+														response.type = 'table';
+														response.data.keyType = table1.keyType;
+														response.data.properties = [];
+														for (var i = 0; i < table1.properties.length; i++) {
+															for (var j = 0; j < table2.properties.length; j++) {
+																if (table1.properties[i].alias === table2.properties[j].alias) {
+																	var prop = {};
+																	angular.forEach(table1.properties[i],
+																			function(val, key) {
+																				prop[key] = val;
+																			});
+																	response.data.properties.push(prop);
+																	break;
+																}
+															}
+														}
+														if (response.data.properties.length > 0) {
+															response.data.keys = [];
+															response.data.data = {}
+															for (var i = 0; i < table1.keys.length; i++) {
+																var key = table1.keys[i].alias;
+																var nkeyAlias = t1info.alias
+																		+ table1.keys[i].alias;
+																var dataVal = table1.data[key];
+																var kfound = false;
+																for (var i = 0; i < response.data.properties.length; i++) {
+																	var prop = response.data.properties[i].alias;
+																	if (prop in dataVal) {
+																		if (!kfound) {
+																			var newKey = angular.copy(table1.keys[i]);
+																			newKey.alias = nkeyAlias;
+																			if (t1info.rename)
+																				newKey.name = (t1info.name ? t1info.name
+																						: t1info.alias)
+																			else
+																				newKey.name = newKey.name
+																						+ " ("
+																						+ (t1info.name ? t1info.name
+																								: t1info.alias) + ")";
+																			response.data.keys.push(newKey);
+																			response.data.data[nkeyAlias] = {};
+																			kfound = true;
+																		}
+																		response.data.data[nkeyAlias][prop] = dataVal[prop];
+																	}
+																}
+															}
+															for (var i = 0; i < table2.keys.length; i++) {
+																var key = table2.keys[i].alias;
+																var nkeyAlias = t2info.alias
+																		+ table2.keys[i].alias;
+																var dataVal = table2.data[key];
+																var kfound = false;
+																for (var i = 0; i < response.data.properties.length; i++) {
+																	var prop = response.data.properties[i].alias;
+																	if (prop in dataVal) {
+																		if (!kfound) {
+																			var newKey = angular.copy(table2.keys[i]);
+																			newKey.alias = nkeyAlias;
+																			if (t2info.rename)
+																				newKey.name = (t2info.name ? t2info.name
+																						: t2info.alias)
+																			else
+																				newKey.name = newKey.name
+																						+ " ("
+																						+ (t2info.name ? t2info.name
+																								: t2info.alias) + ")";
+																			response.data.keys.push(newKey);
+																			response.data.data[nkeyAlias] = {};
+																			kfound = true;
+																		}
+																		response.data.data[nkeyAlias][prop] = dataVal[prop];
+																	}
+																}
+															}
+														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+									'table_sum' : function(data) {
+										var table = data[0].content;
+										var property;
+										var weights;
+										if (data[1] && data[1].content)
+											property = data[1].content;
+										if (data[2] && data[2].content)
+											weights = data[2].content;
+										// TODO: instead of doing this maybe its better to multiply
+										// a table with a list...?
+										return {
+											name : 'Get average value(s)',
+											get : function() {
+												return {
+													then : function(success, error) {
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														}
+														response.data.properties = [];
+														response.data.keyType = table.keyType;
+														var comparePropIndices = [];
+														if (property) {
+															for (var i = 0; i < table.properties.length; i++) {
+																if (table.properties[i].alias === property) {
+																	comparePropIndices.push(i);
+																	response.data.properties.push(property);
+																	break;
+																}
+															}
+														} else
+															for (var i = 0; i < table.properties.length; i++) {
+																response.data.properties
+																		.push(table.properties[i]);
+																comparePropIndices.push(i);
+															}
+														response.type = 'table';
+														response.data.keys = [
+															{
+																alias : 'sum',
+																name : 'Sum'
+															}
+														];
+														response.data.data = {
+															'sum' : {}
+														};
+														var w = {};
+														if (weights)
+															for (var i = 0; i < weights.length; i++) {
+																w[weights[i].alias] = weights[i].mark;
+															}
+														for (var j = 0; j < comparePropIndices.length; j++) {
+															var sumVal = 0;
+															for (var i = 0; i < table.keys.length; i++) {
+																var dt = table.data[table.keys[i].alias][table.properties[comparePropIndices[j]].alias];
+																if (dt) {
+																	if (w[table.keys[i].alias])
+																		dt *= w[table.keys[i].alias];
+
+																	sumVal += dt;
+																}
+															}
+															response.data.data['sum'][table.properties[comparePropIndices[j]].alias] = sumVal;
+														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+									// 'table_right_sum' : function(data) {
+									// var table = data[0].content;
+									// var key;
+									// var weights;
+									// if (data[1] && data[1].content)
+									// key = data[1].content;
+									// if (data[2] && data[2].content)
+									// weights = data[2].content;
+									// // a table with a list...?
+									// return {
+									// name : 'Get average value(s)',
+									// get : function() {
+									// return {
+									// then : function(success, error) {
+									// if (status === 201) {
+									// success(data[0]);
+									// return;
+									// }
+									// var response = {
+									// data : {}
+									// }
+									// response.data.keys = [];
+									// response.data.keyType = table.keyType;
+									// var comparePropIndices = [];
+									// if (key) {
+									// for (var i = 0; i < table.keys.length; i++) {
+									// if (table.keys[i].alias === key) {
+									// comparePropIndices.push(i);
+									// response.data.keys.push(key);
+									// break;
+									// }
+									// }
+									// } else
+									// for (var i = 0; i < table.keys.length; i++) {
+									// response.data.keys
+									// .push(table.keys[i]);
+									// comparePropIndices.push(i);
+									// }
+									// response.type = 'table';
+									// response.data.properties = [
+									// {
+									// alias : 'sum',
+									// name : 'Sum'
+									// }
+									// ];
+									// response.data.data = {
+									// 'sum' : {}
+									// };
+									// // var w = {};
+									// // if (weights)
+									// // for (var i = 0; i < weights.length; i++) {
+									// // w[weights[i].alias] = weights[i].mark;
+									// // }
+									//
+									// for (var j = 0; j < comparePropIndices.length; j++) {
+									// var sumVal = 0;
+									// for (var i = 0; i < table.properties.length; i++) {
+									// var dt =
+									// table.data[table.keys[comparePropIndices[j]].alias][table.properties[i].alias];
+									// if (dt) {
+									// // if (w[table.properties[i].alias])
+									// // dt *= w[table.properties[i].alias];
+									// sumVal += dt;
+									// }
+									// }
+									// response.data.data[comparePropIndices[j]][table.properties['sum'].alias]
+									// = sumVal;
+									// }
+									// success(response);
+									// }
+									// };
+									// },
+									// callback : function(response) {
+									// var result = {
+									// content : response.data
+									// };
+									// if (response.type)
+									// result.type = response.type;
+									// return result;
+									// }
+									// };
+									// },
 									'table_avg' : function(data) {
 										var table = data[0].content;
 										var property;
@@ -5144,7 +5536,14 @@ app
 							// resolveMeasure(nel).then(function(result) {
 							// console.log(result);
 							// });
+
+							console.log('a');
+							// $http.get("studies/originalMetrics.json").then(
+							// function(response) {
+							// console.log(response);
+							// });
 							var newMeasures = function(study) {
+								console.log("Executing neMeasures");
 								var that = this;
 								var measures = {
 									'project_name' : function() {
@@ -5215,11 +5614,7 @@ app
 											name : 'Area per alternative space type',
 											measure : createMeasure('nia_per_poly_type', {
 												content : study.id
-											}, createMeasure('id_of_poly_types', {
-												content : 'func'
-											}, {
-												content : 'ALT-'
-											})),
+											}, measures['ids_of_alternative_space_types']().measure),
 										}
 									},
 									// BMARK nia_per_desk_per_team : NIA per desk per team
@@ -5255,11 +5650,8 @@ app
 										return {
 											name : 'NIA of alternative spaces per building',
 											measure : createMeasure('nia_of_poly_types_per_building',
-													createMeasure('id_of_poly_types', {
-														content : 'func'
-													}, {
-														content : 'ALT'
-													}), {
+													measures['ids_of_alternative_space_types']().measure,
+													{
 														content : study.id
 													})
 										}
@@ -5306,11 +5698,8 @@ app
 										return {
 											name : 'NIA of alternative spaces per space',
 											measure : createMeasure('nia_of_poly_types_per_space',
-													createMeasure('id_of_poly_types', {
-														content : 'func'
-													}, {
-														content : 'ALT'
-													}), {
+													measures['ids_of_alternative_space_types']().measure,
+													{
 														content : study.id
 													})
 										}
@@ -5387,6 +5776,7 @@ app
 									'nia_wrksp_per_building' : function() {
 										return {
 											name : 'NIA of workspace per building',
+											no_of_decimals : 2,
 											measure : createMeasure('nia_of_poly_types_per_building',
 													createMeasure('id_of_poly_types', {
 														content : 'func'
@@ -5731,11 +6121,16 @@ app
 									// Alternative Spaces
 									'ids_of_alternative_space_types' : function() {
 										return {
-											measure : createMeasure('id_of_poly_types', {
+											measure : createMeasure('join_arrays', createMeasure(
+													'id_of_poly_types', {
+														content : 'func'
+													}, {
+														content : 'ALT'
+													}), createMeasure('id_of_poly_types', {
 												content : 'func'
 											}, {
-												content : 'ALT'
-											})
+												content : 'OTHFCL-TEA'
+											}))
 										}
 									},
 									// BMARK no_of_alternative_spaces : Number of Alternative
@@ -6097,6 +6492,17 @@ app
 											}))
 										}
 									},
+									// BMARK nia_storage : NIA of Storage
+									'nia_storage_sqft' : function() {
+										return {
+											name : 'NIA of Storage',
+											measure : createMeasure('mult',
+													measures['nia_storage']().measure, {
+														content : 10.7639104
+													}),
+											units : 'ft\xB2'
+										}
+									},
 									// BMARK nia_storage_to_total_prc : NIA Storage to total
 									'nia_storage_to_total_prc' : function() {
 										return {
@@ -6125,11 +6531,7 @@ app
 											name : 'NIA of Alternative Spaces',
 											measure : createMeasure('nia_of_poly_types', {
 												content : study.id
-											}, createMeasure('id_of_poly_types', {
-												content : 'func'
-											}, {
-												content : 'ALT'
-											}))
+											}, measures['ids_of_alternative_space_types']().measure)
 										}
 									},
 									'nia_alternative_spaces_sqft' : function() {
@@ -6864,6 +7266,41 @@ app
 															().measure)
 										}
 									},
+									// BMARK occupancy_of_alternative_spaces_per_round : Overall
+									// occupancy of Bookable Meeting Rooms
+									'occupancy_of_alternative_spaces_per_round' : function() {
+										return {
+											name : 'Overall occupancy of Alternative Spaces (per round)',
+											measure : createMeasure(
+													'occupancy_of_poly_types_per_round',
+													measures['first_observation_id']().measure,
+													measures['ids_of_alternative_space_types']().measure,
+													createMeasure('round_times',
+															measures['first_observation_id']().measure))
+										}
+									},
+									// BMARK max_occupancy_of_alternative_spaces_prc : Maximum
+									// occupancy of Bookable Meeting Rooms (%)
+									'max_occupancy_of_alternative_spaces_prc' : function() {
+										return {
+											name : 'Maximum occupancy of Alternative Spaces (%)',
+											measure : createMeasure(
+													'table_max',
+													measures['occupancy_of_alternative_spaces_per_round_prc']
+															().measure)
+										}
+									},
+									// BMARK max_occupancy_of_alternative_spaces_prc : Maximum
+									// occupancy of Bookable Meeting Rooms (%)
+									'min_occupancy_of_alternative_spaces_prc' : function() {
+										return {
+											name : 'Minimum occupancy of Alternative Spaces (%)',
+											measure : createMeasure(
+													'table_min',
+													measures['occupancy_of_alternative_spaces_per_round_prc']
+															().measure)
+										}
+									},
 									// BMARK min_occupancy_of_bookable_meeting_rooms_prc : Minimum
 									// occupancy of Bookable Meeting Rooms (%)
 									'min_occupancy_of_bookable_meeting_rooms_prc' : function() {
@@ -7009,11 +7446,7 @@ app
 											name : 'Overall occupancy of Alternative Meeting Spaces',
 											measure : createMeasure('occupancy_of_poly_types',
 													measures['first_observation_id']().measure,
-													createMeasure('id_of_poly_types', {
-														content : 'func'
-													}, {
-														content : 'ALT'
-													}))
+													measures['ids_of_alternative_space_types']().measure)
 										}
 									},
 									// BMARK occupancy_of_alternative_spaces_prc : Overall
@@ -7030,6 +7463,22 @@ app
 																	'mult',
 																	measures['no_of_alternative_spaces']().measure,
 																	measures['no_of_rounds']().measure))),
+										}
+									},
+									// BMARK occupancy_of_bookable_meeting_rooms_per_round_prc :
+									// Overall
+									// occupancy of Bookable Meeting Rooms
+									'occupancy_of_alternative_spaces_per_round_prc' : function() {
+										return {
+											name : 'Overall occupancy of Alternative Meeting Spaces (% per round)',
+											no_of_decimals : 2,
+											measure : createMeasure('mult', createMeasure('div',
+													measures['occupancy_of_alternative_spaces_per_round']
+															().measure,
+
+													measures['no_of_alternative_spaces']().measure), {
+												content : 100
+											})
 										}
 									},
 									// BMARK no_of_replies_amount_of_space : Table of responses to
@@ -7883,20 +8332,53 @@ app
 									},
 									// BMARK choices_of_activities_questions : Choices of
 									// questions under XActivitiesSplit
+									'choices_of_activities_questions_prc' : function() {
+										return {
+											name : 'Choices of questions under XActivitiesSplit',
+											measure : createMeasure('table_prc',
+													measures['choices_of_activities_questions']().measure)
+										}
+									},
+									// BMARK choices_of_activities_questions : Choices of
+									// questions under XActivitiesSplit
 									'choices_of_activities_questions' : function() {
 										return {
 											name : 'Choices of questions under XActivitiesSplit',
 											measure : createMeasure(
+													'no_of_staff_replies_per_choice_multi_q',
+													{
+														content : study.id
+													},
+													measures['ids_of_activities_questions']().measure,
+													createMeasure('question_names',
+															measures['ids_of_activities_questions']().measure))
+										}
+									},
+									// BMARK choices_of_activities_questions_sum : Choices of
+									// questions under XActivitiesSplit (sum)
+									'choices_of_activities_questions_sum' : function() {
+										return {
+											name : 'Choices of questions under XActivitiesSplit (sum)',
+											measure : createMeasure(
+													'table_sum',
+													measures['choices_of_activities_questions']().measure,
+													{},
+													createMeasure('possible_choices_in_questions',
+															measures['ids_of_activities_questions']().measure))
+										}
+									},
+									// BMARK choices_of_activities_questions_sum_transpose_prc :
+									// Choices of
+									// questions under XActivitiesSplit
+									'choices_of_activities_questions_sum_transpose_prc' : function() {
+										return {
+											name : 'Choices of questions under XActivitiesSplit',
+											no_of_decimals : 0,
+											measure : createMeasure(
 													'table_prc',
 													createMeasure(
-															'no_of_staff_replies_per_choice_multi_q',
-															{
-																content : study.id
-															},
-															measures['ids_of_activities_questions']().measure,
-															createMeasure(
-																	'question_names',
-																	measures['ids_of_activities_questions']().measure)))
+															'table_transpose',
+															measures['choices_of_activities_questions_sum']().measure))
 										}
 									},
 									// BMARK ids_of_facilities_importance_questions : IDs of
@@ -7939,9 +8421,9 @@ app
 											})
 										}
 									},
-									// BMARK choices_of_facilities_importance_questions : Choices
+									// BMARK choices_of_change_readiness_questions : Choices
 									// of questions under XChangeReadiness
-									'choices_of_facilities_importance_questions' : function() {
+									'choices_of_change_readiness_questions' : function() {
 										return {
 											name : 'Choices of questions under XChangeReadiness',
 											measure : createMeasure('table_prc',
@@ -8968,6 +9450,48 @@ app
 													}))
 										}
 									},
+									// BMARK avg_monthly_planned_contact : Planned interaction
+									// (monthly average)
+									'avg_monthly_planned_contact' : function() {
+										return {
+											name : 'Planned interaction (monthly average)',
+											measure : createMeasure('table_sum',
+													createMeasure('mult',
+															createMeasure('table_prc',
+																	measures['no_of_planned_contacts_per_score']
+																			().measure), {
+																content : 1 / 100
+															}), {}, {
+														content : [
+																{
+																	alias : '0',
+																	mark : 0
+																}, {
+																	alias : '1',
+																	mark : 0
+																}, {
+																	alias : '2',
+																	mark : 1
+																}, {
+																	alias : '3',
+																	mark : 4.5
+																}, {
+																	alias : '4',
+																	mark : 2.5 * 4.5
+																}, {
+																	alias : '5',
+																	mark : 22.5
+																}, {
+																	alias : '6',
+																	mark : 2.5 * 22.5
+																}, {
+																	alias : '7',
+																	mark : 4 * 22.5
+																}
+														]
+													})
+										}
+									},
 									// BMARK no_of_unplanned_contacts_per_score : Number of
 									// unplanned contacts per frequency of contact
 									'no_of_unplanned_contacts_per_score' : function() {
@@ -8979,6 +9503,73 @@ app
 													}, createMeasure('id_of_staff_question', {
 														content : 'XUnplannedFrequencyFace'
 													}))
+										}
+									},
+									// BMARK avg_monthly_unplanned_contact : Unplanned interaction
+									// (monthly average)
+									'avg_monthly_unplanned_contact' : function() {
+										return {
+											name : 'Unplanned interaction (monthly average)',
+											measure : createMeasure(
+													'table_sum',
+													createMeasure(
+															'mult',
+															createMeasure(
+																	'table_prc',
+																	measures['no_of_unplanned_contacts_per_score']
+																			().measure), {
+																content : 1 / 100
+															}), {}, {
+														content : [
+																{
+																	alias : '0',
+																	mark : 0
+																}, {
+																	alias : '1',
+																	mark : 0
+																}, {
+																	alias : '2',
+																	mark : 1
+																}, {
+																	alias : '3',
+																	mark : 4.5
+																}, {
+																	alias : '4',
+																	mark : 2.5 * 4.5
+																}, {
+																	alias : '5',
+																	mark : 22.5
+																}, {
+																	alias : '6',
+																	mark : 2.5 * 22.5
+																}, {
+																	alias : '7',
+																	mark : 4 * 22.5
+																}
+														]
+													})
+										}
+									},
+									'avg_monthly_contact' : function() {
+										return {
+											name : 'Staff Interaction',
+											no_of_decimals : 0,
+											measure : createMeasure('table_prc', createMeasure(
+													'table_union', {
+														content : {
+															alias : 'avg_monthly_planned_contact',
+															name : 'Planned interaction',
+															rename : true
+														}
+													}, measures['avg_monthly_planned_contact']().measure,
+													{
+														content : {
+															alias : 'avg_monthly_unplanned_contact',
+															name : 'Unplanned interaction',
+															rename : true
+														}
+													},
+													measures['avg_monthly_unplanned_contact']().measure))
 										}
 									},
 									// BMARK
@@ -9719,7 +10310,7 @@ app
 													createMeasure('id_of_poly_types', {
 														content : 'func'
 													}, {
-														content : 'MTG'
+														content : 'MTG-BKB'
 													}), {
 														content : [
 																1, 2, 3
@@ -9750,7 +10341,7 @@ app
 													createMeasure('id_of_poly_types', {
 														content : 'func'
 													}, {
-														content : 'MTG'
+														content : 'MTG-BKB'
 													}), {
 														content : [
 																1, 2, 3
@@ -9846,7 +10437,8 @@ app
 											measure : createMeasure('get_range_array', createMeasure(
 													'mult', createMeasure('construct_ranges', {
 														content : [
-																'0-0.5:0 - 50%', '0.5-0.7:50 - 70%', '0.7+:70% - 100%'
+																'0-0.5:0 - 50%', '0.5-0.7:50 - 70%',
+																'0.7+:70 - 100%'
 														]
 													}), measures['no_of_rounds']().measure))
 										}
@@ -9907,6 +10499,15 @@ app
 											}, {
 												content : 'OTHFCL-CAN'
 											})
+										}
+									},
+									// BMARK nia_canteen : NIA of Primary Circulation
+									'nia_canteen' : function() {
+										return {
+											name : 'NIA of Canteen',
+											measure : createMeasure('nia_of_poly_types', {
+												content : study.id
+											}, measures['id_of_canteen_spaces']().measure)
 										}
 									},
 									// BMARK activity_in_canteen_per_round : Number of people per
@@ -10138,10 +10739,130 @@ app
 										loadedStudies[id] = study;
 									}
 									var known = newMeasures(study);
+									var testak = {
+										"project_name" : {
+											"name" : "Project Name",
+											"measure" : {
+												"type" : "f",
+												"value" : "project_name",
+												"inputs" : [
+													{
+														"type" : "c",
+														"value" : "study.id"
+													}
+												]
+											}
+										},
+										"first_observation_id" : {
+											"name" : "First observation ID",
+											"measure" : {
+												"type" : "f",
+												"value" : "first_observation_id",
+												"inputs" : [
+													{
+														"type" : "c",
+														"value" : "study.id"
+													}
+												]
+											}
+										},
+										"nia_total_per_desk":{
+											"name":"Total NIA per desk",
+											"measure":{
+												"type":"f",
+												"value":"div",
+												"inputs":[
+													{
+														"type":"m",
+														"value":"nia_total"
+													},
+													{
+														"type":"m",
+														"value":"no_of_desks"
+													}
+												]
+											},
+											"units":"m\\xB2/desk"
+										},
+										"nia_total_sqft":{
+											"name":"Total NIA (ft\\xB2)",
+											"measure":{
+												"type":"f",
+												"value":"mult",
+												"inputs":[
+													{
+														"type":"m",
+														"value":"nia_total"
+													},
+													{
+														"type":"c",
+														"value":10.7639104
+													}
+												]
+											},
+											"units":"ft\\xB2"
+										},
+										"no_of_buildings":{
+											"name":"Number of buildings",
+											"measure":{
+												"type":"f",
+												"value":"no_of_buildings",
+												"inputs":[
+													{
+														"type":"c",
+														"value":"study.id"
+													}
+												]
+											}
+										},
+										"nia_total_per_building":{
+											"name":"Total NIA per building",
+											"measure":{
+												"type":"f",
+												"value":"nia_of_poly_type_group_per_building",
+												"inputs":[
+													{
+														"type":"c",
+														"value":"study.id"
+													},
+													{
+														"type":"c",
+														"value":"func"
+													}
+												]
+											},
+											"units":"m\\xB2"
+										},
+									}
+//									for(var i = 0; i < testak.keys.length; i++) {
+//										var key = testak.keys[i];
+//										var m = testak[key];
+//									}
 
+//									for (var i = 0; i < measures.length; i++) {
+//										if (testak[measures[i]]) {
+//											var result = testak[measures[i]];
+//											console.log(JSON.stringify(result));
+//											resolveMeasure(result.measure).then(
+//													function(solvedMeasure) {
+//														angular.copy(solvedMeasure, solvedMeasure.request);
+//													});
+//											study[measures[i]] = result;
+//										} else {
+//											study[measures[i]] = {
+//												name : measures[i],
+//												measure : {
+//													content : "Unknown measure"
+//												}
+//											}
+//										}
+//									}
+									// --------------
+									console.log(known);
 									for (var i = 0; i < measures.length; i++) {
 										if (known[measures[i]]) {
 											var result = known[measures[i]]();
+											console.log(JSON.stringify(result));
 											resolveMeasure(result.measure).then(
 													function(solvedMeasure) {
 														angular.copy(solvedMeasure, solvedMeasure.request);
@@ -10156,6 +10877,7 @@ app
 											}
 										}
 									}
+//									------------
 									// var promises = [];
 									// for (var i = 0; i < measures.length; i++) {
 									// promises.push(tricklePromises(measures[i], study));

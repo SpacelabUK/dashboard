@@ -21,7 +21,10 @@ app
 								$modalInstance.dismiss('cancel');
 							};
 							$scope.depthmapTypes = [
-								"General"
+							        								"General",
+							        								"Visibility",
+							        								"Essence",
+							        								"Accessibility"
 							];
 							$scope.properties = {}
 							HTTPFactory.backendGet(
