@@ -3,7 +3,7 @@ app.factory('HTTPFactory', [
 		'$q',
 		function($http, $q) {
 			var backend = "/tomcutter/";
-			var public = {
+			var pub = {
 				backendGet : function(url) {
 
 					var deferred = $q.defer(), httpPromise = $http.get(backend + url);
@@ -36,6 +36,6 @@ app.factory('HTTPFactory', [
 					return backend;
 				},
 			}
-			return public;
+			return pub;
 		}
 ]);

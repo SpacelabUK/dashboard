@@ -3,11 +3,12 @@
 		"name":"Project Name",
 		"measure":{
 			"type":"f",
-			"value":"project_name",
+			"value":"get_project_name",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -19,8 +20,9 @@
 			"value":"first_observation_id",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -46,10 +48,12 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"team"
 				},
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":""
 				}
 			]
@@ -83,8 +87,9 @@
 			"value":"nia_per_poly_type",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -92,10 +97,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"team"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":""
 						}
 					]
@@ -110,8 +117,9 @@
 			"value":"nia_per_poly_type",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -174,8 +182,9 @@
 					"value":"ids_of_alternative_space_types"
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -192,17 +201,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -256,8 +268,9 @@
 					"value":"ids_of_alternative_space_types"
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -274,17 +287,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -339,17 +355,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-CEL"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -366,17 +385,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-OPN"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -394,17 +416,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -438,17 +463,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"CIRC-PRI"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -482,17 +510,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"CIRC-PRI"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -539,17 +570,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -589,6 +623,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":2
 				}
 			]
@@ -602,6 +637,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":2
 				},
 				{
@@ -891,8 +927,9 @@
 			"value":"no_of_buildings",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -918,8 +955,9 @@
 			"value":"no_of_staff",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -931,8 +969,9 @@
 			"value":"no_of_staff_per_building",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -970,8 +1009,9 @@
 			"value":"no_of_polys_in_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -979,10 +1019,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG-BKB"
 						}
 					]
@@ -997,8 +1039,9 @@
 			"value":"no_of_polys_in_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1006,10 +1049,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL-TEA"
 						}
 					]
@@ -1028,10 +1073,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"ALT"
 						}
 					]
@@ -1042,10 +1089,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL-TEA"
 						}
 					]
@@ -1060,8 +1109,9 @@
 			"value":"no_of_polys_in_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -1086,10 +1136,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-CEL"
 						}
 					]
@@ -1113,10 +1165,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-CEL"
 						}
 					]
@@ -1140,10 +1194,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-OPN"
 						}
 					]
@@ -1167,10 +1223,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-OPN"
 						}
 					]
@@ -1194,28 +1252,33 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-OPN"
 						}
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -1273,28 +1336,33 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-CEL"
 						}
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -1343,8 +1411,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1352,10 +1421,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"CIRC-PRI"
 						}
 					]
@@ -1375,6 +1446,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1420,7 +1492,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_wrksp":{
 		"name":"NIA of Workspace",
@@ -1429,8 +1501,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1438,10 +1511,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP"
 						}
 					]
@@ -1461,6 +1536,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1506,7 +1582,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_wrksp_open":{
 		"name":"NIA of Open Workspace",
@@ -1515,8 +1591,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1524,10 +1601,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-OPN"
 						}
 					]
@@ -1547,6 +1626,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1592,7 +1672,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_wrksp_opn_per_desk_per_building":{
 		"name":"Workspace per desk (Open plan) per building",
@@ -1610,7 +1690,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_wrksp_cel":{
 		"name":"NIA of Cellular Workspace",
@@ -1619,8 +1699,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1628,10 +1709,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP-CEL"
 						}
 					]
@@ -1651,6 +1734,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1696,7 +1780,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_wrksp_cel_per_desk_per_building":{
 		"name":"Workspaceperdesk(Cellular) per building",
@@ -1714,7 +1798,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_storage":{
 		"name":"NIA of Storage",
@@ -1723,8 +1807,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1732,10 +1817,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL-STO"
 						}
 					]
@@ -1755,6 +1842,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1791,8 +1879,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1800,10 +1889,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG-BKB"
 						}
 					]
@@ -1818,8 +1909,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -1840,6 +1932,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -1877,8 +1970,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1886,10 +1980,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG"
 						}
 					]
@@ -1932,17 +2028,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -1959,17 +2058,20 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG"
 						}
 					]
 				},
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}
@@ -1981,8 +2083,9 @@
 			"value":"nia_of_poly_types",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -1990,10 +2093,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"OTHFCL"
 						}
 					]
@@ -2034,6 +2139,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -2181,11 +2287,13 @@
 			"value":"nia_of_poly_type_group",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"func"
 				}
 			]
@@ -2204,6 +2312,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":10.7639104
 				}
 			]
@@ -2217,11 +2326,13 @@
 			"value":"nia_of_poly_type_group_per_building",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"func"
 				}
 			]
@@ -2235,11 +2346,13 @@
 			"value":"nia_of_poly_type_group_per_space",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"func"
 				}
 			]
@@ -2258,12 +2371,14 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						3
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2271,6 +2386,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2292,12 +2408,14 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						2
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2305,6 +2423,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2326,12 +2445,14 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2339,6 +2460,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2360,6 +2482,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2368,6 +2491,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2375,6 +2499,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
@@ -2395,6 +2520,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2403,6 +2529,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2410,6 +2537,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						0,
 						1
@@ -2431,6 +2559,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2439,6 +2568,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aobj",
 					"value":[
 						{
 							"id":1,
@@ -2470,6 +2600,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2492,6 +2623,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2514,6 +2646,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						3
 					]
@@ -2534,6 +2667,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						3
 					]
@@ -2558,7 +2692,7 @@
 				}
 			]
 		},
-		"units":"people/m\\xB2"
+		"units":"people\/m\\xB2"
 	},
 	"avg_utlisation_per_sqm_per_building":{
 		"name":"Avg utilisation per m\\xB2 per building",
@@ -2576,7 +2710,7 @@
 				}
 			]
 		},
-		"units":"people/m\\xB2"
+		"units":"people\/m\\xB2"
 	},
 	"avg_utlisation_per_sqm_per_space":{
 		"name":"Avg utilisation per m\\xB2perfloor",
@@ -2594,7 +2728,7 @@
 				}
 			]
 		},
-		"units":"people/m\\xB2"
+		"units":"people\/m\\xB2"
 	},
 	"people_any_activity_interacting_total":{
 		"name":"Number of people in space interacting",
@@ -2608,6 +2742,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2639,16 +2774,19 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"func"
 								},
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"WRKSP"
 								}
 							]
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								1,
 								2,
@@ -2657,6 +2795,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								0,
 								1
@@ -2664,6 +2803,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								0,
 								1
@@ -2671,6 +2811,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aobj",
 							"value":[
 								{
 									"id":1,
@@ -2704,6 +2845,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2726,6 +2868,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1,
 						2,
@@ -2776,6 +2919,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"as",
 							"value":[
 								"0-31:LOW",
 								"31-37:MEDIUM",
@@ -2809,6 +2953,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -2837,6 +2982,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -2969,6 +3115,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -2999,6 +3146,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -3023,10 +3171,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG-BKB"
 						}
 					]
@@ -3050,10 +3200,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG-BKB"
 						}
 					]
@@ -3192,10 +3344,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"MTG-BKB"
 						}
 					]
@@ -3219,16 +3373,19 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP"
 						}
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						1
 					]
@@ -3252,16 +3409,19 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"func"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"WRKSP"
 						}
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"aint",
 					"value":[
 						2
 					]
@@ -3359,6 +3519,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -3437,6 +3598,7 @@
 				},
 				{
 					"type":"c",
+					"value_type":"int",
 					"value":100
 				}
 			]
@@ -3453,8 +3615,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3462,6 +3625,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"TheSpaceAtAndAroundMyDeskIsAppro"
 								}
 							]
@@ -3470,7 +3634,8 @@
 				}
 			]
 		},
-		"units":"replies"
+		"units":"replies",
+		"view":"chart"
 	},
 	"no_of_replies_face_to_face_spaces_exist_within_team":{
 		"name":"Table of responses to question: ThereAreSpacesThatSupportFacetof(withindepartment)",
@@ -3483,8 +3648,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3492,6 +3658,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ThereAreSpacesThatSupportFacetof"
 								}
 							]
@@ -3513,8 +3680,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3522,6 +3690,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ThereAreSpacesThatSupportFacetof1"
 								}
 							]
@@ -3543,8 +3712,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3552,6 +3722,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ThereAreSpacesThatSupportConcent"
 								}
 							]
@@ -3569,8 +3740,9 @@
 			"value":"no_of_staff_quotes_per_tag",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -3578,6 +3750,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XBestFeature"
 						}
 					]
@@ -3593,8 +3766,9 @@
 			"value":"no_of_staff_quotes_per_tag",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -3602,6 +3776,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XImprovements"
 						}
 					]
@@ -3621,8 +3796,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3630,6 +3806,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"IAmAbleToGetAMeetingSpaceWhenINe"
 								}
 							]
@@ -3651,8 +3828,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3660,6 +3838,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ConfidentialMeetingRooms"
 								}
 							]
@@ -3681,8 +3860,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3690,6 +3870,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"BookableMeetingRooms"
 								}
 							]
@@ -3711,8 +3892,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3720,6 +3902,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"SomePeopleHaveAMuchBetterWorking"
 								}
 							]
@@ -3741,8 +3924,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3750,6 +3934,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ImProudOfMyOfficeEnvironment"
 								}
 							]
@@ -3771,8 +3956,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3780,6 +3966,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"MyDepartmentIsLocatedCloseToTheO"
 								}
 							]
@@ -3801,8 +3988,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3810,6 +3998,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"InPreplannedMeetingsWhichInclude"
 								}
 							]
@@ -3831,8 +4020,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3840,6 +4030,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"PhotocopierPrinterPoints"
 								}
 							]
@@ -3861,8 +4052,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3870,6 +4062,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ItAllowsUnplannedMeetingsChatsTo"
 								}
 							]
@@ -3891,8 +4084,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3900,6 +4094,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"DesktopComputer"
 								}
 							]
@@ -3921,8 +4116,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3930,6 +4126,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"XOwnDeskImportance"
 								}
 							]
@@ -3951,8 +4148,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3960,6 +4158,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"XVarietyOfSpaces"
 								}
 							]
@@ -3981,8 +4180,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -3990,6 +4190,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"VisitorsToOurOfficeLikeWhatTheyS"
 								}
 							]
@@ -4011,8 +4212,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4020,6 +4222,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ItContributesToASenseOfCommunity"
 								}
 							]
@@ -4041,8 +4244,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4050,6 +4254,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ItsAnEnjoyablePlaceToWork"
 								}
 							]
@@ -4071,8 +4276,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4080,6 +4286,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ItIsADynamicAndBuzzyEnvironment"
 								}
 							]
@@ -4101,8 +4308,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4110,6 +4318,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ICanFreelyAccessAllPartsOfTheOff"
 								}
 							]
@@ -4131,8 +4340,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4140,6 +4350,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"MyWorkingEnvironmentIsTooNoisyAn"
 								}
 							]
@@ -4161,8 +4372,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4170,6 +4382,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"ItReflectsTheIdentityOfOurOrgani"
 								}
 							]
@@ -4191,8 +4404,9 @@
 					"value":"no_of_staff_replies_per_choice",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"f",
@@ -4200,6 +4414,7 @@
 							"inputs":[
 								{
 									"type":"c",
+									"value_type":"s",
 									"value":"IUnderstandWhyTheOrganisationIsL"
 								}
 							]
@@ -4217,8 +4432,9 @@
 			"value":"avg_question_mark",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4226,6 +4442,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XWorkingHours"
 						}
 					]
@@ -4241,8 +4458,9 @@
 			"value":"avg_question_mark",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4250,6 +4468,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XOutOfOffice"
 						}
 					]
@@ -4265,8 +4484,9 @@
 			"value":"avg_question_mark",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4274,6 +4494,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XAwayFromDesk"
 						}
 					]
@@ -4289,8 +4510,9 @@
 			"value":"avg_question_mark",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4298,6 +4520,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XHomeWorkingActual"
 						}
 					]
@@ -4313,8 +4536,9 @@
 			"value":"avg_question_mark",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4322,6 +4546,7 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XHomeWorkPreferred"
 						}
 					]
@@ -4421,6 +4646,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"relationship_set_people_you_interact_with"
 				}
 			]
@@ -4434,6 +4660,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"XPlannedFrequencyFace"
 				}
 			]
@@ -4447,6 +4674,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"XUsefulness"
 				}
 			]
@@ -4463,8 +4691,9 @@
 					"value":"no_of_staff_ties_per_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4477,8 +4706,9 @@
 					"value":"no_of_responders_per_tie_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4500,8 +4730,9 @@
 					"value":"no_of_staff_ties_outside_team",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4514,8 +4745,9 @@
 					"value":"no_of_responders_with_ties_outside_team",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4537,8 +4769,9 @@
 					"value":"no_of_staff_ties_of_question_and_scores",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4546,6 +4779,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								5,
 								6,
@@ -4562,8 +4796,9 @@
 					"value":"no_of_responders_per_tie_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4585,8 +4820,9 @@
 					"value":"no_of_staff_ties_of_question_and_scores",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4594,6 +4830,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								4
 							]
@@ -4605,8 +4842,9 @@
 					"value":"no_of_responders_per_tie_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4628,8 +4866,9 @@
 					"value":"no_of_staff_ties_of_question_and_scores",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4637,6 +4876,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								3
 							]
@@ -4648,8 +4888,9 @@
 					"value":"no_of_responders_per_tie_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4671,8 +4912,9 @@
 					"value":"no_of_staff_ties_of_question_and_scores",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4680,6 +4922,7 @@
 						},
 						{
 							"type":"c",
+							"value_type":"aint",
 							"value":[
 								2
 							]
@@ -4691,8 +4934,9 @@
 					"value":"no_of_responders_per_tie_question",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4719,7 +4963,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"nia_total_per_person_per_building":{
 		"name":"Average area per staff member (Total NIA of building per staff member)",
@@ -4737,7 +4981,7 @@
 				}
 			]
 		},
-		"units":"m\\xB2/person"
+		"units":"m\\xB2\/person"
 	},
 	"nia_total_per_desk_per_space":{
 		"name":"Average area per desk (Total NIA of space per desk)",
@@ -4755,16 +4999,17 @@
 				}
 			]
 		},
-		"units":"m\\xB2/desk"
+		"units":"m\\xB2\/desk"
 	},
 	"ids_of_informal_facilities_questions":{
-		"name":"IDs of questions regarding quiet areas, tea/coffee points, breakoutareas, place to eat",
+		"name":"IDs of questions regarding quiet areas, tea\/coffee points, breakoutareas, place to eat",
 		"measure":{
 			"type":"f",
 			"value":"id_of_staff_questions",
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"as",
 					"value":[
 						"QuietAreas",
 						"CoffeeTeaPoints",
@@ -4776,7 +5021,7 @@
 		}
 	},
 	"choices_of_informal_facilities_questions":{
-		"name":"How important are: quiet areas, tea/coffee points, breakout areas and places to eat",
+		"name":"How important are: quiet areas, tea\/coffee points, breakout areas and places to eat",
 		"measure":{
 			"type":"f",
 			"value":"table_prc",
@@ -4786,8 +5031,9 @@
 					"value":"no_of_staff_replies_per_choice_multi_q",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -4819,8 +5065,9 @@
 					"value":"all_team_ids",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						}
 					]
 				}
@@ -4834,8 +5081,9 @@
 			"value":"no_of_staff_ties_directional_team_to_team_scored",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4843,16 +5091,19 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"XUsefulness"
 						}
 					]
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":3.999
 				},
 				{
 					"type":"c",
+					"value_type":"d",
 					"value":4.001
 				},
 				{
@@ -4879,8 +5130,9 @@
 			"value":"no_of_interview_ties_directional_team_to_team",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4888,10 +5140,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"Team relationships"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"Collaboration"
 						}
 					]
@@ -4920,8 +5174,9 @@
 			"value":"no_of_interview_ties_directional_team_to_team",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"f",
@@ -4929,10 +5184,12 @@
 					"inputs":[
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"Team relationships"
 						},
 						{
 							"type":"c",
+							"value_type":"s",
 							"value":"Future"
 						}
 					]
@@ -4962,6 +5219,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"as",
 					"value":[
 						"ArchiveStorage",
 						"DepartmentalStorage",
@@ -4982,8 +5240,9 @@
 					"value":"no_of_staff_replies_per_choice_multi_q",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -5012,6 +5271,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"as",
 					"value":[
 						"DesktopComputer",
 						"Laptop",
@@ -5033,8 +5293,9 @@
 					"value":"no_of_staff_replies_per_choice_multi_q",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -5063,6 +5324,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"XActivitiesSplit"
 				}
 			]
@@ -5088,8 +5350,9 @@
 			"value":"no_of_staff_replies_per_choice_multi_q",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -5119,7 +5382,9 @@
 					"value":"choices_of_activities_questions"
 				},
 				{
-					
+							"type":"c",
+							"value_type":"s",
+							"value":""
 				},
 				{
 					"type":"f",
@@ -5162,6 +5427,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"XFacilitiesImportance"
 				}
 			]
@@ -5178,8 +5444,9 @@
 					"value":"no_of_staff_replies_per_choice_multi_q",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -5208,6 +5475,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"XChangeReadiness"
 				}
 			]
@@ -5224,8 +5492,9 @@
 					"value":"no_of_staff_replies_per_choice_multi_q",
 					"inputs":[
 						{
-							"type":"c",
-							"value":"study.id"
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
 						},
 						{
 							"type":"m",
@@ -5254,6 +5523,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"DeskSpace"
 				}
 			]
@@ -5266,8 +5536,9 @@
 			"value":"no_of_responders_for_choice_question_and_choices",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -5293,8 +5564,9 @@
 			"value":"no_of_responders_for_choice_question_and_choices",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -5302,8 +5574,9 @@
 				},
 				{
 					"type":"c",
+					"value_type":"as",
 					"value":[
-						"Quiteimportant"
+						"Quite important"
 					]
 				}
 			]
@@ -5316,8 +5589,9 @@
 			"value":"no_of_responders_for_choice_question_and_choices",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -5325,8 +5599,9 @@
 				},
 				{
 					"type":"c",
+					"value_type":"as",
 					"value":[
-						"Veryimportant"
+						"Very important"
 					]
 				}
 			]
@@ -5374,6 +5649,7 @@
 			"inputs":[
 				{
 					"type":"c",
+					"value_type":"s",
 					"value":"UninterruptedConcentratedWork"
 				}
 			]
@@ -5386,8 +5662,9 @@
 			"value":"no_of_responders_for_choice_question_and_choices",
 			"inputs":[
 				{
-					"type":"c",
-					"value":"study.id"
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				},
 				{
 					"type":"m",
@@ -5402,6 +5679,3832 @@
 							"value":"id_of_uninterrupted_work_question"
 						}
 					]
+				}
+			]
+		}
+	},
+	"no_of_responders_a_lot_uninterrupted_work_question":{
+		"name":"Number of responders who chose \"A lot\" in \"UninterruptedConcentratedWork\" question",
+		"measure":{
+			"type":"f",
+			"value":"no_of_responders_for_choice_question_and_choices",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"id_of_uninterrupted_work_question"
+				},
+				{
+					"type":"c",
+					"value_type":"as",
+					"value":[
+						"A lot"
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_responders_quite_a_lot_uninterrupted_work_question":{
+		"name":"Number of responders who chose \"Quite a lot\" in \"UninterruptedConcentratedWork\" question",
+		"measure":{
+			"type":"f",
+			"value":"no_of_responders_for_choice_question_and_choices",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"id_of_uninterrupted_work_question"
+				},
+				{
+					"type":"c",
+					"value_type":"as",
+					"value":[
+						"Quite a lot"
+					]
+				}
+			]
+		}
+	}
+	,
+	"prc_of_responders_uninterrupted_work_is_quite_or_very_important":{
+		"name":"% respondents who think uninterrupted concentrated work is ‘a lot’ or ‘quite a lot’ a requirement of their job role",
+		"measure":{
+			"type":"f",
+			"value":"prc",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"add",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_responders_a_lot_uninterrupted_work_question"
+								},
+								{
+									"type":"m",
+									"value":"no_of_responders_quite_a_lot_uninterrupted_work_question"
+								}
+							]
+						},
+						{
+							"type":"m",
+							"value":"no_of_responders_in_uninterrupted_work_question"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"id_of_pre_planned_meetings_question_with_externals":{
+		"name":"ID of \"InPreplannedMeetingsWhichInclude\" question",
+		"measure":{
+			"type":"f",
+			"value":"id_of_staff_question",
+			"inputs":[
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"InPreplannedMeetingsWhichInclude"
+				}
+			]
+		}
+	}
+	,
+	"no_of_responders_in_pre_planned_meeting_question":{
+		"name":"Number of responders in \"DeskSpace\" question",
+		"measure":{
+			"type":"f",
+			"value":"no_of_responders_for_choice_question_and_choices",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"id_of_pre_planned_meetings_question_with_externals"
+				},
+				{
+					"type":"f",
+					"value":"possible_choices_in_question",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"id_of_pre_planned_meetings_question_with_externals"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"prc_of_responders_in_pre_planned_meetings_with_externals":{
+		"name":"% staff (responders) who rate >0% time in pre-planned meetings including external visitors (q: InPreplannedMeetingsWhichInclude)",
+		"measure":{
+			"type":"f",
+			"value":"prc",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"no_of_staff_replies_within_marks",
+							"inputs":[
+								{
+									"type":"i",
+									"value_type":"int",
+									"value":"study_id"
+								},
+								{
+									"type":"m",
+									"value":"id_of_pre_planned_meetings_question_with_externals"
+								},
+								{
+									"type":"c",
+									"value_type":"int",
+									"value":1
+								},
+								{
+									"type":"c",
+									"value_type":"int",
+									"value":101
+								}
+							]
+						},
+						{
+							"type":"m",
+							"value":"no_of_responders_in_pre_planned_meeting_question"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"prc_of_responders_in_pre_planned_meetings_with_externals_over_10_prc":{
+		"name":"% staff (responders) who rate >10% time in pre-planned meetings including external visitors (q: InPreplannedMeetingsWhichInclude)",
+		"measure":{
+			"type":"f",
+			"value":"prc",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"no_of_staff_replies_within_marks",
+							"inputs":[
+								{
+									"type":"i",
+									"value_type":"int",
+									"value":"study_id"
+								},
+								{
+									"type":"m",
+									"value":"id_of_pre_planned_meetings_question_with_externals"
+								},
+								{
+									"type":"c",
+									"value_type":"int",
+									"value":9
+								},
+								{
+									"type":"c",
+									"value_type":"int",
+									"value":101
+								}
+							]
+						},
+						{
+							"type":"m",
+							"value":"no_of_responders_in_pre_planned_meeting_question"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_staff_per_tea_point":{
+		"name":"Total headcount per tea point",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_staff"
+				},
+				{
+					"type":"m",
+					"value":"no_of_tea_points"
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_in_team":{
+		"name":"Average number of ties within team",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_in_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_outside_team":{
+		"name":"Average number of ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_outside_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_in_team":{
+		"name":"Average possible number of ties within team",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_in_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_outside_team":{
+		"name":"Average possible number of ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_outside_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"no_of_unique_undirected_ties_outside_team":{
+		"name":"Number of unique undirected number of ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_unique_undir_staff_ties_outside_team_of_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":0
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":4
+				}
+			]
+		}
+	}
+	,
+	"no_of_unique_undirected_ties_within_team":{
+		"name":"Number of unique undirected number of ties within team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_unique_undir_staff_ties_within_team_of_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":0
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":4
+				}
+			]
+		}
+	}
+	,
+	"no_of_possible_ties_outside_team":{
+		"name":"Number of possible number of ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_possible_staff_ties_outside_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"no_of_possible_ties_within_team":{
+		"name":"Number of possible number of ties within team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_possible_staff_ties_within_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"yules_q_team":{
+		"name":"Yule\"s Q team",
+		"description":"Yule’s Q as calculated by the Homophily routine and derived from the odds ratio, which maps perfect homophily (+1) and perfect heterophily (-1) by (𝐼𝐿×𝑁𝐸𝐿−𝐸𝐿×𝑁𝐼𝐿) \/ (𝐼𝐿×𝑁𝐸𝐿+𝐸𝐿×𝑁𝐼𝐿) , where [in an undirected graph] IL is the number of internal links, EL the number of external links, NIL the number of non-links internally and NEL the number of non-links externally",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"sub",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"mult",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_unique_undirected_ties_within_team"
+								},
+								{
+									"type":"f",
+									"value":"sub",
+									"inputs":[
+										{
+											"type":"m",
+											"value":"no_of_possible_ties_outside_team"
+										},
+										{
+											"type":"m",
+											"value":"no_of_unique_undirected_ties_outside_team"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type":"f",
+							"value":"mult",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_unique_undirected_ties_outside_team"
+								},
+								{
+									"type":"f",
+									"value":"sub",
+									"inputs":[
+										{
+											"type":"m",
+											"value":"no_of_possible_ties_within_team"
+										},
+										{
+											"type":"m",
+											"value":"no_of_unique_undirected_ties_within_team"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type":"f",
+					"value":"add",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"mult",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_unique_undirected_ties_within_team"
+								},
+								{
+									"type":"f",
+									"value":"sub",
+									"inputs":[
+										{
+											"type":"m",
+											"value":"no_of_possible_ties_outside_team"
+										},
+										{
+											"type":"m",
+											"value":"no_of_unique_undirected_ties_outside_team"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type":"f",
+							"value":"mult",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_unique_undirected_ties_outside_team"
+								},
+								{
+									"type":"f",
+									"value":"sub",
+									"inputs":[
+										{
+											"type":"m",
+											"value":"no_of_possible_ties_within_team"
+										},
+										{
+											"type":"m",
+											"value":"no_of_unique_undirected_ties_within_team"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_in_floor":{
+		"name":"Average number of ties within floor",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_in_floor",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_outside_floor":{
+		"name":"Average number of ties outside floor",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_outside_floor",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_in_floor":{
+		"name":"Average possible number of ties within floor",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_in_floor",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_outside_floor":{
+		"name":"Average possible number of ties outside floor",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_outside_floor",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_in_building":{
+		"name":"Average number of ties within building",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_in_building",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_ties_outside_building":{
+		"name":"Average number of ties outside building",
+		"measure":{
+			"type":"f",
+			"value":"avg_ties_outside_building",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_in_building":{
+		"name":"Average possible number of ties within building",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_in_building",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"avg_possible_ties_outside_building":{
+		"name":"Average possible number of ties outside building",
+		"measure":{
+			"type":"f",
+			"value":"avg_possible_ties_outside_building",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"quotes_under_hierarchy_suitably_reinforced_by_space":{
+		"name":"Quotes under issue: Hierarchy suitably reinforced by space",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Hierarchy suitably reinforced by space"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"quotes_under_efficient_desk_occupation":{
+		"name":"Quotes under issue: Efficient desk occupation",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Efficient desk occupation"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Appropriate movement levels in the right places":{
+		"name":"Quotes under issue: Appropriate movement levels in the right places",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Appropriate movement levels in the right places"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Appropriate workspace densities":{
+		"name":"Quotes under issue: Appropriate workspace densities",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Appropriate workspace densities"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Attitude to open plan and flexible working":{
+		"name":"Quotes under issue: Attitude to open plan and flexible working",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Attitude to open plan and flexible working"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Awareness and willingness to change":{
+		"name":"Quotes under issue: Awareness and willingness to change",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Awareness and willingness to change"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Balance between local and global interaction":{
+		"name":"Quotes under issue: Balance between local and global interaction",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Balance between local and global interaction"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Collaboration supported by space":{
+		"name":"Quotes under issue: Collaboration supported by space",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Collaboration supported by space"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Staff drivers for change":{
+		"name":"Quotes under issue: Staff drivers for change",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Staff drivers for change"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Space reflects organisational identity":{
+		"name":"Quotes under issue: Space reflects organisational identity",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Space reflects organisational identity"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Suitability of storage":{
+		"name":"Quotes under issue: Suitability of storage",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Suitability of storage"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"People can have visible contact of whole business":{
+		"name":"Quotes under issue: People can have visible contact of whole business",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"People can have visible contact of whole business"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Efficient primary circulation":{
+		"name":"Quotes under issue: Efficient primary circulation",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Efficient primary circulation"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Opportunities for unplanned interaction":{
+		"name":"Quotes under issue: Opportunities for unplanned interaction",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Opportunities for unplanned interaction"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Team locations":{
+		"name":"Quotes under issue: Team locations",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Team locations"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Visitor experience":{
+		"name":"Quotes under issue: Visitor experience",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Visitor experience"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"IT supports desired working practices":{
+		"name":"Quotes under issue: IT supports desired working practices",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"IT supports desired working practices"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Spatial efficiency of bookable meeting rooms":{
+		"name":"Quotes under issue: Spatial efficiency of bookable meeting rooms",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Spatial efficiency of bookable meeting rooms"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Location of specialist shared facilities":{
+		"name":"Quotes under issue: Location of specialist shared facilities",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Location of specialist shared facilities"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Space planned to suit occupancy levels":{
+		"name":"Quotes under issue: Space planned to suit occupancy levels",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Space planned to suit occupancy levels"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Spatial efficiency of alternative spaces":{
+		"name":"Quotes under issue: Spatial efficiency of alternative spaces",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Spatial efficiency of alternative spaces"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Space suits future organisation structure":{
+		"name":"Quotes under issue: Space suits future organisation structure",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Space suits future organisation structure"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"Spatial suitability for key business processes":{
+		"name":"Quotes under issue: Spatial suitability for key business processes",
+		"measure":{
+			"type":"f",
+			"value":"quotes_under_issue_flagged",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_issue",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Spatial suitability for key business processes"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_static_flexible_working_current":{
+		"name":"Stakeholder cultural preferences for static or flexible working (Current)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Current"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Static \/ Flexible"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_static_flexible_working_future":{
+		"name":"Stakeholder cultural preferences for static or flexible working (Future)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Future"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Static \/ Flexible"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_risky_cautious_current":{
+		"name":"Stakeholder cultural preferences for risk-taking or caution (Current)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Current"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Risk \/ Cautious"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_risky_cautious_future":{
+		"name":"Stakeholder cultural preferences for risk-taking or caution (Future)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Future"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Risk \/ Cautious"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_alone_together_current":{
+		"name":"Stakeholder cultural preferences for working alone or together (Current)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Current"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Alone \/ Together"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_alone_together_future":{
+		"name":"Stakeholder cultural preferences for working alone or together (Future)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Future"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Alone \/ Together"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_formal_informal_current":{
+		"name":"Visual of preferences from stakeholder interviews for formality or informality (Current)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Current"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Formal \/ Informal"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_formal_informal_future":{
+		"name":"Visual of preferences from stakeholder interviews for formality or informality (Future)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Future"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Formal \/ Informal"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_organised_chaos_current":{
+		"name":"Stakeholder cultural preference for organised or organised chaos (Current)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Current"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Organised \/ Chaos"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"stakeholder_cultural_preferences_organised_chaos_future":{
+		"name":"Stakeholder cultural preference for organised or organised chaos (Future)",
+		"measure":{
+			"type":"f",
+			"value":"sum_of_interview_choice_scores",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_interview_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Future"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Organised \/ Chaos"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_contacts_per_score":{
+		"name":"Number of planned contacts per frequency of contact",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_of_question_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"XPlannedFrequencyFace"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_monthly_planned_contact":{
+		"name":"Planned interaction (monthly average)",
+		"measure":{
+			"type":"f",
+			"value":"table_sum",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"table_prc",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_planned_contacts_per_score"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"d",
+							"value":0.01
+						}
+					]
+				},
+				{
+							"type":"c",
+							"value_type":"s",
+							"value":""
+				},
+				{
+					"type":"c",
+					"value_type":"aobj",
+					"value":[
+						{
+							"alias":"0",
+							"mark":0
+						},
+						{
+							"alias":"1",
+							"mark":0
+						},
+						{
+							"alias":"2",
+							"mark":1
+						},
+						{
+							"alias":"3",
+							"mark":4.5
+						},
+						{
+							"alias":"4",
+							"mark":11.25
+						},
+						{
+							"alias":"5",
+							"mark":22.5
+						},
+						{
+							"alias":"6",
+							"mark":56.25
+						},
+						{
+							"alias":"7",
+							"mark":90
+						}
+					]
+				}
+			]
+		}
+	},
+	"no_of_unplanned_contacts_per_score":{
+		"name":"Number of unplanned contacts per frequency of contact",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_of_question_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_question",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"XUnplannedFrequencyFace"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_monthly_unplanned_contact":{
+		"name":"Unplanned interaction (monthly average)",
+		"measure":{
+			"type":"f",
+			"value":"table_sum",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"table_prc",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_unplanned_contacts_per_score"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"d",
+							"value":0.01
+						}
+					]
+				},
+				{
+							"type":"c",
+							"value_type":"s",
+							"value":""
+				},
+				{
+					"type":"c",
+					"value_type":"aobj",
+					"value":[
+						{
+							"alias":"0",
+							"mark":0
+						},
+						{
+							"alias":"1",
+							"mark":0
+						},
+						{
+							"alias":"2",
+							"mark":1
+						},
+						{
+							"alias":"3",
+							"mark":4.5
+						},
+						{
+							"alias":"4",
+							"mark":11.25
+						},
+						{
+							"alias":"5",
+							"mark":22.5
+						},
+						{
+							"alias":"6",
+							"mark":56.25
+						},
+						{
+							"alias":"7",
+							"mark":90
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_monthly_contact":{
+		"name":"Staff Interaction",
+		"no_of_decimals":0,
+		"measure":{
+			"type":"f",
+			"value":"table_prc",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"table_union",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"obj",
+							"value":{
+								"alias":"avg_monthly_planned_contact",
+								"name":"Planned interaction",
+								"rename":true
+							}
+						},
+						{
+							"type":"m",
+							"value":"avg_monthly_planned_contact"
+						},
+						{
+							"type":"c",
+							"value_type":"obj",
+							"value":{
+								"alias":"avg_monthly_unplanned_contact",
+								"name":"Unplanned interaction",
+								"rename":true
+							}
+						},
+						{
+							"type":"m",
+							"value":"avg_monthly_unplanned_contact"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_within_team":{
+		"name":"Number of planned and unplanned contacts per frequency of contact within team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_within_team_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_outside_team":{
+		"name":"Number of planned and unplanned contacts per frequency of contact outside team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_outside_team_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_within_floor":{
+		"name":"Number of planned and unplanned contacts per frequency of contact within floor",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_within_floor_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_outside_floor":{
+		"name":"Number of planned and unplanned contacts per frequency of contact outside floor",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_outside_floor_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_within_building":{
+		"name":"Number of planned and unplanned contacts per frequency of contact within building",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_within_building_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_planned_and_unplanned_contacts_per_score_outside_building":{
+		"name":"Number of planned and unplanned contacts per frequency of contact outside building",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_outside_building_per_score",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_staff_questions",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"as",
+							"value":[
+								"XPlannedFrequencyFace",
+								"XUnplannedFrequencyFace"
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_of_printers":{
+		"name":"Average accessibility mean depth of printer areas",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_of_poly_type",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"OTHFCL-PRC"
+						}
+					]
+				},
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_of_teapoints":{
+		"name":"Average accessibility mean depth of teapoint areas",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_of_poly_type",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"OTHFCL-TEA"
+						}
+					]
+				},
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_of_canteens":{
+		"name":"Average accessibility mean depth of canteen areas",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_of_poly_type",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"OTHFCL-CAN"
+						}
+					]
+				},
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_of_social_hubs":{
+		"name":"Average accessibility mean depth of social hub areas",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_of_poly_type",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"OTHFCL-SCH"
+						}
+					]
+				},
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"names_of_teams_polygons":{
+		"name":"All team polygons",
+		"measure":{
+			"type":"f",
+			"value":"poly_types_names",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_per_team":{
+		"name":"Average accessibility mean depth per team",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_per_poly_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth":{
+		"name":"Average accessibility mean depth",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"max_accessibility_mean_depth":{
+		"name":"Maximum accessibility mean depth",
+		"measure":{
+			"type":"f",
+			"value":"max_depthmap_value",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"min_accessibility_mean_depth":{
+		"name":"Minimum accessibility mean depth",
+		"measure":{
+			"type":"f",
+			"value":"min_depthmap_value",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_visibility_mean_depth":{
+		"name":"Average vibility mean depth",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Visibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_essence_mean_depth":{
+		"name":"Average essence mean depth",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Essence"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"step_depth_essence_to_visibility":{
+		"name":"Step depth change: Essence to visibility",
+		"measure":{
+			"type":"f",
+			"value":"sub",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"avg_visibility_mean_depth"
+				},
+				{
+					"type":"m",
+					"value":"avg_essence_mean_depth"
+				}
+			]
+		}
+	}
+	,
+	"step_depth_essence_to_accessibility":{
+		"name":"Step depth change; Essence to Accessibility",
+		"measure":{
+			"type":"f",
+			"value":"sub",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"avg_accessibility_mean_depth"
+				},
+				{
+					"type":"m",
+					"value":"avg_essence_mean_depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_accessibility_mean_depth_per_building":{
+		"name":"Average accessibility mean depth per building",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_per_building",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Accessibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_visibility_mean_depth_per_building":{
+		"name":"Average vibility mean depth per building",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_per_building",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Visibility"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"avg_essence_mean_depth_per_building":{
+		"name":"Average essence mean depth per building",
+		"measure":{
+			"type":"f",
+			"value":"avg_depthmap_value_per_building",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"id_of_depthmaps",
+					"inputs":[
+						{
+							"type":"i",
+							"value_type":"int",
+							"value":"study_id"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"Essence"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"Visual Mean Depth"
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_per_round":{
+		"name":"Number of people per round",
+		"measure":{
+			"type":"f",
+			"value":"no_of_people_per_round",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"f",
+					"value":"round_times",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"first_observation_id"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_per_round_max":{
+		"name":"Maximum number of people in the space",
+		"measure":{
+			"type":"f",
+			"value":"table_max",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_per_round"
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_per_round_sum":{
+		"name":"Total number of people in the space (all rounds)",
+		"measure":{
+			"type":"f",
+			"value":"table_sum",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_per_round"
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_per_round_avg":{
+		"name":"Average number of people in the space",
+		"measure":{
+			"type":"f",
+			"value":"table_avg",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_per_round"
+				}
+			]
+		}
+	}
+	,
+	"people_moving_avg":{
+		"name":"Average number of people walking",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"people_moving_total"
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"units_full":"people",
+		"units":"people"
+	}
+	,
+	"people_moving_avg_per_building":{
+		"name":"Average number of people walking per building",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_walking_per_building"
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"units":"people"
+	}
+	,
+	"people_moving_avg_per_space":{
+		"name":"Average number of people walking per floor",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_walking_per_space"
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"units":"people"
+	}
+	,
+	"people_moving_to_nia_prim_circ":{
+		"name":"Movement density to primary circulation NIA (x1000)",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"people_moving_total"
+								},
+								{
+									"type":"m",
+									"value":"nia_prim_circ"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per sqm of circulation",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"people_moving_to_nia_prim_circ_per_building":{
+		"name":"Movement density to primary circulation NIA (x1000) per building",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_people_walking_per_building"
+								},
+								{
+									"type":"m",
+									"value":"nia_prim_circ_per_building"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per sqm of circulation per building",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"people_moving_to_nia_prim_circ_per_space":{
+		"name":"Movement density to primary circulation NIA (x1000) per space",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_people_walking_per_space"
+								},
+								{
+									"type":"m",
+									"value":"nia_prim_circ_per_space"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per sqm of circulation per floor",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"people_moving_to_nia_total":{
+		"name":"Movement density to total NIA (x1000)",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"people_moving_total"
+								},
+								{
+									"type":"m",
+									"value":"nia_total"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per 1000 sqm of total NIA",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"people_moving_to_nia_total_per_building":{
+		"name":"Movement density to total NIA (x1000) per building",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_people_walking_per_building"
+								},
+								{
+									"type":"m",
+									"value":"nia_total_per_building"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per 1000 sqm of building NIA",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"people_moving_to_nia_total_per_space":{
+		"name":"Movement density to total NIA (x1000) per space",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"div",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_people_walking_per_space"
+								},
+								{
+									"type":"m",
+									"value":"nia_total_per_space"
+								}
+							]
+						},
+						{
+							"type":"c",
+							"value_type":"int",
+							"value":1000
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"no_of_rounds"
+				}
+			]
+		},
+		"description":"Number of people walking per 1000 sqm of space NIA",
+		"units_full":"people walking\/m\\xB2",
+		"units":"ppl\/1000m\\xB2"
+	}
+	,
+	"desk_occupancy_per_team":{
+		"name":"Desk occupancy per team",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_polygon_types_per_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"max_desk_occupancy_per_team":{
+		"name":"Max desk occupancy per team",
+		"measure":{
+			"type":"f",
+			"value":"activity_max_in_polygon_types_per_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"min_desk_occupancy_per_team":{
+		"name":"Min desk occupancy per team",
+		"measure":{
+			"type":"f",
+			"value":"activity_min_in_polygon_types_per_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_on_the_phone_per_team":{
+		"name":"Number of people on the phone per team",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_polygon_types_per_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1
+					]
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"total_activity_per_team":{
+		"name":"Total Activity per team",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_polygon_types_per_type",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_team_polygons"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"m",
+					"value":"names_of_teams_polygons"
+				}
+			]
+		}
+	}
+	,
+	"avg_desk_occupancy_per_team":{
+		"name":"Average desk occupancy per team",
+		"no_of_decimals":0,
+		"measure":{
+			"type":"f",
+			"value":"mult",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"desk_occupancy_per_team"
+						},
+						{
+							"type":"f",
+							"value":"mult",
+							"inputs":[
+								{
+									"type":"m",
+									"value":"no_of_rounds"
+								},
+								{
+									"type":"m",
+									"value":"no_of_desks_per_team"
+								}
+							]
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":100
+				}
+			]
+		},
+		"units":"%"
+	}
+	,
+	"max_desk_occupancy_per_team_prc":{
+		"name":"Maximum desk occupancy per team",
+		"no_of_decimals":0,
+		"measure":{
+			"type":"f",
+			"value":"mult",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"max_desk_occupancy_per_team"
+						},
+						{
+							"type":"m",
+							"value":"no_of_desks_per_team"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":100
+				}
+			]
+		},
+		"units":"%"
+	}
+	,
+	"min_desk_occupancy_per_team_prc":{
+		"name":"Minimum desk occupancy per team",
+		"no_of_decimals":0,
+		"measure":{
+			"type":"f",
+			"value":"mult",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"div",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"min_desk_occupancy_per_team"
+						},
+						{
+							"type":"m",
+							"value":"no_of_desks_per_team"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"int",
+					"value":100
+				}
+			]
+		},
+		"units":"%"
+	}
+	,
+	"avg_no_of_people_on_the_phone_per_team_prc":{
+		"name":"% of people on the phone",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_on_the_phone_per_team"
+				},
+				{
+					"type":"m",
+					"value":"total_activity_per_team"
+				}
+			]
+		}
+	}
+	,
+	"meeting_room_groups_avg":{
+		"name":"Average meeting size",
+		"measure":{
+			"type":"f",
+			"value":"groups_of_people_in_poly_types_avg",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"MTG-BKB"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"as",
+					"value":[
+						"1",
+						"2",
+						"3-4",
+						"5-6",
+						"7-8",
+						"9-10",
+						"11-14",
+						"15-18",
+						"19%2B"
+					]
+				}
+			]
+		}
+	}
+	,
+	"meeting_room_groups_max":{
+		"name":"Maximum meeting size",
+		"measure":{
+			"type":"f",
+			"value":"groups_of_people_in_poly_types_max",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"MTG-BKB"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"as",
+					"value":[
+						"1",
+						"2",
+						"3-4",
+						"5-6",
+						"7-8",
+						"9-10",
+						"11-14",
+						"15-18",
+						"19%2B"
+					]
+				}
+			]
+		}
+	}
+	,
+	"meeting_room_groups_min":{
+		"name":"Minumum bookable meeting size",
+		"measure":{
+			"type":"f",
+			"value":"groups_of_people_in_poly_types_min",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"MTG-BKB"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"as",
+					"value":[
+						"1",
+						"2",
+						"3-4",
+						"5-6",
+						"7-8",
+						"9-10",
+						"11-14",
+						"15-18",
+						"19%2B"
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_people_in_meeting_rooms":{
+		"name":"Number of people in bookable meeting rooms",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_polygon_types",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"f",
+					"value":"id_of_poly_types",
+					"inputs":[
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"func"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"MTG-BKB"
+						}
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				}
+			]
+		}
+	}
+	,
+	"avg_meeting_size":{
+		"name":"Average size of meeting",
+		"measure":{
+			"type":"f",
+			"value":"div",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"no_of_people_in_meeting_rooms"
+				},
+				{
+					"type":"m",
+					"value":"occupancy_of_bookable_meeting_rooms"
+				}
+			]
+		}
+	}
+	,
+	"round_prc_range_array":{
+		"name":"Array of round ranges",
+		"measure":{
+			"type":"f",
+			"value":"get_range_array",
+			"inputs":[
+				{
+					"type":"f",
+					"value":"mult",
+					"inputs":[
+						{
+							"type":"f",
+							"value":"construct_ranges",
+							"inputs":[
+								{
+									"type":"c",
+									"value_type":"as",
+									"value":[
+										"0-0.5:0 - 50%",
+										"0.5-0.7:50 - 70%",
+										"0.7+:70 - 100%"
+									]
+								}
+							]
+						},
+						{
+							"type":"m",
+							"value":"no_of_rounds"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"occupancy_frequency_grouped":{
+		"name":"Distribution of average occupancy (all desks)",
+		"description":"Distribution of desk occupancy i.e. what proportion of desks are occupied less than 70% and less than 50% of the time",
+		"measure":{
+			"type":"f",
+			"value":"occupancy_frequency_grouped",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"f",
+					"value":"flatten_range",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"round_prc_range_array"
+						},
+						{
+							"type":"c",
+							"value_type":"s",
+							"value":"alias"
+						}
+					]
+				},
+				{
+					"type":"m",
+					"value":"round_prc_range_array"
+				}
+			]
+		}
+	}
+	,
+	"activity_in_alternative_spaces_per_round":{
+		"name":"Number of people per round in alternative spaces",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_poly_types_per_round",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"ids_of_alternative_space_types"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"f",
+					"value":"round_times",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"first_observation_id"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"max_utilisation_of_alternative_spaces":{
+		"name":"Maximum number of people in alternative spaces",
+		"measure":{
+			"type":"f",
+			"value":"table_max",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"activity_in_alternative_spaces_per_round"
+				}
+			]
+		}
+	}
+	,
+	"id_of_canteen_spaces":{
+		"measure":{
+			"type":"f",
+			"value":"id_of_poly_types",
+			"inputs":[
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"func"
+				},
+				{
+					"type":"c",
+					"value_type":"s",
+					"value":"OTHFCL-CAN"
+				}
+			]
+		}
+	}
+	,
+	"nia_canteen":{
+		"name":"NIA of Canteen",
+		"measure":{
+			"type":"f",
+			"value":"nia_of_poly_types",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"id_of_canteen_spaces"
+				}
+			]
+		}
+	}
+	,
+	"activity_in_canteen_per_round":{
+		"name":"Number of people per round in canteen",
+		"measure":{
+			"type":"f",
+			"value":"activity_in_poly_types_per_round",
+			"inputs":[
+				{
+					"type":"m",
+					"value":"first_observation_id"
+				},
+				{
+					"type":"m",
+					"value":"id_of_canteen_spaces"
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						1,
+						2,
+						3
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"c",
+					"value_type":"aint",
+					"value":[
+						0,
+						1
+					]
+				},
+				{
+					"type":"f",
+					"value":"round_times",
+					"inputs":[
+						{
+							"type":"m",
+							"value":"first_observation_id"
+						}
+					]
+				}
+			]
+		}
+	}
+	,
+	"no_of_staff_ties_outside_team_per_team":{
+		"name":"Number of staff ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_outside_team_per_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"no_of_staff_ties_within_team_per_team":{
+		"name":"Number of staff ties within team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_staff_ties_within_team_per_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				},
+				{
+					"type":"m",
+					"value":"staff_relationship_question_id"
+				}
+			]
+		}
+	}
+	,
+	"no_of_possible_staff_ties_outside_team_per_team":{
+		"name":"Number of possible staff ties outside team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_possible_staff_ties_outside_team_per_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
+				}
+			]
+		}
+	}
+	,
+	"no_of_possible_staff_ties_within_team_per_team":{
+		"name":"Number of possible staff ties within team",
+		"measure":{
+			"type":"f",
+			"value":"no_of_possible_staff_ties_within_team_per_team",
+			"inputs":[
+				{
+					"type":"i",
+					"value_type":"int",
+					"value":"study_id"
 				}
 			]
 		}

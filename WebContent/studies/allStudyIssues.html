@@ -80,23 +80,29 @@
                   <td colspan="2" ng-mouseover="hoverIn(study[metric])"
                     ng-mouseleave="hoverOut(study[metric])"><span
                     tooltip="{{study[metric].description}}">{{study[metric].name}}
-                    <span class="dropdown" ng-show="isHovered(study[metric])"> <a href="#">
-                        <i class="fa fa-cog dropdown-toggle"
-                          data-toggle="dropdown" aria-haspopup="true"
-                          aria-expanded="true" id="dropdownMenu1"> </i>
-                      </a>
-                      <ul class="dropdown-menu"
-                        aria-labelledby="dropdownMenu1">
-                        <li>
-                          <a href=""
-                            ng-click="toggle_no_of_decimals(study[metric])">Show
-                            all decimals</a>
-                        </li>
-                      </ul>
-                  </span></span>
-                    </td>
+                      <span class="dropdown"
+                      ng-show="isHovered(study[metric])"> <a
+                          href="#">
+                          <i class="fa fa-cog dropdown-toggle"
+                            data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="true" id="dropdownMenu1">
+                          </i>
+                        </a>
+                        <ul class="dropdown-menu"
+                          aria-labelledby="dropdownMenu1">
+                          <li>
+                            <a href=""
+                              ng-click="toggle_no_of_decimals(study[metric])">Show
+                              all decimals</a>
+                          </li>
+                        </ul>
+                    </span>
+                  </span></td>
                   <td><any ng-switch="study[metric].measure.type">
-                    <any ng-switch-when="chart"> <doughnut-chart-er 
+                    <!--  --> 
+                    <any ng-switch-when="table"> 
+                     <any ng-switch="study[metric].view"> 
+                     <any ng-switch-when="chart"> <doughnut-chart-er
                       id="{{toAliasString(metric)}}"
                       data="study[metric].measure.content"
                       show-text="true" show-legend="true"
@@ -105,15 +111,17 @@
                       units="study[metric].units ? study[metric].units :
                     study[metric].measure.units"></doughnut-chart-er>
                     <div style="width: 100%">
-                   
+
                       <div class="btn btn-default pull-right"
                         ng-click="study[metric].measure.type = 'table'">Table</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadSVG(metric)">Download SVG</div>
+                        ng-click="downloadSVG(metric)">Download
+                        SVG</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadEMF(metric)">Download EMF</div>
+                        ng-click="downloadEMF(metric)">Download
+                        EMF</div>
                     </div>
-                    </any> <!--  --> <any ng-switch-when="table">
+                     </any> <any ng-switch-default>
                     <div id="{{toAliasString(metric)}}">
                       <table class="table-internal">
                         <thead>
@@ -143,7 +151,7 @@
                           to clipboard</div>
                       </div>
                     </div>
-                    </any> <any ng-switch-when="list"> <!-- <span
+                    </any></any> </any> <any ng-switch-when="list"> <!-- <span
                       ng-hide="study[metric].measure.content">fetching...</span> -->
                     <!-- <div id="{{toAliasString(metric)}}"
                       ng-show="study[metric].measure.content"> -->

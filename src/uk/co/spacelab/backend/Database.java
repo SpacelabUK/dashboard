@@ -40,7 +40,9 @@ public class Database {
 	private static String user = "petrox";
 	private static String pass = "x";
 	public static final String TABLE_OBSERVATION_ROUNDS = "observation_rounds",
-			TABLE_OBSERVATION_SNAPSHOTS = "observation_snapshots";
+			TABLE_OBSERVATION_SNAPSHOTS = "observation_snapshots",
+			TABLE_METRICS = "metrics", SEQUENCE_METRICS = "metrics_id_seq",
+			TABLE_METRICS_INPUTS = "metrics_inputs";
 	enum TABLE {
 		SPACES("spaces");
 		// OBSERVATION_ROUNDS("observation_rounds"),
@@ -415,7 +417,7 @@ public class Database {
 		// }
 	}
 	protected static void insertInto(String table, String columnString,
-			String [] args) throws ClassNotFoundException, SQLException,
+			Object [] args) throws ClassNotFoundException, SQLException,
 			ParseException {
 		String valueString = "";
 		for (int i = 0; i < args.length; i++)
@@ -614,14 +616,14 @@ public class Database {
 	public static String getProperty(String property) throws SQLException,
 			ParseException {
 		JSONArray result =
-				selectAllFromTableWhere("properties", "property=?",
+				selectAllFromTableWhere("app_settings", "property=?",
 						new String [] {property});
 		if (result.length() < 1) return null;
 		return result.getJSONObject(0).getString("value");
 	}
 	public static void setProperty(String property, String value)
 			throws ClassNotFoundException, SQLException, ParseException {
-		customQuery("splab_set_property(?,?)", property, value);
+		customQuery("splabin_app_setting_set(?,?)", property, value);
 	}
 	public static String getUploadDirectory() {
 		try {
