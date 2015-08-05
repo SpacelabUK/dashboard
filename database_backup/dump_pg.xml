@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="PostgreSQL dump" default="PostgreSQL dump"
+	basedir="."
+>
+	<description>
+		Dumps two files, one with the schema only, and one with
+		the metrics tables that also contain their data
+	</description>
+	<property name="postgres.dir"
+		location="/Applications/Postgres-9.3.0.0.app/Contents/MacOS" />
+	<property name="schema.db.file.path" location="./database_schema" />
+	<property name="metric_data.db.file.path" location="./metric_tables_data" />
+	<property name="postgres.password" value="x" />
+	<property name="postgres.user" value="petrox" />
+	<property name="postgres.host" value="localhost" />
+	<target name="PostgreSQL dump all"
+		depends="PostgreSQL dump schema, PostgreSQL dump metric tables "
+	>
+	</target>
+	<target name="PostgreSQL dump schema">
+		<exec failifexecutionfails="true" failonerror="true"
+			executable="${postgres.dir}/bin/pg_dump" output="dump-ouput.txt"
+		>
+			<env key="PGPASSWORD" value="${postgres.password}" />
+			<arg value="--username" />
+			<arg value="${postgres.user}" />
+			<arg value="--host" />
+			<arg value="${postgres.host}" />
+			<arg value="-Fc" />
+			<arg value="--blobs" />
+			<arg value="--verbose" />
+			<arg value="--schema-only" />
+			<arg value="-f" />
+			<arg value="${schema.db.file.path}" />
+			<arg value="postgres" />
+		</exec>
+
+		<available property="backup.file.present" file="${schema.db.file.path}"
+			type="file" description="Verifying that the database backup file was created correctly." />
+
+		<fail unless="backup.file.present" message="Error when trying to back up the database." />
+	</target>
+	<target name="PostgreSQL dump metric tables">
+		<exec failifexecutionfails="true" failonerror="true"
+			executable="${postgres.dir}/bin/pg_dump" output="dump-metric_tables-ouput.txt"
+		>
+			<env key="PGPASSWORD" value="${postgres.password}" />
+			<arg value="--username" />
+			<arg value="${postgres.user}" />
+			<arg value="--host" />
+			<arg value="${postgres.host}" />
+			<arg value="-Fc" />
+			<arg value="--blobs" />
+			<arg value="--verbose" />
+			<arg value="--data-only" />
+			<arg value="--table" />
+			<arg value="metrics" />
+			<arg value="--table" />
+			<arg value="metrics_inputs" />
+			<arg value="--table" />
+			<arg value="metric_functions" />
+			<arg value="--table" />
+			<arg value="metric_functions_inputs" />
+			<arg value="--table" />
+			<arg value="metric_tags" />
+			<arg value="--table" />
+			<arg value="metric_possible_tags" />
+			<arg value="--table" />
+			<arg value="metric_groups" />
+			<arg value="--table" />
+			<arg value="metric_group_metrics" />
+			<arg value="-f" />
+			<arg value="${metric_data.db.file.path}" />
+			<arg value="postgres" />
+		</exec>
+
+		<available property="backup.file.present" file="${metric_data.db.file.path}"
+			type="file" description="Verifying that the database backup file was created correctly." />
+
+		<fail unless="backup.file.present" message="Error when trying to back up the database." />
+	</target>
+</project>

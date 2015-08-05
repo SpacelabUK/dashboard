@@ -25,6 +25,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.math.NumberUtils;
 //import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
@@ -42,7 +43,11 @@ public class Database {
 	public static final String TABLE_OBSERVATION_ROUNDS = "observation_rounds",
 			TABLE_OBSERVATION_SNAPSHOTS = "observation_snapshots",
 			TABLE_METRICS = "metrics", SEQUENCE_METRICS = "metrics_id_seq",
-			TABLE_METRICS_INPUTS = "metrics_inputs";
+			TABLE_METRICS_INPUTS = "metrics_inputs",
+			TABLE_METRIC_FUNCTIONS = "metric_functions",
+			TABLE_METRIC_FUNCTIONS_INPUTS = "metric_functions_inputs",
+			TABLE_METRIC_GROUPS = "metric_groups",
+			TABLE_METRIC_GROUP_METRICS = "metric_group_metrics";
 	enum TABLE {
 		SPACES("spaces");
 		// OBSERVATION_ROUNDS("observation_rounds"),
@@ -109,9 +114,8 @@ public class Database {
 				}
 
 				// actual jndi name is "jdbc/postgres"
-				datasource =
-						(DataSource) initialContext
-								.lookup("java:/comp/env/jdbc/postgres");
+				datasource = (DataSource) initialContext
+						.lookup("java:/comp/env/jdbc/postgres");
 
 				if (datasource == null) {
 					String message =
@@ -130,8 +134,8 @@ public class Database {
 					((org.apache.tomcat.jdbc.pool.DataSource) datasource)
 							.getConnectionAsync();
 			while (!future.isDone()) {
-				System.out
-						.println("Connection is not yet available. Do some background work");
+				System.out.println(
+						"Connection is not yet available. Do some background work");
 				try {
 					Thread.sleep(100); // simulate work
 				} catch (InterruptedException x) {
@@ -223,8 +227,8 @@ public class Database {
 	// return psql;
 	// }
 	protected static JSONArray selectAllFromTableWhere(Connection con,
-			String table, String where, Object... args) throws SQLException,
-			ParseException {
+			String table, String where, Object... args)
+					throws SQLException, ParseException {
 		return selectWhatFromTableWhere(con, table, "*", where, args);
 	}
 	protected static JSONArray selectAllFromTableWhere(String table,
@@ -232,8 +236,8 @@ public class Database {
 		return selectWhatFromTableWhere(table, "*", where, args);
 	}
 	protected static JSONArray selectWhatFromTableWhere(String table,
-			String what, String where, Object... args) throws SQLException,
-			ParseException {
+			String what, String where, Object... args)
+					throws SQLException, ParseException {
 		// try {
 		Connection con = getConnection();
 		String sql =
@@ -247,9 +251,9 @@ public class Database {
 		// throw new InternalException("JDBC Driver class not found");
 		// }
 	}
-	protected static JSONArray selectWhatFromTableWhere(Connection con,
+	public static JSONArray selectWhatFromTableWhere(Connection con,
 			String table, String what, String where, Object... args)
-			throws SQLException, ParseException {
+					throws SQLException, ParseException {
 		String sql =
 				"SELECT " + what + " FROM " + table + " WHERE " + where + ";";
 		try (ResultSet rs = execPrepared(con, sql, args)) {
@@ -258,7 +262,7 @@ public class Database {
 	}
 	public static JSONArray countAllFromTableWhere(String table, String where,
 			String... args) throws ClassNotFoundException, SQLException,
-			ParseException {
+					ParseException {
 		Connection con = getConnection();
 		String sql = "SELECT COUNT(*) FROM " + table + " WHERE " + where + ";";
 		try (ResultSet rs = execPrepared(con, sql, args)) {
@@ -383,7 +387,7 @@ public class Database {
 	}
 	protected static void deleteFrom(Connection psql, String table,
 			String whereString, Object... args) throws ClassNotFoundException,
-			SQLException, ParseException {
+					SQLException, ParseException {
 
 		String sql = "DELETE FROM " + table + " WHERE " + whereString + ";";
 		// try {
@@ -398,13 +402,13 @@ public class Database {
 		// return new JSONArray("[{result:success}]");
 		// }
 	}
-	protected static void insertInto(Connection psql, String table,
+	public static void insertInto(Connection psql, String table,
 			String columnString, String valueString, Object... args)
-			throws ClassNotFoundException, SQLException, ParseException {
+					throws ClassNotFoundException, SQLException,
+					ParseException {
 
-		String sql =
-				"INSERT INTO " + table + " (" + columnString + ") VALUES ("
-						+ valueString + ");";
+		String sql = "INSERT INTO " + table + " (" + columnString + ") VALUES ("
+				+ valueString + ");";
 		// try {
 		// try (
 		execPreparedNoResults(psql, sql, args);
@@ -418,7 +422,7 @@ public class Database {
 	}
 	protected static void insertInto(String table, String columnString,
 			Object [] args) throws ClassNotFoundException, SQLException,
-			ParseException {
+					ParseException {
 		String valueString = "";
 		for (int i = 0; i < args.length; i++)
 			valueString += (i == 0 ? "" : ",") + "?";
@@ -429,8 +433,8 @@ public class Database {
 			// return result;
 		}
 	}
-	protected static Map.Entry<String, String []> reconstructValueMap(
-			Map<String, String> toSet) {
+	protected static Map.Entry<String, String []>
+			reconstructValueMap(Map<String, String> toSet) {
 
 		String [] args = new String [toSet.size()];
 		String toSetString = "";
@@ -447,7 +451,7 @@ public class Database {
 	}
 	protected static void update(String table, Map<String, String> toSet,
 			String where, Object [] whereArgs) throws ClassNotFoundException,
-			SQLException, ParseException {
+					SQLException, ParseException {
 
 		Object [] args = new Object [toSet.size() + whereArgs.length];
 		String toSetString = "";
@@ -466,9 +470,9 @@ public class Database {
 		update(table, toSetString, where, args);
 	}
 
-	protected static void update(String table, String toSetString,
-			String where, Object [] args) throws ClassNotFoundException,
-			SQLException, ParseException {
+	protected static void update(String table, String toSetString, String where,
+			Object [] args) throws ClassNotFoundException, SQLException,
+					ParseException {
 		Connection con = getConnection();
 		String sql =
 				"UPDATE " + table + " SET " + toSetString + " WHERE " + where;
@@ -485,7 +489,8 @@ public class Database {
 	}
 	protected static void update(Connection psql, String table,
 			String toSetString, String where, Object... args)
-			throws ClassNotFoundException, SQLException, ParseException {
+					throws ClassNotFoundException, SQLException,
+					ParseException {
 		String sql =
 				"UPDATE " + table + " SET " + toSetString + " WHERE " + where;
 		// try {
@@ -510,7 +515,7 @@ public class Database {
 		con.close();
 		return result;
 	}
-	protected static JSONArray getSequenceCurrVal(Connection psql, String seq)
+	public static JSONArray getSequenceCurrVal(Connection psql, String seq)
 			throws SQLException, ClassNotFoundException, ParseException {
 		String sql = "SELECT currval('" + seq + "');";
 		try (ResultSet rs = execPrepared(psql, sql)) {
@@ -613,11 +618,10 @@ public class Database {
 				new AbstractMap.SimpleImmutableEntry<Set<String>, List<String>>(
 						cols, args));
 	}
-	public static String getProperty(String property) throws SQLException,
-			ParseException {
-		JSONArray result =
-				selectAllFromTableWhere("app_settings", "property=?",
-						new String [] {property});
+	public static String getProperty(String property)
+			throws SQLException, ParseException {
+		JSONArray result = selectAllFromTableWhere("app_settings", "property=?",
+				new String [] {property});
 		if (result.length() < 1) return null;
 		return result.getJSONObject(0).getString("value");
 	}
@@ -641,6 +645,8 @@ public class Database {
 		}
 		return null;
 	}
+
+	
 	// UNSAFE DON'T USE
 	// protected static String constructBooleanString(JSONObject o) {
 	// String result = "";
@@ -674,4 +680,5 @@ public class Database {
 	// }
 	// return result;
 	// }
+
 }

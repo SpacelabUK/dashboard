@@ -1,6 +1,6 @@
 [
 	{
-		"name": "G0",
+		"id": "G0",
 		"title": "General project info",
 		"metrics": 
 		[
@@ -13,7 +13,7 @@
 	},
 
 	{
-		"name": "S1",
+		"id": "S1",
 		"title": "Space planned to suit occupancy levels",
 		"metrics": 
 		[
@@ -37,7 +37,7 @@
 	},
 
 	{
-		"name": "S2",
+		"id": "S2",
 		"title": "Efficient desk occupation",
 		"metrics": 
 		[
@@ -68,7 +68,7 @@
 	},
 
 	{
-		"name": "S3",
+		"id": "S3",
 		"title": "Appropriate workspace densities",
 		"metrics": 
 		[
@@ -110,7 +110,7 @@
 	},
 
 	{
-		"name": "S4",
+		"id": "S4",
 		"title": "Efficient primary circulation",
 		"metrics": 
 		[
@@ -130,7 +130,7 @@
 	},
 
 	{
-		"name": "S5",
+		"id": "S5",
 		"title": "Spatial efficiency of bookable meeting rooms",
 		"metrics": 
 		[
@@ -153,7 +153,7 @@
 	},
 
 	{
-		"name": "S6",
+		"id": "S6",
 		"title": "Spatial efficiency of alternative spaces",
 		"metrics": 
 		[
@@ -176,7 +176,7 @@
 	},
 
 	{
-		"name": "S7",
+		"id": "S7",
 		"title": "Suitability of storage",
 		"metrics": 
 		[
@@ -191,7 +191,7 @@
 	},
 
 	{
-		"name": "O1",
+		"id": "O1",
 		"title": "Space suits future organisation structure",
 		"metrics": 
 		[
@@ -205,7 +205,7 @@
 	},
 
 	{
-		"name": "O2",
+		"id": "O2",
 		"title": "Hierarchy suitably reinforced by space",
 		"metrics": 
 		[
@@ -223,7 +223,7 @@
 	},
 
 	{
-		"name": "O3",
+		"id": "O3",
 		"title": "Team locations",
 		"metrics": 
 		[
@@ -237,7 +237,7 @@
 	},
 
 	{
-		"name": "O4",
+		"id": "O4",
 		"title": "Spatial suitability for key business processes",
 		"metrics": 
 		[
@@ -252,7 +252,7 @@
 	},
 
 	{
-		"name": "O5",
+		"id": "O5",
 		"title": "Location of specialist shared facilities",
 		"metrics": 
 		[
@@ -261,7 +261,7 @@
 	},
 
 	{
-		"name": "O6",
+		"id": "O6",
 		"title": "Space reflects organisational identity",
 		"metrics": 
 		[
@@ -271,7 +271,7 @@
 	},
 
 	{
-		"name": "O7",
+		"id": "O7",
 		"title": "Visitor experience",
 		"metrics": 
 		[
@@ -285,7 +285,7 @@
 	},
 
 	{
-		"name": "B1",
+		"id": "B1",
 		"title": "Appropriate movement levels in the right places",
 		"metrics": 
 		[
@@ -319,7 +319,7 @@
 	},
 
 	{
-		"name": "B2",
+		"id": "B2",
 		"title": "People can have visible contact of whole business",
 		"metrics": 
 		[
@@ -334,7 +334,7 @@
 	},
 
 	{
-		"name": "B3",
+		"id": "B3",
 		"title": "Collaboration supported by space",
 		"metrics": 
 		[
@@ -362,7 +362,7 @@
 	},
 
 	{
-		"name": "B4",
+		"id": "B4",
 		"title": "Opportunities for unplanned interaction",
 		"metrics": 
 		[
@@ -379,7 +379,7 @@
 	},
 
 	{
-		"name": "B5",
+		"id": "B5",
 		"title": "Balance between local and global interaction",
 		"metrics": 
 		[
@@ -411,7 +411,7 @@
 	},
 
 	{
-		"name": "E1",
+		"id": "E1",
 		"title": "IT supports desired working practices",
 		"metrics": 
 		[
@@ -424,7 +424,7 @@
 	},
 
 	{
-		"name": "CR1",
+		"id": "CR1",
 		"title": "Awareness and willingness to change",
 		"metrics": 
 		[
@@ -436,7 +436,7 @@
 	},
 
 	{
-		"name": "CR2",
+		"id": "CR2",
 		"title": "Staff drivers for change",
 		"metrics": 
 		[
@@ -449,7 +449,7 @@
 	},
 
 	{
-		"name": "CR3",
+		"id": "CR3",
 		"title": "Attitude to open plan and flexible working",
 		"metrics": 
 		[
@@ -464,7 +464,7 @@
 	},
 
 	{
-		"name": "SI",
+		"id": "SI",
 		"title": "Stakeholder Interviews",
 		"metrics": 
 		[

@@ -115,7 +115,6 @@ app.directive("responsiveDoughnutChart", [
 							.append("path").attr("fill", function(d, i) {
 								return spacelabColours[i];
 							}).attr("d", arc);
-
 					if (scope.showText) {
 						if (scope.showOnlyFirst) {
 							svg.selectAll("text").remove();
@@ -182,7 +181,6 @@ app.directive("doughnutChartEr", [
 						"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
 						"0 0 " + width + " " + height).append("g").attr("transform",
 						"translate(" + width / 3 + "," + height / 2 + ")");
-
 				scope.$watch('data', function(newData) {
 					svg.selectAll("path").remove();
 					console.log(scope);
@@ -239,8 +237,7 @@ app.directive("doughnutChartEr", [
 								return "translate(" + arc.centroid(d) + ")";
 							}).attr("dy", ".25em").style("text-anchor", "middle").attr(
 									'font-family', 'Apercu,serif').style('font-size', '10px')
-									.style('fill','#ffffff')
-									.text(function(d) {
+									.style('fill', '#ffffff').text(function(d) {
 										// return d.data.age;
 										// return d.data.key;
 										var r = d.value.toFixed(scope.noOfDecimals);
@@ -277,11 +274,17 @@ app.directive("doughnutChartEr", [
 						legend.append('text') // NEW
 						.attr('x', legendRectSize + legendSpacing) // NEW
 						.attr('y', legendRectSize - legendSpacing * 0.5) // NEW
-						.attr('font-family', 'Apercu,serif')
-						.style('font-size', '10px').text(function(d) {
-							return d.key;
-						}); // NEW
+						.attr('font-family', 'Apercu,serif').style('font-size', '10px')
+								.text(function(d) {
+									return d.key;
+								}); // NEW
 					}
+					svg.append("text").attr('font-family', 'Apercu,serif').attr(
+							'font-size', '20px').attr("transform",
+							"translate(" + 0 + "," + (-radius + 15) + ")").style(
+							"text-anchor", "middle").text(function(d) {
+						return scope.title;
+					});
 				}, true);
 			}
 		};

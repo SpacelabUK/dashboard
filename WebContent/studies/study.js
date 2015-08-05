@@ -548,8 +548,10 @@ app
 							}
 							$scope.getNameOrAlias = function(e) {
 								if (e.name)
-									// return e.name + '(' + e.alias + ')';
 									return e.name;
+								if (e.title)
+									// return e.name + '(' + e.alias + ')';
+									return e.title;
 								return e.alias;
 							}
 							$scope.getSorterOrNameOrAlias = function(e) {
@@ -557,8 +559,10 @@ app
 									// return e.name + '(' + e.alias + ')';
 									return e.sortby;
 								if (e.name)
-									// return e.name + '(' + e.alias + ')';
 									return e.name;
+								if (e.title)
+									// return e.name + '(' + e.alias + ')';
+									return e.title;
 								return e.alias;
 							}
 							$scope.getCellContent = function(e, key, property) {
@@ -584,9 +588,15 @@ app
 								return 'fetching...';
 							}
 							$scope.issueNames = [];
+							// read issues from json file
+							// $http
+							// .get("studies/originalIssues.json")
+							// read issues from database
 
-							$http
-									.get("studies/originalIssues.json")
+							// StudyFactory.storeOriginalMetrics();
+							// return;
+							HTTPFactory
+									.backendGet("Issues")
 									.then(
 											function(response) {
 												$scope.wantedMetrics = response.data;
@@ -596,7 +606,7 @@ app
 
 												for (var j = 0; j < $scope.wantedMetrics.length; j++) {
 													var met = {
-														name : $scope.wantedMetrics[j].name,
+														id : $scope.wantedMetrics[j].id,
 														title : $scope.wantedMetrics[j].title
 													}
 													$scope.issueNames.push(met);
@@ -617,7 +627,7 @@ app
 														var newMetrics = [];
 														for (var j = 0; j < issues.length; j++) {
 															for (var i = 0; i < $scope.wantedMetrics.length; i++) {
-																if ($scope.wantedMetrics[i].name.slice(0,
+																if ($scope.wantedMetrics[i].id.slice(0,
 																		issues[j].length) === issues[j]
 																		&& newMetrics
 																				.indexOf($scope.wantedMetrics[i]) === -1) {
@@ -629,8 +639,8 @@ app
 													}
 												}
 												if (newMetrics && newMetrics.length == 1)
-													$scope.pageTitle = 'Issue ' + newMetrics[0].name
-															+ ": " + newMetrics[0].title;
+													$scope.pageTitle = 'Issue ' + newMetrics[0].id + ": "
+															+ newMetrics[0].title;
 
 												for (var i = 0; i < $scope.wantedMetrics.length; i++)
 													allMetrics = allMetrics
@@ -749,7 +759,7 @@ app
 									'observation_ids' : function(data) {
 										var study_id = data[0];
 										return {
-											name : 'All Observation IDs',
+											title : 'All Observation IDs',
 											proc : 'get_observation_ids',
 											params : function() {
 												return {
@@ -768,11 +778,11 @@ app
 									},
 									'first_observation_id' : function(data) {
 										var all = this['observation_ids'](data);
-										all.name = 'First Observation';
+										all.title = 'First Observation';
 										var allCallBack = all['callback'];
 										all.callback = function(response) {
 											var result = allCallBack(response);
-											result.name = 'First Observation';
+											result.title = 'First Observation';
 											result.content = result.content[0];
 											return result;
 										}
@@ -781,7 +791,7 @@ app
 									'construct_ranges' : function(data) {
 										var cats = data[0].content;
 										return {
-											name : 'Construct Ranges',
+											title : 'Construct Ranges',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -837,7 +847,7 @@ app
 									'get_range_array' : function(data) {
 										var rr = data[0].content;
 										return {
-											name : 'Get range array',
+											title : 'Get range array',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -870,7 +880,7 @@ app
 										var rr = data[0].content;
 										var property = data[1].content;
 										return {
-											name : 'Get range array (flat)',
+											title : 'Get range array (flat)',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -895,7 +905,7 @@ app
 										var din = data[0].content;
 										var cats = data[1].content;
 										return {
-											name : 'Label switch',
+											title : 'Label switch',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -931,7 +941,7 @@ app
 										var denom = data[1].content;
 										var denomType = data[1].type;
 										return {
-											name : 'Division',
+											title : 'Division',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1098,7 +1108,7 @@ app
 												}
 											}
 										return {
-											name : 'Multiplication',
+											title : 'Multiplication',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1218,7 +1228,7 @@ app
 											}
 										}
 										return {
-											name : 'Addition',
+											title : 'Addition',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1316,7 +1326,7 @@ app
 											}
 										}
 										return {
-											name : 'Subtraction',
+											title : 'Subtraction',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1395,7 +1405,7 @@ app
 									'prc' : function(data) {
 										var param1 = data[0].content;
 										return {
-											name : 'Percent',
+											title : 'Percent',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1418,7 +1428,7 @@ app
 										var status = data[0].status;
 										var param1 = data[0].content;
 										return {
-											name : 'Percent',
+											title : 'Percent',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1483,7 +1493,7 @@ app
 										var array1 = data[0].content;
 										var array2 = data[1].content;
 										return {
-											name : 'Transpose table',
+											title : 'Transpose table',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1511,7 +1521,7 @@ app
 									'table_transpose' : function(data) {
 										var table = data[0].content;
 										return {
-											name : 'Transpose table',
+											title : 'Transpose table',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1522,7 +1532,6 @@ app
 														var response = {
 															data : {}
 														}
-														console.log(data);
 														response.data.properties = table.keys;
 														response.data.keys = table.properties;
 														response.data.keyType = table.keyType;
@@ -1557,7 +1566,7 @@ app
 										var t2info = data[2].content;
 										var table2 = data[3].content;
 										return {
-											name : 'Union tables',
+											title : 'Union tables',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1669,7 +1678,7 @@ app
 										// TODO: instead of doing this maybe its better to multiply
 										// a table with a list...?
 										return {
-											name : 'Get average value(s)',
+											title : 'Get average value(s)',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1827,7 +1836,7 @@ app
 										if (data[1])
 											property = data[1].content;
 										return {
-											name : 'Get average value(s)',
+											title : 'Get average value(s)',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1887,7 +1896,7 @@ app
 										if (data[1])
 											property = data[1].content;
 										return {
-											name : 'Get maximum value(s)',
+											title : 'Get maximum value(s)',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1955,7 +1964,7 @@ app
 										if (data[1])
 											property = data[1].content;
 										return {
-											name : 'Get minumum value(s)',
+											title : 'Get minumum value(s)',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -2022,72 +2031,113 @@ app
 									fetchFunction : function(wantedFunc, inputs) {
 										var extf = externalFuncs[wantedFunc];
 										if (extf) {
-											if (extf.proc && extf.proc_inputs.length > inputs.length)
+											var procInputs = [];
+											var keyIndex = -1;
+											var propertyIndex = -1;
+											if (extf.ilk === "proc")
+												for (var i = 0; i < extf.inputs.length; i++) {
+													if (extf.inputs[i].proc)
+														procInputs.push(extf.inputs[i].alias);
+													if (extf.key_data
+															&& extf.key_data === extf.inputs[i].alias)
+														keyIndex = i;
+													if (extf.property_data
+															&& extf.property_data === extf.inputs[i].alias)
+														propertyIndex = i;
+												}
+											if (procInputs.length > inputs.length)
 												console.error("wrong number of inputs");
 											var f = {};
-											if (extf.name)
-												f.name = extf.name;
+											if (extf.title)
+												f.title = extf.title;
 											if (extf.units)
 												f.units = extf.units;
 											if (extf.units_full)
 												f.units_full = extf.units_full;
-											if (extf.type === "proc") {
+											if (extf.ilk === "proc") {
 												f.proc = wantedFunc;
 												f.params = function() {
 													var prm = {};
-													for (var i = 0; i < extf.proc_inputs.length; i++)
-														prm[extf.proc_inputs[i]] = inputs[i];
+													for (var i = 0; i < procInputs.length; i++)
+														prm[procInputs[i]] = inputs[i];
 													return prm;
 												}
 												f.callback = function(response) {
 													var result = {};
-													if (extf.value_type === "table") {
-														if (extf.unpack) {
-															if (extf.unpack === "simple") {
-																result.content = unpack(JSON
-																		.parse(response.data[0]));
-															} else if (extf.unpack === "mega") {
-																result.content = unpack(JSON
-																		.parse(response.data[0]), true);
+													if (extf.datum_type === "unpack"
+															|| extf.datum_type === "unpack_mega") {
+														if (!response.data || !response.data[0])
+															return {
+																status : 201,
+																type : 'error',
+																content : 'no data'
 															}
-															if (extf.key_data) {
-																var keyi = extf.inputs.indexOf(extf.key_data);
-																if (inputs[keyi] && inputs[keyi].content) {
-																	setKeyData(result.content,
-																			inputs[keyi].content, extf.key_data_match);
-																}
-															}
-															if (extf.property_data) {
-																var keyi = extf.inputs
-																		.indexOf(extf.property_data);
-																if (inputs[keyi] && inputs[keyi].content) {
-																	setPropertyData(result.content,
-																			inputs[keyi].content,
-																			extf.property_data_match);
-																}
+														if (extf.datum_type === "unpack") {
+															result.content = unpack(JSON
+																	.parse(response.data[0]));
+														} else if (extf.datum_type === "unpack_mega") {
+															result.content = unpack(JSON
+																	.parse(response.data[0]), true);
+														}
+														if (keyIndex != -1) {
+															if (inputs[keyIndex] && inputs[keyIndex].content) {
+																setKeyData(result.content,
+																		inputs[keyIndex].content,
+																		extf.key_data_match);
 															}
 														}
-													} else if (extf.value_type === "list") {
+														if (propertyIndex != -1) {
+															if (inputs[propertyIndex]
+																	&& inputs[propertyIndex].content) {
+																setPropertyData(result.content,
+																		inputs[propertyIndex].content,
+																		extf.property_data_match);
+															}
+														}
+
+													} else if (extf.datum_type === "list") {
+														if (!response.data)
+															return {
+																status : 201,
+																type : 'error',
+																content : 'no data'
+															}
 														result.content = response.data.map(function(d) {
 															return {
 																name : d
 															}
 														});
-													} else if (extf.value_type === "json") {
-														// TODO: exception here needs to be made as the
-														// above (essentially wrap the replies with an
-														// array) and remove this condition and let
-														// getProperValue handle it
+													} else if (extf.datum_type === "json") {
+														if (!response.data)
+															return {
+																status : 201,
+																type : 'error',
+																content : 'no data'
+															}
+															// TODO: exception here needs to be made as the
+															// above (essentially wrap the replies with an
+															// array) and remove this condition and let
+															// getProperValue handle it
 														result.content = JSON.parse(response.data);
-													} else if (extf.value_type === "mapint") {
+													} else if (extf.datum_type === "mapint") {
 														// TODO same as above
+														if (!response.data)
+															return {
+																status : 201,
+																type : 'error',
+																content : 'no data'
+															}
 														result.content = response.data.map(function(d) {
 															return parseInt(d);
 														});
 													} else
 														result.content = getProperValue(response.data[0],
-																extf.value_type);
-													result.type = extf.value_type;
+																extf.datum_type);
+													if (extf.datum_type === "unpack"
+															|| extf.datum_type === "unpack_mega")
+														result.type = "table"
+													else
+														result.type = extf.datum_type;
 													return result;
 												}
 											}
@@ -2264,7 +2314,7 @@ app
 										// var body = response.data;
 										// // body.
 										deferred.resolve({
-											name : measure.name,
+											title : measure.title,
 											content : response.data[0].error,
 											status : 201,
 											type : 'error'
@@ -2286,39 +2336,39 @@ app
 									// if (input.promise)
 									// promises.push(input.promise);
 									// else
-									if (input.type == "c") {
+									if (input.ilk == "c") {
 										var content
 										nobj = {
-											content : getProperValue(input.value, input.value_type)
+											content : getProperValue(input.datum, input.datum_type)
 										}
 
 										promises.push($q.when(nobj));
-									} else if (input.type == "i") {
+									} else if (input.ilk == "i") {
 										nobj = {
-											content : getProperValue(args[input.value],
-													input.value_type)
+											content : getProperValue(args[input.datum],
+													input.datum_type)
 										}
 										promises.push($q.when(nobj));
-									} else if (input.type == "m") {
-										var m = knownMeasures[input.value].measure;
-
+									} else if (input.ilk == "m") {
+										// console.log(input.datum);
+										var m = knownMeasures[input.datum].measure;
 										// if (m.funcName) {
 										// // if (typeof m.solveObj === 'object') {
 										// promises.push($q.when(m));
 										// } else {
 										nobj = createMetric(knownMeasures, args, m);
-										knownMeasures[input.value].measure = nobj;
+										knownMeasures[input.datum].measure = nobj;
 										promises.push($q.when(nobj));
 										// }
-									} else if (input.type == "f") {
+									} else if (input.ilk == "f") {
 										nobj = createMetric(knownMeasures, args, input);
 										promises.push($q.when(nobj));
 									} else {
-										console.error("METRIC TYPE (" + input.type + ") UNKNOWN");
+										console.error("METRIC TYPE (" + input.ilk + ") UNKNOWN");
 									}
 								}
 								var result = {
-									funcName : measure.value,
+									funcName : measure.datum,
 									promises : promises
 								}
 								return result;
@@ -2360,6 +2410,162 @@ app
 								return promiseOut.promise;
 							}
 							var out = {
+								storeOriginalMetrics : function() {
+									var promises = [];
+									promises.push($http.get("studies/originalMetrics.json"));
+									promises.push($http.get("studies/originalFunctions.json"));
+									promises.push($http.get("studies/originalIssues.json"));
+									$q.all(promises).then(function(response) {
+
+										var knownMetrics = response[0].data;
+										var knownExtFunctions = response[1].data;
+										var knownIssues = response[2].data;
+
+										function sleep(milliseconds) {
+											var start = new Date().getTime();
+											for (var i = 0; i < 1e7; i++) {
+												if ((new Date().getTime() - start) > milliseconds) {
+													break;
+												}
+											}
+										}
+										var storeMetrics = function() {
+											var store = function(metric) {
+												return HTTPFactory.backendPost("StoreMetric", {
+													metric : metric
+												})
+											}
+											var keyz = Object.keys(knownMetrics);
+											keyz = [
+											// "avg_moving_total",
+											// "avg_standing_total",
+											// "avg_sitting_total",
+											// "avg_moving_per_building",
+											// "avg_moving_per_space",
+											// "nia_total_per_space",
+											// "people_moving_avg",
+											// "people_moving_avg_per_building",
+											// "people_moving_avg_per_space",
+											// "people_moving_to_nia_prim_circ",
+											// "people_moving_to_nia_prim_circ_per_building",
+											// "people_moving_to_nia_prim_circ_per_space",
+											// "people_moving_to_nia_total",
+											// "people_moving_to_nia_total_per_building",
+											// "people_moving_to_nia_total_per_space",
+											// "no_of_replies_dynamic_environment",
+											// "no_of_replies_free_access",
+											// "no_of_replies_noisy_environment",
+											// "no_of_staff_per_tea_point",
+											// "Appropriate movement levels in the right places",
+											// "avg_accessibility_mean_depth",
+											// "avg_visibility_mean_depth",
+											// "avg_essence_mean_depth",
+											// "avg_accessibility_mean_depth_of_printers",
+											// "avg_accessibility_mean_depth_of_teapoints",
+											// "people_any_activity_total_breakdown"
+											];
+											var breakPoint = 1000;
+											var lel = function(lel, i) {
+												if (!(keyz[i] in knownMetrics))
+													return;
+												var m = {};
+												m[keyz[i]] = knownMetrics[keyz[i]];
+												console.log(i, m);
+												store(m).then(function(response) {
+													sleep(200);
+													if (i < keyz.length && i < breakPoint) {
+														lel(lel, i + 1);
+													} else
+														console.log(response);
+												});
+											}
+
+											lel(lel, 0);
+										}
+										storeMetrics();
+										var storeIssues = function() {
+											var store = function(issue) {
+												return HTTPFactory.backendPost("StoreIssue", {
+													issue : issue
+												})
+											}
+											var breakPoint = 1000;
+											var lel = function(lel, i) {
+												var m = {};
+
+												m = knownIssues[i];
+												if (!m)
+													return;
+												console.log(i, m);
+												store(m).then(function(response) {
+
+													sleep(200);
+													if (i < knownIssues.length && i < breakPoint)
+														lel(lel, i + 1);
+													else
+														console.log(response);
+												});
+											}
+											lel(lel, 0);
+										}
+										// storeIssues();
+										var storeFunctions = function() {
+											var store = function(func) {
+												return HTTPFactory.backendPost("StoreFunction", {
+													func : func
+												})
+											}
+											var keyz = Object.keys(knownExtFunctions);
+											// keyz = [
+											// "avg_ties_outside_team",
+											// // "avg_moving_total",
+											// // "avg_standing_total",
+											// // "avg_sitting_total",
+											// // "avg_moving_per_building",
+											// // "avg_moving_per_space",
+											// // "nia_total_per_space",
+											// // "people_moving_avg",
+											// // "people_moving_avg_per_building",
+											// // "people_moving_avg_per_space",
+											// // "people_moving_to_nia_prim_circ",
+											// // "people_moving_to_nia_prim_circ_per_building",
+											// // "people_moving_to_nia_prim_circ_per_space",
+											// // "people_moving_to_nia_total",
+											// // "people_moving_to_nia_total_per_building",
+											// // "people_moving_to_nia_total_per_space",
+											// // "no_of_replies_dynamic_environment",
+											// // "no_of_replies_free_access",
+											// // "no_of_replies_noisy_environment",
+											// // "no_of_staff_per_tea_point",
+											// // "Appropriate movement levels in the right places",
+											// // "avg_accessibility_mean_depth",
+											// // "avg_visibility_mean_depth",
+											// // "avg_essence_mean_depth",
+											// // "avg_accessibility_mean_depth_of_printers",
+											// // "avg_accessibility_mean_depth_of_teapoints",
+											// // "people_any_activity_total_breakdown"
+											// ];
+											var breakPoint = 1000;
+											var lel = function(lel, i) {
+												if (!(keyz[i] in knownExtFunctions))
+													return;
+												var m = {};
+												m[keyz[i]] = knownExtFunctions[keyz[i]];
+												console.log(i, m);
+												store(m).then(function(response) {
+													sleep(200);
+													if (i < keyz.length && i < breakPoint) {
+														lel(lel, i + 1);
+													} else
+														console.log(response);
+												});
+											}
+
+											lel(lel, 0);
+										}
+										storeFunctions();
+									});
+								},
 								fetchStudy : function(id, wantedMetrics) {
 
 									var study = loadedStudies[id];
@@ -2373,69 +2579,46 @@ app
 										study_id : study.id
 									}
 									var promises = [];
-									promises.push($http.get("studies/originalMetrics.json"));
-									promises.push($http.get("studies/originalFunctions.json"));
+									// promises.push($http.get("studies/originalMetrics.json"));
+									promises.push(HTTPFactory.backendPost("Metrics", {
+										wanted_metrics : wantedMetrics
+									}));
+									// promises.push($http.get("studies/originalFunctions.json"));
 
-									$q.all(promises).then(function(response) {
-										var knownMetrics = response[0].data;
-										var knownExtFunctions = response[1].data;
-										var kf = knownFunctions(knownExtFunctions);
+									$q.all(promises).then(
+											function(response) {
+												console.log(response);
+												var knownMetrics = response[0].data.metrics;
+												// return;
+												var knownExtFunctions = response[0].data.functions;
+												// var knownExtFunctions = response[1].data;
+												var kf = knownFunctions(knownExtFunctions);
 
-										var storeMetrics = function() {
-											var storeMetric = function(metric) {
-												return HTTPFactory.backendPost("StoreMetric", {
-													metric : metric
-												})
-											}
-											var measureKeys = Object.keys(knownMetrics);
-											function sleep(milliseconds) {
-												var start = new Date().getTime();
-												for (var i = 0; i < 1e7; i++) {
-													if ((new Date().getTime() - start) > milliseconds) {
-														break;
+												for (var i = 0; i < wantedMetrics.length; i++) {
+													if (knownMetrics[wantedMetrics[i]]) {
+														var result = knownMetrics[wantedMetrics[i]];
+
+														result.measure = createMetric(knownMetrics, args,
+																result.measure);
+
+														// console.log(result.measure);
+														resolveMeasure(result.measure, kf).then(
+																function(solvedMeasure) {
+																	// result.measure.solveObj;
+																	angular.copy(solvedMeasure,
+																			solvedMeasure.request);
+																});
+														study[wantedMetrics[i]] = result;
+													} else {
+														study[wantedMetrics[i]] = {
+															title : wantedMetrics[i],
+															measure : {
+																content : "Unknown measure"
+															}
+														}
 													}
 												}
-											}
-											var lel = function(lel, i) {
-												var m = {};
-												m[measureKeys[i]] = knownMetrics[measureKeys[i]];
-												console.log(i, m);
-												storeMetric(m).then(function(response) {
-													sleep(200);
-													if (i < measureKeys.length)
-														lel(lel, i + 1);
-													else
-														console.log(response);
-												});
-											}
-											lel(lel, 0);
-										}
-										// storeMetrics();
-
-										for (var i = 0; i < wantedMetrics.length; i++) {
-											if (knownMetrics[wantedMetrics[i]]) {
-												var result = knownMetrics[wantedMetrics[i]];
-
-												result.measure = createMetric(knownMetrics, args,
-														result.measure);
-												resolveMeasure(result.measure, kf).then(
-														function(solvedMeasure) {
-															// result.measure.solveObj;
-															angular
-																	.copy(solvedMeasure, solvedMeasure.request);
-														});
-												console.log(result);
-												study[wantedMetrics[i]] = result;
-											} else {
-												study[wantedMetrics[i]] = {
-													name : wantedMetrics[i],
-													measure : {
-														content : "Unknown measure"
-													}
-												}
-											}
-										}
-									});
+											});
 
 									return study;
 								}
