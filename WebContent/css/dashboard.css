@@ -507,3 +507,20 @@ div.d3tooltip {
 	background-color: #EC7D20;
 	color: #FFF;
 }
+
+.wait-dialog .modal-content {
+	background-color: rgba(0, 0, 0, 0.8);
+	background-clip: border-box;
+	display: inline-block;
+}
+
+.wait-dialog .modal-dialog {
+	text-align: center;
+	position: fixed;
+	top: 40%;
+	left: 18.5%;
+	z-index: 1050;
+	width: 80%;
+	height: 20%;
+	margin-left: -10%;
+}

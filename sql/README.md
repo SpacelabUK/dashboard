@@ -1,0 +1,1 @@
+This folder contains various SQL files with commands used in the database, or to be used as tools to modify various aspects of it.

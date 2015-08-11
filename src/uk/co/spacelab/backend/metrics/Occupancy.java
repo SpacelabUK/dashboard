@@ -357,7 +357,7 @@ public class Occupancy extends HttpServlet {
 			} else if (knownFunctions.containsKey(type)) {
 				String [] requestArgs = knownFunctions.get(type);
 				Object [] args = new Object [requestArgs.length];
-				String prefix = "splab_";
+				String prefix = "splabmf_";
 				String qmString = "";
 
 				for (int i = 0; i < requestArgs.length; i++) {

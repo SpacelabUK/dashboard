@@ -1,9 +1,41 @@
+"use strict";
+
+/*
+ * Some basic String functions used throughout
+ */
+function eql(str1, str2) {
+	return str1.trim().toLowerCase() == str2.toLowerCase()
+}
+function startsWith(str, prefix) {
+	return str.indexOf(prefix) === 0;
+}
+function endsWith(str, suffix) {
+	return str.match(suffix + "$") == suffix;
+}
+function startsWithIgnoreCase(str, prefix) {
+	return str.toUpperCase().indexOf(prefix.toUpperCase()) === 0;
+}
+function endsWithIgnoreCase(str, suffix) {
+	return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
+			.toUpperCase();
+}
+
 var backend = "/tomcutter/"
 var app = angular.module('Dashboard', [
 		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
 		'gridster'
 ], function($httpProvider) {
 });
+//// hack to allow downloading js-generated blob objects
+//app
+//		.config([
+//				'$compileProvider',
+//				function($compileProvider) {
+//					var oldWhiteList = $compileProvider.imgSrcSanitizationWhitelist();
+//					$compileProvider
+//							.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
+//				}
+//		]);
 app
 		.directive(
 				'loading',
@@ -41,7 +73,7 @@ app.factory('projectFactory',
 				});
 				return httpPromise;
 			}
-			updateStudies = function(project, studies) {
+			var updateStudies = function(project, studies) {
 				if (!project.studies)
 					project.studies = [];
 				while (project.studies.length > 0)
@@ -49,7 +81,7 @@ app.factory('projectFactory',
 				for (var i = 0; i < studies.length; i++)
 					project.studies.push(studies[i]);
 			}
-			updateStudyParts = function(study, parts) {
+			var updateStudyParts = function(study, parts) {
 				if (!study.parts)
 					study.parts = [];
 				while (study.parts.length > 0)
@@ -59,7 +91,7 @@ app.factory('projectFactory',
 					study.parts.push(parts[i]);
 				}
 			}
-			pushNewStudy = function(project) {
+			var pushNewStudy = function(project) {
 				if (!project.studies)
 					project.studies = [];
 				// for (var i = 0; i < project.studies.length; i++) {
@@ -83,7 +115,7 @@ app.factory('projectFactory',
 
 				return deferred.promise;
 			}
-			pushNewStudyPart = function(study, type) {
+			var pushNewStudyPart = function(study, type) {
 				if (!study.parts)
 					study.parts = [];
 				var data = {
@@ -100,7 +132,7 @@ app.factory('projectFactory',
 
 				return deferred.promise;
 			}
-			var public = {
+			var pub = {
 				refreshProjects : function() {
 					fetch(backend + 'GetAll?t=projects').then(function(response) {
 						var result = response.data;
@@ -109,7 +141,7 @@ app.factory('projectFactory',
 								projects.pop();
 							for (var i = 0; i < result.length; i++) {
 								projects.push(result[i]);
-								public.refreshStudies(result[i]);
+								pub.refreshStudies(result[i]);
 							}
 						}
 					}, function(error) {
@@ -247,7 +279,7 @@ app.factory('projectFactory',
 									// updateStudies(project, response.data);
 									pushNewStudy(project).then(function(response) {
 										console.log(response);
-										public.refreshStudies(project);
+										pub.refreshStudies(project);
 									}, function(error) {
 										console.error(error);
 									});
@@ -264,7 +296,7 @@ app.factory('projectFactory',
 									console.log(study);
 									// updateStudyParts(study, response.data);
 									pushNewStudyPart(study, type).then(function(response) {
-										public.refreshStudyParts(study);
+										pub.refreshStudyParts(study);
 									}, function(error) {
 										console.error(error);
 									});
@@ -274,15 +306,15 @@ app.factory('projectFactory',
 							});
 				}
 			};
-			return public;
+			return pub;
 		});
 
 app.factory('studyFactory', function($q, $http) {
 	var study;
-	var public = {
+	var pub = {
 
 	}
-	return public;
+	return pub;
 });
 app.controller('prjCtrl', function($scope, $modal, projectFactory) {
 	$scope.projects = projectFactory.getProjects();
@@ -338,7 +370,7 @@ app.controller('spFuncCtrl', function($scope, $modal, projectFactory) {
 
 app.factory('fetching', function($q, $http) {
 	var fetching = {};
-	var public = {
+	var pub = {
 		is : function(type, id) {
 			return fetching[type] && fetching[type][id];
 		},
@@ -353,7 +385,7 @@ app.factory('fetching', function($q, $http) {
 			}
 		}
 	}
-	return public;
+	return pub;
 });
 app.controller('opnStdCtrl', function($scope, $modal, projectFactory,
 		RoundModelFactory, fetching) {
@@ -492,7 +524,7 @@ app.controller('opnStdCtrl', function($scope, $modal, projectFactory,
 });
 
 // app.factory('MatcherFactory', function($modal) {
-// var public = {
+// var pub = {
 // openMatcherModal : function(type, types, fromElements, toElements) {
 app.controller("addObservationDataInstance", function($scope, $modalInstance,
 		FileUploader, study, observation, MatcherFactory, HTTPFactory) {
@@ -971,9 +1003,61 @@ app.controller('AlertsCtrl', function($scope) {
 		$scope.alerts.splice(index, 1);
 	};
 });
+app.factory('ModalFactory', function($modal) {
+	var waitModalInstance;
+	var waitModalHTML = '<div class="text-center">'
+			+ '<h3 style="color: white; margin: 10px 20px;">'
+			+ '<!--<i ng-hide="waitData.progress != null" class="fa fa-cog fa-spin">'
+			+ '</i>--> ' + '{{waitData.text}}</h3>'
+			+ '<progressbar ng-show="waitData.progress != null" max="1"'
+			+ ' style="margin: 0px 20px 10px; height: 3px; background-color: #333;" '
+			+ ' value="waitData.progress">' + '</progressbar>'
+			+ '<progressbar class="progress-striped active" '
+			+ ' ng-hide="waitData.progress != null"'
+			+ ' style="margin: 0px 20px 10px; height: 3px;" ' + ' value="100">'
+			+ '</progressbar>' + '</div>';
+	var waitData = {
+		text : 'Loading...'
+	};
+	var pub = {
+		openWaitModal : function(waitText, progress) {
+			waitData.text = waitText;
+			waitData.progress = progress;
+			waitModalInstance = $modal.open({
+				animation : 0,
+				template : waitModalHTML,
+				backdrop : 'static',
+				keyboard : 'false',
+				controller : 'waitModalCtrl',
+				windowClass : 'wait-dialog',
+				resolve : {
+					"waitData" : function() {
+						return waitData;
+					}
+				}
+			});
+			return waitModalInstance;
+		},
+		closeWaitModal : function() {
+			if (waitModalInstance)
+				waitModalInstance.dismiss('cancel');
+		},
+		modifyWaitMessage : function(waitText, progress) {
+			waitData.text = waitText;
+			waitData.progress = progress;
+		}
+	}
+	return pub;
+});
+app.controller('waitModalCtrl', [
+		'$scope', '$modalInstance', 'waitData',
+		function($scope, $modalInstance, waitData) {
+			$scope.waitData = waitData;
+		}
+]);
 app.factory('MatcherFactory',
 		function($modal) {
-			var public = {
+			var pub = {
 				openMatcherModal : function(type, types, fromElements, toElements,
 						options) {
 					if (!options)
@@ -1002,8 +1086,9 @@ app.factory('MatcherFactory',
 					return promise;
 				}
 			};
-			return public;
+			return pub;
 		});
+
 app
 		.controller(
 				'matcherModalInstance',

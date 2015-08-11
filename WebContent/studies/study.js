@@ -577,7 +577,7 @@ app
 								return '';
 							}
 							$scope.getContent = function(e) {
-								if (e && e.measure && e.measure.content) {
+								if (e && e.measure && e.measure.content != null) {
 									if (e.measure.content != 'no data'
 											&& e.no_of_decimals != null && e.no_of_decimals != 'all')
 										return e.measure.content.toFixed(e.no_of_decimals);
@@ -2072,13 +2072,10 @@ app
 																type : 'error',
 																content : 'no data'
 															}
-														if (extf.datum_type === "unpack") {
-															result.content = unpack(JSON
-																	.parse(response.data[0]));
-														} else if (extf.datum_type === "unpack_mega") {
-															result.content = unpack(JSON
-																	.parse(response.data[0]), true);
-														}
+														result.content = unpack(JSON
+																.parse(response.data[0]),
+																extf.datum_type === "unpack_mega");
+
 														if (keyIndex != -1) {
 															if (inputs[keyIndex] && inputs[keyIndex].content) {
 																setKeyData(result.content,
@@ -2587,7 +2584,6 @@ app
 
 									$q.all(promises).then(
 											function(response) {
-												console.log(response);
 												var knownMetrics = response[0].data.metrics;
 												// return;
 												var knownExtFunctions = response[0].data.functions;
@@ -2608,6 +2604,7 @@ app
 																	angular.copy(solvedMeasure,
 																			solvedMeasure.request);
 																});
+														// console.log(wantedMetrics[i], result);
 														study[wantedMetrics[i]] = result;
 													} else {
 														study[wantedMetrics[i]] = {
