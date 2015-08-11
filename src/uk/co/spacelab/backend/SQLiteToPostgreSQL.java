@@ -184,9 +184,14 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				} else {
 					Database.insertInto(psql, "spaces", columnString,
 							valueString, args);
-					spaceMapper.put(rs.getInt("_id"), Database
-							.getSequenceCurrVal(psql, "spaces_id_seq")
-							.getJSONObject(0).getInt("currval"));
+					int inSpaceID = rs.getInt("_id");
+					spaceMapper
+					        .put(inSpaceID,
+					                Database.getSequenceCurrVal(psql,
+					                        "spaces_id_seq").getJSONObject(0)
+					                .getInt("currval"));
+					spaceOffsetMap.put(inSpaceID, new double [] {
+					        rs.getDouble("offsetx"), rs.getDouble("offsety")});
 				}
 			}
 
@@ -291,10 +296,10 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				int inSpaceID = rs.getInt("spaceid");
 				double xpos = rs.getDouble("xpos");
 				double ypos = rs.getDouble("ypos");
-				if (spaceOffsetMap.containsKey(inSpaceID)) {
+//				if (spaceOffsetMap.containsKey(inSpaceID)) {
 					xpos += spaceOffsetMap.get(inSpaceID)[0];
 					ypos += spaceOffsetMap.get(inSpaceID)[1];
-				}
+//				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				Object [] args =
 						new Object [] {observationID, rs.getInt("originalid"),
