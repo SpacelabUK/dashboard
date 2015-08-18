@@ -93,7 +93,7 @@ app.controller('addPlansInstance', [
 							setTimeout(function() {
 								ModalFactory.closeWaitModal();
 								$modalInstance.close();
-							}, 2000)
+							}, 2000);
 						});
 					}, function(error) {
 						console.log(error);

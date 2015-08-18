@@ -1,15 +1,5 @@
 
-<head>
-<title>Observation setup</title>
-<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-<meta content="utf-8" http-equiv="encoding">
-<style>
-.highlight {
-	background-color: #F4A460;
-}
-</style>
-</head>
-<body>
+<div>
 
   <!-- Header Bar -->
 
@@ -29,7 +19,7 @@
       <div class="widget">
         <div class="widget-body">
           <input class="btn" type="file" nv-file-select=""
-            uploader="uploader" /> <br />
+            uploader="uploader" accept=".xlsx" /> <br />
           <button type="button" class="btn btn-info btn-s"
             ng-click="attach()"
             ng-disabled="!xlsxValid || !uploader.getNotUploadedItems().length">
@@ -39,4 +29,4 @@
       </div>
     </div>
   </div>
-</body>
+</div>
