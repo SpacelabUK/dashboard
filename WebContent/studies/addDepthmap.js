@@ -14,6 +14,7 @@ app
 						'HTTPFactory',
 						function($scope, $modalInstance, $http, $modal, $q, study,
 								FileUploader, PlanFactory, HTTPFactory) {
+							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
 							$scope.layerpredicate = 'name';
@@ -21,12 +22,9 @@ app
 								$modalInstance.dismiss('cancel');
 							};
 							$scope.depthmapTypes = [
-							        								"General",
-							        								"Visibility",
-							        								"Essence",
-							        								"Accessibility"
+									"General", "Visibility", "Essence", "Accessibility"
 							];
-							$scope.properties = {}
+							$scope.properties = {};
 							HTTPFactory.backendGet(
 									'Occupancy?t=depthmap_types&obsid=' + study.id).then(
 									function(response) {
@@ -34,7 +32,7 @@ app
 											return element.type;
 										});
 									}, function(error) {
-										console.log(response);
+										console.log(error);
 									});
 
 							// function endsWith(str, suffix) {
@@ -56,7 +54,7 @@ app
 										.toUpperCase();
 							}
 							function eql(str1, str2) {
-								return str1.trim().toLowerCase() == str2.toLowerCase()
+								return str1.trim().toLowerCase() === str2.toLowerCase();
 							}
 							var csvuploader = $scope.csvuploader = new FileUploader({
 								url : backend + 'StoreDepthmap'
@@ -137,23 +135,23 @@ app
 							}
 							$scope.foundspaces = [];
 							$scope.dataInvalid = function() {
-								return !($scope.properties.name
-										&& $scope.properties.name.trim().length > 0
-										&& $scope.properties.type && $scope.properties.type.trim().length > 0);
-							}
+								return !($scope.properties.name &&
+										$scope.properties.name.trim().length > 0 &&
+										$scope.properties.type && $scope.properties.type.trim().length > 0);
+							};
 							$scope.selectAllSpaces = function() {
 								for (var i = 0; i < $scope.foundspaces.length; i++)
 									$scope.foundspaces[i].selected = true;
 							};
 							$scope.getSpaceValidityTooltip = function(space) {
 								if (!space.valid)
-									return 'Space "' + space.alias
-											+ '" does not exist in the database!';
-							}
-							$scope.noSelectedSpaces = function() {
-								return $scope.foundspaces.length == 0;
+									return 'Space "' + space.alias +
+											'" does not exist in the database!';
 							};
-							openConfirmModal = function(message, okText, cancelText) {
+							$scope.noSelectedSpaces = function() {
+								return $scope.foundspaces.length === 0;
+							};
+							var openConfirmModal = function(message, okText, cancelText) {
 								var promise = $modal.open({
 									templateUrl : 'confirmModal.html',
 									controller : 'confirmDialog',
@@ -170,7 +168,7 @@ app
 									}
 								});
 								return promise;
-							}
+							};
 							$scope.submit = function(study) {
 								var data = {
 									studyid : study.id,
@@ -178,26 +176,27 @@ app
 									fileidDXF : $scope.dxfData.fileid,
 									type : $scope.properties.type,
 									name : $scope.properties.name,
-								}
+								};
 								HTTPFactory.backendPost("StoreDepthmap", data);
-							}
+							};
 							csvuploader.onBeforeUploadItem = function(item) {
 								item.formData.push({
 									studyid : study.id,
 									spaces : JSON.stringify($scope.foundspaces)
 								});
-							}
+							};
 							csvuploader.onCompleteItem = function(item, response, status,
 									headers) {
 								console.log(item);
 								console.log(response);
 								console.log(status);
 								console.log(headers);
-							}
+							};
 						}
 				]);
 app.directive("depthmapViewer", [
 	function() {
+		"use strict";
 		var directiveDefinitionObject = {
 			restrict : 'E',
 			// this is important,

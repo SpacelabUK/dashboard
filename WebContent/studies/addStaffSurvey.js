@@ -1,4 +1,3 @@
-"use strict";
 app
 		.controller(
 				'addStaffSurveyInstance',
@@ -17,6 +16,7 @@ app
 						function($scope, $modalInstance, $http, $modal, $q, study,
 								FileUploader, PlanFactory, HTTPFactory, MatcherFactory,
 								ModalFactory) {
+							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
 							$scope.project = {};
@@ -69,6 +69,7 @@ app
 							 * (name, email) and clear data (the rest)
 							 */
 							function getVNAData(text, splitFile) {
+								var i, j;
 								text = text.replace('\r', '\n');
 								text = text.replace(/ {1,}/g, ' ');
 								var lines = text.split('\n');
@@ -82,7 +83,7 @@ app
 									rows : []
 								};
 								var currentRows = null;
-								for (var i = 0; i < lines.length; i++) {
+								for (i = 0; i < lines.length; i++) {
 									if (lines[i].trim().toUpperCase() == '*NODE DATA') {
 										currentRows = node_data.rows;
 										node_data.headers = lines[i + 1].trim();
@@ -95,7 +96,7 @@ app
 										currentRows.push(lines[i].trim());
 									}
 								}
-								var headers = node_data.headers.split(' ');
+								headers = node_data.headers.split(' ');
 								var nameColumn = -1;
 								var emailColumn = -1;
 								var idColumn = -1;
@@ -105,7 +106,7 @@ app
 								$scope.questions = [];
 								var clearHeaders = [];
 								var sensHeaders = [];
-								for (var i = 0; i < headers.length; i++) {
+								for (i = 0; i < headers.length; i++) {
 									if (headers[i].toUpperCase() == 'NAME') {
 										nameColumn = i;
 										sensHeaders.push(i);
@@ -138,29 +139,29 @@ app
 								$scope.completed = 0;
 								var clearRowData = [];
 								var sensRowData = [];
-
+								var clearLine, sensLine;
 								if (splitFile) {
 									clearRowData.push('*node data\n');
-									var clearLine = '';
-									for (var j = 0; j < clearHeaders.length; j++)
+									clearLine = '';
+									for (j = 0; j < clearHeaders.length; j++)
 										clearLine += headers[clearHeaders[j]] + ' ';
 									clearLine = clearLine.trim();
 									clearLine += '\n';
 									clearRowData.push(clearLine);
-									var sensLine = '';
-									for (var j = 0; j < sensHeaders.length; j++)
+									sensLine = '';
+									for (j = 0; j < sensHeaders.length; j++)
 										sensLine += headers[sensHeaders[j]] + '\t';
 									sensLine = sensLine.trim();
 									sensLine += '\n';
 									sensRowData.push(sensLine);
 								}
-								for (var i = 0; i < node_data.rows.length; i++) {
+								for (i = 0; i < node_data.rows.length; i++) {
 									var line = node_data.rows[i].slice(1,
 											node_data.rows[i].length - 1).split("\" \"");
 									var completed = line[completedColumn].toUpperCase() == 'COMPLETE';
 									if (completed)
 										$scope.completed++;
-									for (var j = 0; j < $scope.questions.length; j++) {
+									for (j = 0; j < $scope.questions.length; j++) {
 										if (line[$scope.questions[j].id].trim().length > 0)
 											$scope.questions[j].answered++;
 									}
@@ -176,20 +177,24 @@ app
 									if (completedColumn != -1)
 										pp.completed = line[completedColumn];
 									$scope.staff.push(pp);
+									for (j = 0; j < $scope.questions.length; j++) {
+										if (line[$scope.questions[j].id].trim().length > 0)
+											$scope.questions[j].answered = (($scope.questions[j].answered / $scope.staff.length) * 100) | 0;
+									}
 									if (splitFile) {
 										// heavy operation, do only if it is requested
 										if (nameColumn != -1)
 											// skip *dummy people
 											if (line[nameColumn].slice(0, 1) === '*')
 												continue;
-										var clearLine = '';
-										for (var j = 0; j < clearHeaders.length; j++)
+										clearLine = '';
+										for (j = 0; j < clearHeaders.length; j++)
 											clearLine += '"' + line[clearHeaders[j]] + '" ';
 										clearLine = clearLine.trim();
 										clearLine += '\n';
 										clearRowData.push(clearLine);
-										var sensLine = '';
-										for (var j = 0; j < sensHeaders.length; j++)
+										sensLine = '';
+										for (j = 0; j < sensHeaders.length; j++)
 											sensLine += '"' + line[sensHeaders[j]] + '"\t';
 										sensLine = sensLine.trim();
 										sensLine += '\n';
@@ -200,19 +205,15 @@ app
 								if (splitFile) {
 									clearRowData.push('*tie data\n');
 									clearRowData.push(tie_data.headers + '\n');
-									for (var i = 0; i < tie_data.rows.length; i++)
+									for (i = 0; i < tie_data.rows.length; i++)
 										clearRowData.push(tie_data.rows[i] + '\n');
-								}
-								for (var j = 0; j < $scope.questions.length; j++) {
-									if (line[$scope.questions[j].id].trim().length > 0)
-										$scope.questions[j].answered = (($scope.questions[j].answered / $scope.staff.length) * 100) | 0;
 								}
 								$scope.$apply();
 								if (splitFile)
 									return {
 										clearRowData : clearRowData,
 										sensRowData : sensRowData
-									}
+									};
 								return;
 
 							}
@@ -221,22 +222,22 @@ app
 									return (($scope.completed / $scope.staff.length) * 100) | 0;
 								else
 									return 0;
-							}
+							};
 							$scope.dataInvalid = function() {
-								return !$scope.staff || $scope.staff.length < 1
-										|| !$scope.questions || $scope.questions.length < 1;
-							}
+								return !$scope.staff || $scope.staff.length < 1 ||
+										!$scope.questions || $scope.questions.length < 1;
+							};
 							$scope.selectAllSpaces = function() {
 								for (var i = 0; i < $scope.foundspaces.length; i++)
 									$scope.foundspaces[i].selected = true;
 							};
 							$scope.getSpaceValidityTooltip = function(space) {
 								if (!space.valid)
-									return 'Space "' + space.alias
-											+ '" does not exist in the database!';
-							}
+									return 'Space "' + space.alias +
+											'" does not exist in the database!';
+							};
 							$scope.noSelectedSpaces = function() {
-								return $scope.foundspaces.length == 0;
+								return $scope.foundspaces.length === 0;
 							};
 							function openConfirmModal(message, okText, cancelText) {
 								var promise = $modal.open({
@@ -271,7 +272,7 @@ app
 								})(fileItem._file);
 								reader.readAsDataURL(fileItem._file);
 								return deferred.promise;
-							}
+							};
 							$scope.attach = function(study) {
 								ModalFactory.openWaitModal('Getting Validation data...');
 								vnauploader.queue[0].formData.push({
@@ -287,7 +288,7 @@ app
 											$scope.sensData = newFileData.sensRowData;
 											vnauploader.uploadAll();
 										});
-							}
+							};
 							function sleep(milliseconds) {
 								var start = new Date().getTime();
 								for (var i = 0; i < 1e7; i++) {
@@ -299,94 +300,95 @@ app
 							vnauploader.onCompleteItem = function(item, response, status,
 									headers) {
 								ModalFactory.closeWaitModal();
-								if (!("DEPARTMENT_LIST" in response)
-										|| !("DATABASE_TEAMS" in response))
+								var newData = "DEPARTMENT_LIST";
+								var dbData = "DATABASE_TEAMS";
+								if (!(newData in response) || !(dbData in response))
 									return;
 								MatcherFactory.openMatcherModal("team", "teams",
-										response["DEPARTMENT_LIST"], response["DATABASE_TEAMS"]).result
-										.then(function(teams_message) {
-											if (!("FLOOR_LIST" in response)
-													|| !("DATABASE_FLOORS" in response))
-												return;
-											MatcherFactory.openMatcherModal("floor", "floors",
-													response["FLOOR_LIST"], response["DATABASE_FLOORS"]
-											// , {
-											// // preCompare : true,
-											// fromProperties : [
-											// 'parent'
-											// ],
-											// toProperties : [
-											// 'parent'
-											// ]
-											// }
-											).result.then(function(floors_message) {
-												ModalFactory.openWaitModal("Storing to database...");
-												var data = {
-													studyid : study.id,
-													fileid : response.fileid,
-													datain : {
-														teams : teams_message,
-														floors : floors_message,
-													// questions : questions_message,
-													// issues : response["ISSUE_LIST"],
-													// client_issues :
-													// response["CLIENT_ISSUE_LIST"]
+										response[newData], response[dbData]).result.then(function(
+										teams_message) {
+									var newData = "DEPARTMENT_LIST";
+									var dbData = "DATABASE_TEAMS";
+									if (!(newData in response) || !(dbData in response))
+										return;
+									MatcherFactory.openMatcherModal("floor", "floors",
+											response[newData], response[dbData]
+									// , {
+									// // preCompare : true,
+									// fromProperties : [
+									// 'parent'
+									// ],
+									// toProperties : [
+									// 'parent'
+									// ]
+									// }
+									).result.then(function(floors_message) {
+										ModalFactory.openWaitModal("Storing to database...");
+										var data = {
+											studyid : study.id,
+											fileid : response.fileid,
+											datain : {
+												teams : teams_message,
+												floors : floors_message,
+											// questions : questions_message,
+											// issues : response["ISSUE_LIST"],
+											// client_issues :
+											// response["CLIENT_ISSUE_LIST"]
+											}
+										};
+										// console.log(data);
+										var promise = HTTPFactory.backendPost('StoreStaffSurvey',
+												data);
+
+										var breakPoint = 100;
+										var updateInterval = 500; // milliseconds
+										var update = function(depth) {
+											$http.get("/tomcutter/StoreStaffSurvey").then(
+													function(response) {
+														if (response.status === 202 && depth < breakPoint &&
+																response.data) {
+															ModalFactory.modifyWaitMessage(
+																	response.data.text, response.data.progress);
+															sleep(updateInterval);
+															update(depth + 1);
+														}
+													}, function(error) {
+														// exit the recursion
+													});
+										};
+										setTimeout(function() {
+											update(0);
+										}, updateInterval * 0.5);
+										promise.then(function(response) {
+											console.log(response);
+											ModalFactory.closeWaitModal();
+											var modalInstance = $modal.open({
+												templateUrl : //
+												'studies/afterStaffSurveyUpload.html',
+												backdrop : 'static',
+												keyboard : 'false',
+												size : 'sm',
+												controller : 'AfterStaffSurveyUploadModalCtrl',
+												resolve : {
+													"sensData" : function() {
+														return $scope.sensData;
 													}
 												}
-												// console.log(data);
-												var promise = HTTPFactory.backendPost(
-														'StoreStaffSurvey', data);
-
-												var breakPoint = 100;
-												var updateInterval = 500; // milliseconds
-												var update = function(depth) {
-													$http.get("/tomcutter/StoreStaffSurvey").then(
-															function(response) {
-																if (response.status === 202
-																		&& depth < breakPoint && response.data) {
-																	ModalFactory.modifyWaitMessage(
-																			response.data.text,
-																			response.data.progress);
-																	sleep(updateInterval);
-																	update(depth + 1);
-																}
-															}, function(error) {
-																// exit the recursion
-															});
-												}
-												setTimeout(function() {
-													update(0);
-												}, updateInterval * 0.5);
-												promise.then(function(response) {
-													console.log(response);
-													ModalFactory.closeWaitModal();
-													var modalInstance = $modal.open({
-														templateUrl : //
-														'studies/afterStaffSurveyUpload.html',
-														backdrop : 'static',
-														keyboard : 'false',
-														size : 'sm',
-														controller : 'AfterStaffSurveyUploadModalCtrl',
-														resolve : {
-															"sensData" : function() {
-																return $scope.sensData;
-															}
-														}
-													});
-													modalInstance.result.then(function() {
-														$modalInstance.close('done');
-													});
-
-												}, function(error) {
-													console.log(response);
-												});
-											}, function(error) {
-												console.log(error);
 											});
+											modalInstance.result.then(function() {
+												$modalInstance.close('done');
+											});
+
 										}, function(error) {
-											console.log(error);
+											console.log(response);
 										});
-							}
+									}, function(error) {
+										console.log(error);
+									});
+								}, function(error) {
+									console.log(error);
+								});
+							};
 						}
 				]);
 
@@ -398,10 +400,10 @@ app.controller('AfterStaffSurveyUploadModalCtrl', [
 			});
 			$scope.save = function() {
 				saveAs(blob, "sensData.tsv");
-			}
+			};
 
 			$scope.ok = function() {
 				$modalInstance.close('ok');
-			}
+			};
 		}
 ]);

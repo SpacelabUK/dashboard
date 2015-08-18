@@ -4,6 +4,7 @@ app.controller('observationController', [
 		'HTTPFactory',
 		'$modal',
 		function($scope, $stateParams, HTTPFactory, $modal) {
+			"use strict";
 			$scope.id = $stateParams.part_id;
 			$scope.spacePredicate = "alias";
 
@@ -36,11 +37,11 @@ app.controller('observationController', [
 						}, function(error) {
 							console.log(error);
 						});
-			}
+			};
 			$scope.getDepthmapMeasure = function(space, measureid) {
 				HTTPFactory.backendGet(
-						"GetDepthmapData?spaceid=" + space.id + "&measure=" + measureid
-								+ "&analysis_type=" + 'Accessibility').then(function(response) {
+						"GetDepthmapData?spaceid=" + space.id + "&measure=" + measureid +
+								"&analysis_type=" + 'Accessibility').then(function(response) {
 					console.log(response.data);
 					var promise = $modal.open({
 						templateUrl : 'studies/dpmView.html',
@@ -58,18 +59,18 @@ app.controller('observationController', [
 				}, function(error) {
 					console.log(error);
 				});
-			}
+			};
 			$scope.getTeams = function(space) {
-				HTTPFactory.backendGet("GetSpaceData?spaceid=" + space.id
-						+ "&functeam=team");
-			}
+				HTTPFactory.backendGet("GetSpaceData?spaceid=" + space.id +
+						"&functeam=team");
+			};
 			$scope.getSnapshotColour = function(snapshot) {
-				return 'rgb(255,' + (255 - ((snapshot.occupancy * 128) | 0)) + ','
-						+ (200 - ((snapshot.occupancy * 200) | 0)) + ")"
-			}
+				return 'rgb(255,' + (255 - ((snapshot.occupancy * 128) | 0)) + ',' +
+						(200 - ((snapshot.occupancy * 200) | 0)) + ")";
+			};
 			$scope.empty = function() {
 
-			}
+			};
 			$scope.showSnapshot = function(space, snapshot) {
 				console.log(space);
 				HTTPFactory.backendGet(
@@ -96,7 +97,7 @@ app.controller('observationController', [
 							console.log(error);
 						});
 
-			}
+			};
 		}
 ]);
 app.controller('planViewController', [

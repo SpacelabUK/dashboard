@@ -10,6 +10,7 @@ app.controller('addStakeholdersInstance', [
 		'HTTPFactory',
 		function($scope, $modalInstance, $http, $modal, $q, study, FileUploader,
 				MatcherFactory, HTTPFactory) {
+			"use strict";
 			$scope.study = study;
 			$scope.predicate = 'building';
 			$scope.project = {};
@@ -74,113 +75,78 @@ app.controller('addStakeholdersInstance', [
 				// Read in the image file as a data URL.
 				reader.readAsBinaryString(fileItem._file);
 			};
-			function startsWith(str, prefix) {
-				return str.indexOf(prefix) === 0;
-			}
-			function endsWith(str, suffix) {
-				return str.match(suffix + "$") == suffix;
-			}
-
-			function startsWithIgnoreCase(str, prefix) {
-				return str.toUpperCase().indexOf(prefix.toUpperCase()) === 0;
-			}
-			function endsWithIgnoreCase(str, suffix) {
-				return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
-						.toUpperCase();
-			}
-
 			function getXLSXData(blob) {
+				var teamSheet = "Teams";
+				var questionSheet = "Questions";
 				var workbook = XLSX.read(blob, {
 					type : "binary"
 				});
 				console.log(workbook);
-				if (!workbook.SheetNames["Teams"] || !workbook.SheetNames["Questions"])
+				if (!workbook.SheetNames[teamSheet] ||
+						!workbook.SheetNames[questionSheet])
 					$scope.xlsxValid = false;
 				$scope.xlsxValid = true;
 				return;
 
 			}
-			function clearObj(o) {
-				var newC = [];
-				for (var i = 0; i < o.c.length; i++) {
-					if (!clearObj(o.c[i]))
-						newC.push(o.c[i])
-				}
-				o.c = newC;
-				if (o.c.length == 0
-						&& ((o.type != 'TEXT' && o.type != 'MTEXT') || o.p['8']
-								.toUpperCase() != genIdentifier + propIdentifier)) {
-					return true;
-				} else
-					return false;
-			}
 
-			function eql(str1, str2) {
-				return str1.trim().toLowerCase() == str2.toLowerCase()
-			}
 			var rounds = 0;
 			var days = 0;
-			$scope.addDXF = function(study) {
+			$scope.attach = function(study) {
 
 				uploader.uploadAll();
-				// var deferred = $q.defer(), httpPromise =
-				// $http
-				// .post(backend + 'ValidateDepthmap',
-				// data);
-				//
-				// httpPromise.then(function(response) {
-				// deferred.resolve(response);
-				// }, function(error) {
-				// console.error(error);
-				// });
-				//
-				// return deferred.promise;
-			}
+			};
 			uploader.onCompleteItem = function(item, response, status, headers) {
 				// console.log(JSON.stringify(response));
-				MatcherFactory.openMatcherModal("team", "teams",
-						response["DEPARTMENT_LIST"], response["DATABASE_TEAMS"]).result
-						.then(function(teams_message) {
-							MatcherFactory.openMatcherModal("question", "questions",
-									response["QUESTION_LIST"], response["DATABASE_QUESTIONS"], {
-										// preCompare : true,
-										fromProperties : [
-											'parent'
-										],
-										toProperties : [
-											'parent'
-										]
-									}).result.then(function(questions_message) {
+				var newData = "DEPARTMENT_LIST";
+				var dbData = "DATABASE_TEAMS";
+				MatcherFactory.openMatcherModal("team", "teams", response[newData],
+						response[dbData]).result.then(function(teams_message) {
+					var newData = "QUESTION_LIST";
+					var dbData = "DATABASE_QUESTIONS";
+					MatcherFactory.openMatcherModal("question", "questions",
+							response[newData], response[dbData], {
+								// preCompare : true,
+								fromProperties : [
+									'parent'
+								],
+								toProperties : [
+									'parent'
+								]
+							}).result.then(function(questions_message) {
 
-								MatcherFactory.openMatcherModal("issue", "issues",
-										response["ISSUE_LIST"], response["DATABASE_ISSUES"]).result
-										.then(function(issues_message) {
+						var newData = "ISSUE_LIST";
+						var dbData = "DATABASE_ISSUES";
+						MatcherFactory.openMatcherModal("issue", "issues",
+								response[newData], response[dbData]).result.then(function(
+								issues_message) {
 
-											console.log("success");
-											console.log(teams_message);
-											console.log(questions_message);
-											console.log(issues_message);
-											var data = {
-												studyid : study.id,
-												fileid : response.fileid,
-												datain : {
-													teams : teams_message,
-													questions : questions_message,
-													issues : issues_message,
-													client_issues : response["CLIENT_ISSUE_LIST"],
-												}
-											}
-											console.log(data);
-											HTTPFactory.backendPost('StoreStakeholders', data);
-										}, function(error) {
-											console.log(error);
-										});
-							}, function(error) {
-								console.log(error);
-							});
+							console.log("success");
+							console.log(teams_message);
+							console.log(questions_message);
+							console.log(issues_message);
+							var clientIssueListKey = "CLIENT_ISSUE_LIST";
+							var data = {
+								studyid : study.id,
+								fileid : response.fileid,
+								datain : {
+									teams : teams_message,
+									questions : questions_message,
+									issues : issues_message,
+									client_issues : response[clientIssueListKey],
+								}
+							};
+							console.log(data);
+							HTTPFactory.backendPost('StoreStakeholders', data);
 						}, function(error) {
 							console.log(error);
 						});
-			}
+					}, function(error) {
+						console.log(error);
+					});
+				}, function(error) {
+					console.log(error);
+				});
+			};
 		}
 ]);
