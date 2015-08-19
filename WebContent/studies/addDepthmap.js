@@ -69,7 +69,7 @@ app
 							});
 							var csvflow = new Flow({
 								method : 'octet',
-								target : '/tomcutter/StoreDepthmap',
+								target : HTTPFactory.getBackend() + 'StoreDepthmap',
 								query : {
 									studyid : $scope.study.id
 								}
@@ -82,7 +82,7 @@ app
 							});
 							var dxfflow = new Flow({
 								method : 'octet',
-								target : '/tomcutter/StoreDepthmap',
+								target : HTTPFactory.getBackend() + 'StoreDepthmap',
 								query : {
 									studyid : $scope.study.id
 								}
@@ -120,6 +120,7 @@ app
 										dxfflow.addFile(theFile);
 										dxfflow.upload();
 										dxfflow.on('fileSuccess', function(file, message) {
+											console.log(message);
 											var data = JSON.parse(message);
 											afterDXFaddition(data);
 										});
@@ -133,41 +134,10 @@ app
 							function afterDXFaddition(data) {
 								$scope.dxfData = data;
 							}
-							$scope.foundspaces = [];
 							$scope.dataInvalid = function() {
 								return !($scope.properties.name &&
 										$scope.properties.name.trim().length > 0 &&
 										$scope.properties.type && $scope.properties.type.trim().length > 0);
-							};
-							$scope.selectAllSpaces = function() {
-								for (var i = 0; i < $scope.foundspaces.length; i++)
-									$scope.foundspaces[i].selected = true;
-							};
-							$scope.getSpaceValidityTooltip = function(space) {
-								if (!space.valid)
-									return 'Space "' + space.alias +
-											'" does not exist in the database!';
-							};
-							$scope.noSelectedSpaces = function() {
-								return $scope.foundspaces.length === 0;
-							};
-							var openConfirmModal = function(message, okText, cancelText) {
-								var promise = $modal.open({
-									templateUrl : 'confirmModal.html',
-									controller : 'confirmDialog',
-									resolve : {
-										message : function() {
-											return message;
-										},
-										okText : function() {
-											return okText;
-										},
-										cancelText : function() {
-											return cancelText;
-										}
-									}
-								});
-								return promise;
 							};
 							$scope.submit = function(study) {
 								var data = {

@@ -4,7 +4,7 @@
  * Some basic String functions used throughout
  */
 function eql(str1, str2) {
-	return str1.trim().toLowerCase() == str2.toLowerCase()
+	return str1.trim().toLowerCase() === str2.toLowerCase();
 }
 function startsWith(str, prefix) {
 	return str.indexOf(prefix) === 0;
@@ -20,7 +20,6 @@ function endsWithIgnoreCase(str, suffix) {
 			.toUpperCase();
 }
 
-var backend = "/tomcutter/"
 var app = angular.module('Dashboard', [
 		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
 		'gridster'
@@ -56,225 +55,236 @@ app.directive('mainpage', function() {
 app.controller('AlertsCtrl', function($scope) {
 
 });
-app.factory('projectFactory',
-		function($q, $http) {
-			var projects = [];
-			var devices = [];
-			var functions = [];
-			var openStudies = [];
+app
+		.factory('projectFactory',
+				function($q, $http, HTTPFactory) {
+					var projects = [];
+					var devices = [];
+					var functions = [];
+					var openStudies = [];
 
-			fetch = function(url) {
-				var deferred = $q.defer(), httpPromise = $http.get(url);
+					fetch = function(url) {
+						var deferred = $q.defer(), httpPromise = $http.get(url);
 
-				httpPromise.then(function(response) {
-					deferred.resolve(response);
-				}, function(error) {
-					console.error(error);
-				});
-				return httpPromise;
-			}
-			var updateStudies = function(project, studies) {
-				if (!project.studies)
-					project.studies = [];
-				while (project.studies.length > 0)
-					project.studies.pop();
-				for (var i = 0; i < studies.length; i++)
-					project.studies.push(studies[i]);
-			}
-			var updateStudyParts = function(study, parts) {
-				if (!study.parts)
-					study.parts = [];
-				while (study.parts.length > 0)
-					study.parts.pop();
-				for (var i = 0; i < parts.length; i++) {
-					parts[i].type = 'observation';
-					study.parts.push(parts[i]);
-				}
-			}
-			var pushNewStudy = function(project) {
-				if (!project.studies)
-					project.studies = [];
-				// for (var i = 0; i < project.studies.length; i++) {
-				// if (project.studies[i]['id'] >= largestID)
-				// largestID = project.studies[i]['id'] + 1;
-				// }
-
-				var data = {
-					'project_id' : project.id,
-					'status' : 'open'
-				};
-				var deferred = $q.defer(), httpPromise = $http.post(backend +
-						'Insert?t=study', data);
-
-				httpPromise.then(function(response) {
-					// console.log(response);
-					deferred.resolve(response);
-				}, function(error) {
-					console.error(error);
-				});
-
-				return deferred.promise;
-			}
-			var pushNewStudyPart = function(study, type) {
-				if (!study.parts)
-					study.parts = [];
-				var data = {
-					'study_id' : study.id,
-					'type' : type
-				};
-				var deferred = $q.defer(), httpPromise = $http.post(backend +
-						'Insert?t=study_part', data);
-				httpPromise.then(function(response) {
-					deferred.resolve(response);
-				}, function(error) {
-					console.error(error);
-				});
-
-				return deferred.promise;
-			}
-			var pub = {
-				refreshProjects : function() {
-					fetch(backend + 'GetAll?t=projects').then(function(response) {
-						var result = response.data;
-						if (result) {
-							while (projects.length > 0)
-								projects.pop();
-							for (var i = 0; i < result.length; i++) {
-								projects.push(result[i]);
-								pub.refreshStudies(result[i]);
-							}
+						httpPromise.then(function(response) {
+							deferred.resolve(response);
+						}, function(error) {
+							console.error(error);
+						});
+						return httpPromise;
+					}
+					var updateStudies = function(project, studies) {
+						if (!project.studies)
+							project.studies = [];
+						while (project.studies.length > 0)
+							project.studies.pop();
+						for (var i = 0; i < studies.length; i++)
+							project.studies.push(studies[i]);
+					}
+					var updateStudyParts = function(study, parts) {
+						if (!study.parts)
+							study.parts = [];
+						while (study.parts.length > 0)
+							study.parts.pop();
+						for (var i = 0; i < parts.length; i++) {
+							parts[i].type = 'observation';
+							study.parts.push(parts[i]);
 						}
-					}, function(error) {
-						console.error(error);
-					});
-				},
-				refreshDevices : function() {
-					fetch(backend + 'GetAll?t=devices').then(function(response) {
-						var result = response.data;
-						if (result) {
-							while (devices.length > 0)
-								devices.pop();
-							for (var i = 0; i < result.length; i++) {
-								devices.push(result[i]);
-							}
-						}
-					}, function(error) {
-						console.error(error);
-					});
-				},
-				refreshSpatialFunctions : function() {
-					fetch(backend + 'GetAll?t=spatial_functions').then(
-							function(response) {
-								var result = response.data;
-								if (result) {
-									while (functions.length > 0)
-										functions.pop();
-									for (var i = 0; i < result.length; i++) {
-										functions.push(result[i]);
-									}
-								}
-							}, function(error) {
-								console.error(error);
-							});
-				},
-				refreshStudies : function(project) {
-					fetch(backend + 'GetAll?t=studies&projectid=' + project.id).then(
-							function(response) {
+					}
+					var pushNewStudy = function(project) {
+						if (!project.studies)
+							project.studies = [];
+						// for (var i = 0; i < project.studies.length; i++) {
+						// if (project.studies[i]['id'] >= largestID)
+						// largestID = project.studies[i]['id'] + 1;
+						// }
+
+						var data = {
+							'project_id' : project.id,
+							'status' : 'open'
+						};
+						var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
+								.getBackend() +
+								'Insert?t=study', data);
+
+						httpPromise.then(function(response) {
+							// console.log(response);
+							deferred.resolve(response);
+						}, function(error) {
+							console.error(error);
+						});
+
+						return deferred.promise;
+					}
+					var pushNewStudyPart = function(study, type) {
+						if (!study.parts)
+							study.parts = [];
+						var data = {
+							'study_id' : study.id,
+							'type' : type
+						};
+						var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
+								.getBackend() +
+								'Insert?t=study_part', data);
+						httpPromise.then(function(response) {
+							deferred.resolve(response);
+						}, function(error) {
+							console.error(error);
+						});
+
+						return deferred.promise;
+					}
+					var pub = {
+						refreshProjects : function() {
+							fetch(HTTPFactory.getBackend() + 'GetAll?t=projects').then(
+									function(response) {
+										var result = response.data;
+										if (result) {
+											while (projects.length > 0)
+												projects.pop();
+											for (var i = 0; i < result.length; i++) {
+												projects.push(result[i]);
+												pub.refreshStudies(result[i]);
+											}
+										}
+									}, function(error) {
+										console.error(error);
+									});
+						},
+						refreshDevices : function() {
+							fetch(HTTPFactory.getBackend() + 'GetAll?t=devices').then(
+									function(response) {
+										var result = response.data;
+										if (result) {
+											while (devices.length > 0)
+												devices.pop();
+											for (var i = 0; i < result.length; i++) {
+												devices.push(result[i]);
+											}
+										}
+									}, function(error) {
+										console.error(error);
+									});
+						},
+						refreshSpatialFunctions : function() {
+							fetch(HTTPFactory.getBackend() + 'GetAll?t=spatial_functions')
+									.then(function(response) {
+										var result = response.data;
+										if (result) {
+											while (functions.length > 0)
+												functions.pop();
+											for (var i = 0; i < result.length; i++) {
+												functions.push(result[i]);
+											}
+										}
+									}, function(error) {
+										console.error(error);
+									});
+						},
+						refreshStudies : function(project) {
+							fetch(
+									HTTPFactory.getBackend() + 'GetAll?t=studies&projectid=' +
+											project.id).then(function(response) {
 								if (response.data)
 									updateStudies(project, response.data);
 							}, function(error) {
 								console.error(error);
 							});
-				},
-				refreshOpenStudies : function() {
-					var promise = fetch(backend + 'GetAll?t=openstudies');
-					promise.then(function(response) {
-						var result = response.data;
-						if (result) {
-							while (openStudies.length > 0)
-								openStudies.pop();
-							for (var i = 0; i < result.length; i++) {
-								result[i].parts = [];
-								openStudies.push(result[i]);
-							}
-						}
-					}, function(error) {
-						console.error(error);
-					});
-					return promise;
-				},
-				refreshStudyParts : function(study) {
-					var promise = fetch(backend + 'GetAll?t=study_parts&studyid=' +
-							study.id);
-					promise.then(function(response) {
-						if (response.data)
-							updateStudyParts(study, response.data);
-					}, function(error) {
-						console.error(error);
-					});
-					return promise;
-				},
-				getProjects : function() {
-					return projects;
-				},
-				getDevices : function() {
-					return devices;
-				},
-				getSpatialFunctions : function() {
-					return functions;
-				},
-				getOpenStudies : function() {
-					return openStudies;
-				},
-				addProject : function(id, name) {
-					var data = {
-						'id' : id,
-						'name' : name
-					};
-					var deferred = $q.defer(), httpPromise = $http.post(backend +
-							'Insert?t=project', data);
+						},
+						refreshOpenStudies : function() {
+							var promise = fetch(HTTPFactory.getBackend() +
+									'GetAll?t=openstudies');
+							promise.then(function(response) {
+								var result = response.data;
+								if (result) {
+									while (openStudies.length > 0)
+										openStudies.pop();
+									for (var i = 0; i < result.length; i++) {
+										result[i].parts = [];
+										openStudies.push(result[i]);
+									}
+								}
+							}, function(error) {
+								console.error(error);
+							});
+							return promise;
+						},
+						refreshStudyParts : function(study) {
+							var promise = fetch(HTTPFactory.getBackend() +
+									'GetAll?t=study_parts&studyid=' + study.id);
+							promise.then(function(response) {
+								if (response.data)
+									updateStudyParts(study, response.data);
+							}, function(error) {
+								console.error(error);
+							});
+							return promise;
+						},
+						getProjects : function() {
+							return projects;
+						},
+						getDevices : function() {
+							return devices;
+						},
+						getSpatialFunctions : function() {
+							return functions;
+						},
+						getOpenStudies : function() {
+							return openStudies;
+						},
+						addProject : function(id, name) {
+							var data = {
+								'id' : id,
+								'name' : name
+							};
+							var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
+									.getBackend() +
+									'Insert?t=project', data);
 
-					httpPromise.then(function(response) {
-						deferred.resolve(response);
-					}, function(error) {
-						console.error(error);
-					});
+							httpPromise.then(function(response) {
+								deferred.resolve(response);
+							}, function(error) {
+								console.error(error);
+							});
 
-					return deferred.promise;
-				},
-				addDevice : function(name) {
-					var data = {
-						'name' : name
-					};
-					var deferred = $q.defer(), httpPromise = $http.post(backend +
-							'Insert?t=device', data);
+							return deferred.promise;
+						},
+						addDevice : function(name) {
+							var data = {
+								'name' : name
+							};
+							var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
+									.getBackend() +
+									'Insert?t=device', data);
 
-					httpPromise.then(function(response) {
-						deferred.resolve(response);
-					}, function(error) {
-						console.error(error);
-					});
+							httpPromise.then(function(response) {
+								deferred.resolve(response);
+							}, function(error) {
+								console.error(error);
+							});
 
-					return deferred.promise;
-				},
-				addSpatialFunction : function(alias, name) {
-					var data = {
-						'alias' : alias,
-						'name' : name
-					};
-					var deferred = $q.defer(), httpPromise = $http.post(backend +
-							'Insert?t=spatial_function', data);
-					httpPromise.then(function(response) {
-						deferred.resolve(response);
-					}, function(error) {
-						console.error(error);
-					});
+							return deferred.promise;
+						},
+						addSpatialFunction : function(alias, name) {
+							var data = {
+								'alias' : alias,
+								'name' : name
+							};
+							var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
+									.getBackend() +
+									'Insert?t=spatial_function', data);
+							httpPromise.then(function(response) {
+								deferred.resolve(response);
+							}, function(error) {
+								console.error(error);
+							});
 
-					return deferred.promise;
-				},
-				addStudy : function(project) {
-					fetch(backend + 'GetAll?t=studies&projectid=' + project.id).then(
-							function(response) {
+							return deferred.promise;
+						},
+						addStudy : function(project) {
+							fetch(
+									HTTPFactory.getBackend() + 'GetAll?t=studies&projectid=' +
+											project.id).then(function(response) {
 								if (response.data) {
 									// updateStudies(project, response.data);
 									pushNewStudy(project).then(function(response) {
@@ -287,11 +297,12 @@ app.factory('projectFactory',
 							}, function(error) {
 								console.error(error);
 							});
-				},
-				addStudyPart : function(study, type) {
-					console.log(type);
-					fetch(backend + 'GetAll?t=study_parts&studyid=' + study.id).then(
-							function(response) {
+						},
+						addStudyPart : function(study, type) {
+							console.log(type);
+							fetch(
+									HTTPFactory.getBackend() + 'GetAll?t=study_parts&studyid=' +
+											study.id).then(function(response) {
 								if (response) {
 									console.log(study);
 									// updateStudyParts(study, response.data);
@@ -304,10 +315,10 @@ app.factory('projectFactory',
 							}, function(error) {
 								console.error(error);
 							});
-				}
-			};
-			return pub;
-		});
+						}
+					};
+					return pub;
+				});
 
 app.factory('studyFactory', function($q, $http) {
 	var study;
@@ -531,7 +542,7 @@ app.controller("addObservationDataInstance", function($scope, $modalInstance,
 	console.log('observid ' + observation.id);
 	var uploader = $scope.uploader = new FileUploader({
 		// url : 'studies/observation/uploadObservationData.php',
-		url : '/tomcutter/StoreObservationData',
+		url : HTTPFactory.getBackend() + 'StoreObservationData',
 		formData : [
 			{
 				studyid : study.id,

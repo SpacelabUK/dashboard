@@ -110,7 +110,7 @@ app.controller('planViewController', [
 		'entityData',
 		function($scope, $stateParams, HTTPFactory, $modalInstance, img, snapshot,
 				entityData) {
-			$scope.imagesource = "/tomcutter/data/plans/" + img;
+			$scope.imagesource = HTTPFactory.getBackend() + "data/plans/" + img;
 			$scope.entityData = entityData;
 		}
 ]);
@@ -118,7 +118,7 @@ app.controller('polyViewController', [
 		'$scope', '$stateParams', 'HTTPFactory', '$modalInstance', 'img',
 		'polyData',
 		function($scope, $stateParams, HTTPFactory, $modalInstance, img, polyData) {
-			$scope.imagesource = "/tomcutter/data/plans/" + img;
+			$scope.imagesource = HTTPFactory.getBackend() + "data/plans/" + img;
 			$scope.polyData = polyData;
 		}
 ]);
@@ -126,7 +126,7 @@ app.controller('dpmViewController', [
 		'$scope', '$stateParams', 'HTTPFactory', '$modalInstance', 'img',
 		'dpmData',
 		function($scope, $stateParams, HTTPFactory, $modalInstance, img, dpmData) {
-			$scope.imagesource = "/tomcutter/data/plans/" + img;
+			$scope.imagesource = HTTPFactory.getBackend() + "data/plans/" + img;
 			$scope.dpmData = dpmData;
 		}
 ]);

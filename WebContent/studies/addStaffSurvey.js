@@ -343,18 +343,20 @@ app
 										var breakPoint = 100;
 										var updateInterval = 500; // milliseconds
 										var update = function(depth) {
-											$http.get("/tomcutter/StoreStaffSurvey").then(
-													function(response) {
-														if (response.status === 202 && depth < breakPoint &&
-																response.data) {
-															ModalFactory.modifyWaitMessage(
-																	response.data.text, response.data.progress);
-															sleep(updateInterval);
-															update(depth + 1);
-														}
-													}, function(error) {
-														// exit the recursion
-													});
+											$http.get(HTTPFactory.getBackend() + "StoreStaffSurvey")
+													.then(
+															function(response) {
+																if (response.status === 202 &&
+																		depth < breakPoint && response.data) {
+																	ModalFactory.modifyWaitMessage(
+																			response.data.text,
+																			response.data.progress);
+																	sleep(updateInterval);
+																	update(depth + 1);
+																}
+															}, function(error) {
+																// exit the recursion
+															});
 										};
 										setTimeout(function() {
 											update(0);

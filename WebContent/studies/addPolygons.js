@@ -331,7 +331,7 @@ app
 								 * var blob = new Blob([ JSON.stringify(o) ], {
 								 * type : "plain/text" }); blob.name =
 								 * 'file.json'; var flow = new Flow({ method :
-								 * 'octet', target : '/tomcutter/FlowUpload' });
+								 * 'octet', target : HTTPFactory.getBackend() + 'FlowUpload' });
 								 * flow.addFile(blob); flow.upload();
 								 * flow.on('fileSuccess', function(file,
 								 * message) { console.log(file, message); });

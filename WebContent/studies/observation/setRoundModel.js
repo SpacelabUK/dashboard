@@ -1,4 +1,4 @@
-app.factory('RoundModelFactory', function($q, $http) {
+app.factory('RoundModelFactory', function($q, $http, HTTPFactory) {
 	fetch = function(url) {
 		var deferred = $q.defer(), httpPromise = $http.get(url);
 
@@ -55,7 +55,7 @@ app.factory('RoundModelFactory', function($q, $http) {
 		};
 		var deferred = $q.defer(), httpPromise = $http.post(
 		// 'studies/observation/setRoundModel.php', data);
-		'/tomcutter/SetRoundModel', data);
+				HTTPFactory.getBackend() + 'SetRoundModel', data);
 
 		httpPromise.then(function(response) {
 			deferred.resolve(response);
@@ -75,7 +75,7 @@ app.factory('RoundModelFactory', function($q, $http) {
 		},
 		getRoundModel : function(observation) {
 			// return fetch('studies/observation/getRoundModel.php?observationid='
-			return fetch('/tomcutter/GetAll?t=round_model&observationid='
+			return fetch(HTTPFactory.getBackend() + 'GetAll?t=round_model&observationid='
 					+ observation.id);
 		}
 	}
