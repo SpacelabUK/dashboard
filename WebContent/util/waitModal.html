@@ -1,0 +1,12 @@
+<div class="text-center">
+  <h3 style="color: white; margin: 10px 20px;">
+    <!--<i ng-hide="waitData.progress != null" class="fa fa-cog fa-spin"></i>-->
+    {{waitData.text}}
+  </h3>
+  <progressbar ng-show="waitData.progress != null" max="1"
+    style="margin: 0px 20px 10px;  height: 3px; background-color: #333;"
+    value="waitData.progress"></progressbar>
+  <progressbar class="progress-striped active"
+    ng-hide="waitData.progress != null"
+    style="margin: 0px 20px 10px; height: 3px;" value="100"></progressbar>
+</div>
