@@ -29,7 +29,7 @@ app
 							$scope.layerpredicate = 'name';
 
 							var vnauploader = $scope.vnauploader = new FileUploader({
-								url : backend + 'GetStaffSurveyComparableData'
+								url : HTTPFactory.getBackend() + 'GetStaffSurveyComparableData'
 							});
 							vnauploader.filters.push({
 								name : 'customFilter',

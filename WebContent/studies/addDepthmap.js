@@ -57,7 +57,7 @@ app
 								return str1.trim().toLowerCase() === str2.toLowerCase();
 							}
 							var csvuploader = $scope.csvuploader = new FileUploader({
-								url : backend + 'StoreDepthmap'
+								url : HTTPFactory.getBackend() + 'StoreDepthmap'
 							});
 							var dxfuploader = $scope.dxfuploader = new FileUploader();
 							// FILTERS

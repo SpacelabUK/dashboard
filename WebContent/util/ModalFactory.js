@@ -1,67 +1,74 @@
-app.factory('ModalFactory', function($modal) {
-	var waitModalInstance;
-	var waitModalHTML = '<div class="text-center">'
-			+ '<h3 style="color: white; margin: 10px 20px;">'
-			+ '<!--<i ng-hide="waitData.progress != null" class="fa fa-cog fa-spin">'
-			+ '</i>--> ' + '{{waitData.text}}</h3>'
-			+ '<progressbar ng-show="waitData.progress != null" max="1"'
-			+ ' style="margin: 0px 20px 10px; height: 3px; background-color: #333;" '
-			+ ' value="waitData.progress">' + '</progressbar>'
-			+ '<progressbar class="progress-striped active" '
-			+ ' ng-hide="waitData.progress != null"'
-			+ ' style="margin: 0px 20px 10px; height: 3px;" ' + ' value="100">'
-			+ '</progressbar>' + '</div>';
-	var waitData = {
-		text : 'Loading...'
-	};
-	var pub = {
-		openWaitModal : function(waitText, progress) {
-			waitData.text = waitText;
-			waitData.progress = progress;
-			waitModalInstance = $modal.open({
-				animation : 0,
-				template : waitModalHTML,
-				backdrop : 'static',
-				keyboard : 'false',
-				controller : 'waitModalCtrl',
-				windowClass : 'wait-dialog',
-				resolve : {
-					"waitData" : function() {
-						return waitData;
-					}
-				}
-			});
-			return waitModalInstance;
-		},
-		closeWaitModal : function() {
-			if (waitModalInstance)
-				waitModalInstance.dismiss('cancel');
-		},
-		modifyWaitMessage : function(waitText, progress) {
-			waitData.text = waitText;
-			waitData.progress = progress;
-		},
-		openConfirmModal : function(message, okText, cancelText) {
-			var promise = $modal.open({
-				templateUrl : 'util/confirmModal.html',
-				controller : 'confirmDialog',
-				resolve : {
-					message : function() {
-						return message;
-					},
-					okText : function() {
-						return okText;
-					},
-					cancelText : function() {
-						return cancelText;
-					}
-				}
-			});
-			return promise;
-		}
-	}
-	return pub;
-});
+app
+		.factory(
+				'ModalFactory',
+				[
+						'$modal',
+						function($modal) {
+							var waitModalInstance;
+							var waitModalHTML = '<div class="text-center">'
+									+ '<h3 style="color: white; margin: 10px 20px;">'
+									+ '<!--<i ng-hide="waitData.progress != null" class="fa fa-cog fa-spin">'
+									+ '</i>--> '
+									+ '{{waitData.text}}</h3>'
+									+ '<progressbar ng-show="waitData.progress != null" max="1"'
+									+ ' style="margin: 0px 20px 10px; height: 3px; background-color: #333;" '
+									+ ' value="waitData.progress">' + '</progressbar>'
+									+ '<progressbar class="progress-striped active" '
+									+ ' ng-hide="waitData.progress != null"'
+									+ ' style="margin: 0px 20px 10px; height: 3px;" '
+									+ ' value="100">' + '</progressbar>' + '</div>';
+							var waitData = {
+								text : 'Loading...'
+							};
+							var pub = {
+								openWaitModal : function(waitText, progress) {
+									waitData.text = waitText;
+									waitData.progress = progress;
+									waitModalInstance = $modal.open({
+										animation : 0,
+										template : waitModalHTML,
+										backdrop : 'static',
+										keyboard : 'false',
+										controller : 'waitModalCtrl',
+										windowClass : 'wait-dialog',
+										resolve : {
+											"waitData" : function() {
+												return waitData;
+											}
+										}
+									});
+									return waitModalInstance;
+								},
+								closeWaitModal : function() {
+									if (waitModalInstance)
+										waitModalInstance.dismiss('cancel');
+								},
+								modifyWaitMessage : function(waitText, progress) {
+									waitData.text = waitText;
+									waitData.progress = progress;
+								},
+								openConfirmModal : function(message, okText, cancelText) {
+									var promise = $modal.open({
+										templateUrl : 'util/confirmModal.html',
+										controller : 'confirmDialog',
+										resolve : {
+											message : function() {
+												return message;
+											},
+											okText : function() {
+												return okText;
+											},
+											cancelText : function() {
+												return cancelText;
+											}
+										}
+									});
+									return promise;
+								}
+							}
+							return pub;
+						}
+				]);
 app.controller('waitModalCtrl', [
 		'$scope', '$modalInstance', 'waitData',
 		function($scope, $modalInstance, waitData) {
@@ -69,7 +76,8 @@ app.controller('waitModalCtrl', [
 		}
 ]);
 
-app.factory('MatcherFactory',
+app.factory('MatcherFactory', [
+		'$modal',
 		function($modal) {
 			// in a next stage this controller should be merged with the general above
 			var pub = {
@@ -102,7 +110,8 @@ app.factory('MatcherFactory',
 				}
 			};
 			return pub;
-		});
+		}
+]);
 app
 		.controller(
 				'matcherModalInstance',

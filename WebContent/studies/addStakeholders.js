@@ -21,7 +21,7 @@ app.controller('addStakeholdersInstance', [
 				$modalInstance.dismiss('cancel');
 			};
 			var uploader = $scope.uploader = new FileUploader({
-				url : backend + 'StoreStakeholders'
+				url : HTTPFactory.getBackend() + 'StoreStakeholders'
 			});
 			// FILTERS
 			uploader.filters.push({

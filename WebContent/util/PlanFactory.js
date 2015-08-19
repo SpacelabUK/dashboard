@@ -1,5 +1,8 @@
-app.factory('PlanFactory',
-		function($q, $http) {
+app.factory('PlanFactory', [
+		'$q',
+		'$http',
+		'HTTPFactory',
+		function($q, $http, HTTPFactory) {
 			"use strict";
 			var fetch = function(study, url) {
 				var deferred = $q.defer(), httpPromise = $http.get(url);
@@ -617,7 +620,8 @@ app.factory('PlanFactory',
 				},
 
 				refreshSpaces : function(study) {
-					var url = backend + 'GetAll?t=spaces&studyid=' + study.id;
+					var url = HTTPFactory.getBackend() + 'GetAll?t=spaces&studyid=' +
+							study.id;
 					fetch(study, url).then(function(response) {
 						var result = response.data;
 						if (result) {
@@ -833,4 +837,5 @@ app.factory('PlanFactory',
 				}
 			};
 			return pub;
-		});
+		}
+]);

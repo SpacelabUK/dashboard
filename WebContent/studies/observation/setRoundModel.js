@@ -1,86 +1,91 @@
-app.factory('RoundModelFactory', function($q, $http, HTTPFactory) {
-	fetch = function(url) {
-		var deferred = $q.defer(), httpPromise = $http.get(url);
+app.factory('RoundModelFactory', [
+		'$q',
+		'$http',
+		'HTTPFactory',
+		function($q, $http, HTTPFactory) {
+			fetch = function(url) {
+				var deferred = $q.defer(), httpPromise = $http.get(url);
 
-		httpPromise.then(function(response) {
-			deferred.resolve(response);
-		}, function(error) {
-			console.error(error);
-		});
-		return httpPromise;
-	}
-	updateSpaces = function(study, spaces) {
-		if (!study.existingSpaces)
-			study.existingSpaces = [];
-		while (study.existingSpaces.length > 0)
-			study.existingSpaces.pop();
-		for (var i = 0; i < spaces.length; i++)
-			study.existingSpaces.push(spaces[i]);
-	}
-	getDateString = function(date) {
-		var dd = date.getDate();
-		var mm = date.getMonth() + 1; // January is 0!
+				httpPromise.then(function(response) {
+					deferred.resolve(response);
+				}, function(error) {
+					console.error(error);
+				});
+				return httpPromise;
+			}
+			updateSpaces = function(study, spaces) {
+				if (!study.existingSpaces)
+					study.existingSpaces = [];
+				while (study.existingSpaces.length > 0)
+					study.existingSpaces.pop();
+				for (var i = 0; i < spaces.length; i++)
+					study.existingSpaces.push(spaces[i]);
+			}
+			getDateString = function(date) {
+				var dd = date.getDate();
+				var mm = date.getMonth() + 1; // January is 0!
 
-		var yyyy = date.getFullYear();
-		if (dd < 10) {
-			dd = '0' + dd
-		}
-		if (mm < 10) {
-			mm = '0' + mm
-		}
-		return dd + '/' + mm + '/' + yyyy;
-	}
-	pushRoundModel = function(roundModel) {
-		var rounds = [];
-		angular.forEach(roundModel.rounds, function(round) {
-			var hours = round.getHours();
-			if (hours < 10)
-				hours = '0' + hours;
-			var minutes = round.getMinutes();
-			if (minutes < 10)
-				minutes = '0' + minutes;
-			rounds.push(hours + ":" + minutes);
-		});
-		var model = {
-			'duration' : roundModel.duration + ' minutes',
-			'startdate' : getDateString(roundModel.startdate),
-			'enddate' : getDateString(roundModel.enddate),
-			'rounds' : rounds
-		};
-		var data = {
-			'observationid' : roundModel.observationid,
-			'type' : roundModel.type,
-			'model' : model
+				var yyyy = date.getFullYear();
+				if (dd < 10) {
+					dd = '0' + dd
+				}
+				if (mm < 10) {
+					mm = '0' + mm
+				}
+				return dd + '/' + mm + '/' + yyyy;
+			}
+			pushRoundModel = function(roundModel) {
+				var rounds = [];
+				angular.forEach(roundModel.rounds, function(round) {
+					var hours = round.getHours();
+					if (hours < 10)
+						hours = '0' + hours;
+					var minutes = round.getMinutes();
+					if (minutes < 10)
+						minutes = '0' + minutes;
+					rounds.push(hours + ":" + minutes);
+				});
+				var model = {
+					'duration' : roundModel.duration + ' minutes',
+					'startdate' : getDateString(roundModel.startdate),
+					'enddate' : getDateString(roundModel.enddate),
+					'rounds' : rounds
+				};
+				var data = {
+					'observationid' : roundModel.observationid,
+					'type' : roundModel.type,
+					'model' : model
 
-		};
-		var deferred = $q.defer(), httpPromise = $http.post(
-		// 'studies/observation/setRoundModel.php', data);
+				};
+				var deferred = $q.defer(), httpPromise = $http.post(
+				// 'studies/observation/setRoundModel.php', data);
 				HTTPFactory.getBackend() + 'SetRoundModel', data);
 
-		httpPromise.then(function(response) {
-			deferred.resolve(response);
-		}, function(error) {
-			console.error(error);
-		});
+				httpPromise.then(function(response) {
+					deferred.resolve(response);
+				}, function(error) {
+					console.error(error);
+				});
 
-		return deferred.promise;
-	}
-	var public = {
-		setRoundModel : function(roundModel) {
-			console.log(roundModel);
-			pushRoundModel(roundModel).then(function(response) {
-			}, function(error) {
-				console.log(error);
-			});
-		},
-		getRoundModel : function(observation) {
-			// return fetch('studies/observation/getRoundModel.php?observationid='
-			return fetch(HTTPFactory.getBackend() + 'GetAll?t=round_model&observationid='
-					+ observation.id);
+				return deferred.promise;
+			}
+			var public = {
+				setRoundModel : function(roundModel) {
+					console.log(roundModel);
+					pushRoundModel(roundModel).then(function(response) {
+					}, function(error) {
+						console.log(error);
+					});
+				},
+				getRoundModel : function(observation) {
+					// return fetch('studies/observation/getRoundModel.php?observationid='
+					return fetch(HTTPFactory.getBackend() +
+							'GetAll?t=round_model&observationid=' + observation.id);
+				}
+			}
+			return public;
 		}
-	}
-	return public;
-});
+]);
 app
 		.controller(
 				'setRoundModel',
@@ -89,8 +94,7 @@ app
 						'$modalInstance',
 						'observation',
 						'RoundModelFactory',
-						function($scope, $modalInstance, observation,
-								RoundModelFactory) {
+						function($scope, $modalInstance, observation, RoundModelFactory) {
 
 							$scope.today = function(roundModel) {
 								roundModel.startdate = new Date();
@@ -112,13 +116,11 @@ app
 
 							// Disable weekend selection
 							$scope.disabled = function(date, mode) {
-								return (mode === 'day' && (date.getDay() === 0 || date
-										.getDay() === 6));
+								return (mode === 'day' && (date.getDay() === 0 || date.getDay() === 6));
 							};
 
 							$scope.toggleMin = function() {
-								$scope.minDate = $scope.minDate ? null
-										: new Date();
+								$scope.minDate = $scope.minDate ? null : new Date();
 							};
 							$scope.toggleMin();
 
@@ -135,8 +137,9 @@ app
 							};
 
 							$scope.initDate = new Date('2016-15-20');
-							$scope.formats = [ 'dd-MMMM-yyyy', 'yyyy/MM/dd',
-									'dd.MM.yyyy', 'shortDate' ];
+							$scope.formats = [
+									'dd-MMMM-yyyy', 'yyyy/MM/dd', 'dd.MM.yyyy', 'shortDate'
+							];
 							$scope.format = $scope.formats[0];
 							$scope.cancel = function() {
 								$modalInstance.dismiss('cancel');
@@ -149,12 +152,9 @@ app
 							$scope.firstDayNextMonday = function() {
 								var today = new Date();
 								if ($scope.roundModel.startdate)
-									today = new Date(
-											$scope.roundModel.startdate);
-								$scope.roundModel.startdate = new Date(today
-										.getFullYear(), today.getMonth(), today
-										.getDate()
-										+ 8 - today.getDay());
+									today = new Date($scope.roundModel.startdate);
+								$scope.roundModel.startdate = new Date(today.getFullYear(),
+										today.getMonth(), today.getDate() + 8 - today.getDay());
 								$scope.checkEndDate();
 							}
 							$scope.hstep = 1;
@@ -162,15 +162,14 @@ app
 							$scope.lastDayNextFriday = function() {
 								var today = new Date();
 								if ($scope.roundModel.startdate)
-									today = new Date(
-											$scope.roundModel.startdate);
-								$scope.roundModel.enddate = new Date(today
-										.getFullYear(), today.getMonth(), today
-										.getDate()
-										+ 5 - today.getDay());
+									today = new Date($scope.roundModel.startdate);
+								$scope.roundModel.enddate = new Date(today.getFullYear(), today
+										.getMonth(), today.getDate() + 5 - today.getDay());
 							}
-							var defaultRounds = [ '09:00', '10:00', '11:30',
-									'12:30', '13:30', '15:00', '16:00', '17:00' ];
+							var defaultRounds = [
+									'09:00', '10:00', '11:30', '12:30', '13:30', '15:00',
+									'16:00', '17:00'
+							];
 							$scope.setDefaultRounds = function() {
 								$scope.roundModel.rounds = null;
 								angular.forEach(defaultRounds, function(round) {
@@ -179,11 +178,12 @@ app
 							}
 							$scope.deleteAllRounds = function() {
 							}
-							$scope.defaultDurations = [ 60, 30, 15 ];
+							$scope.defaultDurations = [
+									60, 30, 15
+							];
 
 							$scope.deleteRound = function(round) {
-								var index = $scope.roundModel.rounds
-										.indexOf(round);
+								var index = $scope.roundModel.rounds.indexOf(round);
 								if (index > -1) {
 									$scope.roundModel.rounds.splice(index, 1);
 								}
@@ -206,8 +206,8 @@ app
 								$scope.roundModel.enddate = new Date();
 							}
 							$scope.save = function() {
-								RoundModelFactory
-										.setRoundModel($scope.roundModel);
+								RoundModelFactory.setRoundModel($scope.roundModel);
 								// $modalInstance.close();
 							}
-						} ]);
+						}
+				]);

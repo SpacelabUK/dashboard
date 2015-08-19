@@ -1,5 +1,3 @@
-"use strict";
-
 /*
  * Some basic String functions used throughout
  */
@@ -23,8 +21,7 @@ function endsWithIgnoreCase(str, suffix) {
 var app = angular.module('Dashboard', [
 		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
 		'gridster'
-], function($httpProvider) {
-});
+]);
 // // hack to allow downloading js-generated blob objects
 // app
 // .config([
@@ -43,21 +40,29 @@ app
 						restrict : 'AE',
 						replace : 'false',
 						template : '<div class="loading"><div class="double-bounce1"></div><div class="double-bounce2"></div></div>'
-					}
+					};
 				});
-app.directive('mainpage', function() {
-	return {
-		restrict : 'E',
-		replace : 'true',
-		templateUrl : 'main.html'
+app.directive('mainpage', [
+	function() {
+		return {
+			restrict : 'E',
+			replace : 'true',
+			templateUrl : 'main.html'
+		};
 	}
-});
-app.controller('AlertsCtrl', function($scope) {
+]);
+app.controller('AlertsCtrl', [
+		'$scope', function($scope) {
 
-});
-app
-		.factory('projectFactory',
+		}
+]);
+app.factory('projectFactory',
+		[
+				'$q',
+				'$http',
+				'HTTPFactory',
 				function($q, $http, HTTPFactory) {
+					"use strict";
 					var projects = [];
 					var devices = [];
 					var functions = [];
@@ -72,7 +77,7 @@ app
 							console.error(error);
 						});
 						return httpPromise;
-					}
+					};
 					var updateStudies = function(project, studies) {
 						if (!project.studies)
 							project.studies = [];
@@ -80,7 +85,7 @@ app
 							project.studies.pop();
 						for (var i = 0; i < studies.length; i++)
 							project.studies.push(studies[i]);
-					}
+					};
 					var updateStudyParts = function(study, parts) {
 						if (!study.parts)
 							study.parts = [];
@@ -90,7 +95,7 @@ app
 							parts[i].type = 'observation';
 							study.parts.push(parts[i]);
 						}
-					}
+					};
 					var pushNewStudy = function(project) {
 						if (!project.studies)
 							project.studies = [];
@@ -115,7 +120,7 @@ app
 						});
 
 						return deferred.promise;
-					}
+					};
 					var pushNewStudyPart = function(study, type) {
 						if (!study.parts)
 							study.parts = [];
@@ -133,7 +138,7 @@ app
 						});
 
 						return deferred.promise;
-					}
+					};
 					var pub = {
 						refreshProjects : function() {
 							fetch(HTTPFactory.getBackend() + 'GetAll?t=projects').then(
@@ -318,304 +323,330 @@ app
 						}
 					};
 					return pub;
-				});
+				}
+		]);
 
-app.factory('studyFactory', function($q, $http) {
-	var study;
-	var pub = {
+app.factory('studyFactory', [
+		'$q', '$http', function($q, $http) {
+			"use strict";
+			var study;
+			var pub = {
 
-	}
-	return pub;
-});
-app.controller('prjCtrl', function($scope, $modal, projectFactory) {
-	$scope.projects = projectFactory.getProjects();
-	// $scope.projects.displayStudies = false;
-	$scope.predicate = 'id'
-	projectFactory.refreshProjects();
-	// $scope.$watch('projects', function() {
-	// alert('hey, projects has changed!');
-	// });
-	$scope.addProject = function() {
-		$modal.open({
-			templateUrl : 'addProject.html',
-			controller : 'addProjectInstance'
-		});
-	}
-	$scope.addStudy = function(project) {
-		projectFactory.addStudy(project);
-	}
-
-});
-app.controller('devCtrl', function($scope, $modal, projectFactory) {
-	$scope.devices = projectFactory.getDevices();
-	// $scope.projects.displayStudies = false;
-	$scope.predicate = 'id'
-	projectFactory.refreshDevices();
-	// $scope.$watch('projects', function() {
-	// alert('hey, projects has changed!');
-	// });
-	$scope.addDevice = function() {
-		$modal.open({
-			templateUrl : 'addDevice.html',
-			controller : 'addDeviceInstance'
-		});
-	}
-
-});
-app.controller('spFuncCtrl', function($scope, $modal, projectFactory) {
-	$scope.functions = projectFactory.getSpatialFunctions();
-	// $scope.projects.displayStudies = false;
-	$scope.predicate = 'id'
-	projectFactory.refreshSpatialFunctions();
-	// $scope.$watch('projects', function() {
-	// alert('hey, projects has changed!');
-	// });
-	$scope.addDevice = function() {
-		$modal.open({
-			templateUrl : 'addSpatialFunction.html',
-			controller : 'addSpatialFunctionInstance'
-		});
-	}
-
-});
-
-app.factory('fetching', function($q, $http) {
-	var fetching = {};
-	var pub = {
-		is : function(type, id) {
-			return fetching[type] && fetching[type][id];
-		},
-		set : function(type, id) {
-			if (!fetching[type])
-				fetching[type] = {};
-			fetching[type][id] = 1;
-		},
-		unset : function(type, id) {
-			if (fetching[type] && fetching[type][id]) {
-				delete fetching[type][id];
-			}
+			};
+			return pub;
 		}
-	}
-	return pub;
-});
-app.controller('opnStdCtrl', function($scope, $modal, projectFactory,
-		RoundModelFactory, fetching) {
-	$scope.fetching = fetching;
-	$scope.studies = projectFactory.getOpenStudies();
-	// $scope.projects.displayStudies = false;
-	$scope.predicate = 'id';
-	projectFactory.refreshOpenStudies().then(function() {
-		// $scope.fetching.unset();
+]);
+app.controller('prjCtrl', [
+		'$scope', '$modal', 'projectFactory',
+		function($scope, $modal, projectFactory) {
+			"use strict";
+			$scope.projects = projectFactory.getProjects();
+			// $scope.projects.displayStudies = false;
+			$scope.predicate = 'id';
+			projectFactory.refreshProjects();
+			// $scope.$watch('projects', function() {
+			// alert('hey, projects has changed!');
+			// });
+			$scope.addProject = function() {
+				$modal.open({
+					templateUrl : 'addProject.html',
+					controller : 'addProjectInstance'
+				});
+			};
+			$scope.addStudy = function(project) {
+				projectFactory.addStudy(project);
+			};
 
-		angular.forEach($scope.studies, function(study) {
+		}
+]);
+app.controller('devCtrl', [
+		'$scope', '$modal', 'projectFactory',
+		function($scope, $modal, projectFactory) {
+			"use strict";
+			$scope.devices = projectFactory.getDevices();
+			// $scope.projects.displayStudies = false;
+			$scope.predicate = 'id';
+			projectFactory.refreshDevices();
+			// $scope.$watch('projects', function() {
+			// alert('hey, projects has changed!');
+			// });
+			$scope.addDevice = function() {
+				$modal.open({
+					templateUrl : 'addDevice.html',
+					controller : 'addDeviceInstance'
+				});
+			};
+		}
+]);
+app.controller('spFuncCtrl', [
+		'$scope', '$modal', 'projectFactory',
+		function($scope, $modal, projectFactory) {
+			"use strict";
+			$scope.functions = projectFactory.getSpatialFunctions();
+			// $scope.projects.displayStudies = false;
+			$scope.predicate = 'id';
+			projectFactory.refreshSpatialFunctions();
+			// $scope.$watch('projects', function() {
+			// alert('hey, projects has changed!');
+			// });
+			$scope.addDevice = function() {
+				$modal.open({
+					templateUrl : 'addSpatialFunction.html',
+					controller : 'addSpatialFunctionInstance'
+				});
+			};
+		}
+]);
 
-			fetching.set('stps', study.id);
-			projectFactory.refreshStudyParts(study).then(function() {
-				fetching.unset('stps', study.id);
-			});
-		});
-	});
-	$scope.addObservation = function(study) {
-		projectFactory.addStudyPart(study, 'observation');
-	}
-
-	$scope.addPlans = function(study) {
-		$modal.open({
-			templateUrl : 'studies/plans/addPlans.html',
-			controller : 'addPlansInstance',
-			resolve : {
-				study : function() {
-					return study;
-				}
-			}
-		});
-	}
-	// $scope.fetchingObservationRounds = function(id) {
-	// return fetching.is('obs', id);
-	// }
-	$scope.setRoundModel = function(observation) {
-		fetching.set('obs', observation.id);
-		RoundModelFactory.getRoundModel(observation).then(function(response) {
-			var data = response.data[0];
-			if (data) {
-				// var startdate = new Date();
-				// startdate.parse(data['startdate']);
-				// var enddate = new Date();
-				// enddate.parse(data['enddate']);
-				if (!observation.roundModel) {
-					observation.roundModel = {
-						observationid : observation.id,
-						type : 'date_round_matrices'
-					};
-				}
-				console.log(response);
-				observation.roundModel.startdate = Date.parse(data['start_date']);
-				observation.roundModel.enddate = Date.parse(data['end_date']);
-				observation.roundModel.duration = 60;// data['roundduration'];
-			}
-			// console.log(observation);
-			fetching.unset('obs', observation.id);
-			$modal.open({
-				templateUrl : 'studies/observation/setRoundModel.html',
-				controller : 'setRoundModel',
-				size : 'lg',
-				resolve : {
-					observation : function() {
-						return observation;
+app.factory('fetching', [
+		'$q', '$http', function($q, $http) {
+			"use strict";
+			var fetching = {};
+			var pub = {
+				is : function(type, id) {
+					return fetching[type] && fetching[type][id];
+				},
+				set : function(type, id) {
+					if (!fetching[type])
+						fetching[type] = {};
+					fetching[type][id] = 1;
+				},
+				unset : function(type, id) {
+					if (fetching[type] && fetching[type][id]) {
+						delete fetching[type][id];
 					}
 				}
-			});
-		}, function(error) {
-			console.log(error);
-		});
-
-	}
-	$scope.addObservationData = function(study, observation) {
-		$modal.open({
-			templateUrl : 'studies/observation/addObservationData.html',
-			controller : 'addObservationDataInstance',
-			resolve : {
-				study : function() {
-					return study;
-				},
-				observation : function() {
-					return observation;
-				}
-			}
-		});
-	}
-	$scope.addPolygons = function(study) {
-		$modal.open({
-			templateUrl : 'studies/addPolygons.html',
-			controller : 'addPolygonsInstance',
-			windowClass : 'addPolys',
-			resolve : {
-				study : function() {
-					return study;
-				}
-			}
-		});
-	}
-	$scope.addDepthmap = function(study) {
-		$modal.open({
-			templateUrl : 'studies/addDepthmap.html',
-			controller : 'addDepthmapInstance',
-			windowClass : 'addDepthmap',
-			resolve : {
-				study : function() {
-					return study;
-				}
-			}
-		});
-	}
-	$scope.addStaffSurvey = function(study) {
-		$modal.open({
-			templateUrl : 'studies/addStaffSurvey.html',
-			controller : 'addStaffSurveyInstance',
-			windowClass : 'addStaffSurvey',
-			resolve : {
-				study : function() {
-					return study;
-				}
-			}
-		});
-	}
-	$scope.addStakeholders = function(study) {
-		$modal.open({
-			templateUrl : 'studies/addStakeholders.html',
-			controller : 'addStakeholdersInstance',
-			windowClass : 'addStakeholders',
-			resolve : {
-				study : function() {
-					return study;
-				}
-			}
-		});
-	}
-});
-
-// app.factory('MatcherFactory', function($modal) {
-// var pub = {
-// openMatcherModal : function(type, types, fromElements, toElements) {
-app.controller("addObservationDataInstance", function($scope, $modalInstance,
-		FileUploader, study, observation, MatcherFactory, HTTPFactory) {
-	console.log('observid ' + observation.id);
-	var uploader = $scope.uploader = new FileUploader({
-		// url : 'studies/observation/uploadObservationData.php',
-		url : HTTPFactory.getBackend() + 'StoreObservationData',
-		formData : [
-			{
-				studyid : study.id,
-				observationid : observation.id
-			}
-		],
-	});
-
-	// FILTERS
-
-	uploader.filters.push({
-		name : 'customFilter',
-		fn : function(item /* {File|FileLikeObject} */, options) {
-			return this.queue.length < 10;
+			};
+			return pub;
 		}
-	});
+]);
+app.controller('opnStdCtrl', [
+		'$scope', '$modal', 'projectFactory', 'RoundModelFactory', 'fetching',
+		function($scope, $modal, projectFactory, RoundModelFactory, fetching) {
+			"use strict";
+			$scope.fetching = fetching;
+			$scope.studies = projectFactory.getOpenStudies();
+			// $scope.projects.displayStudies = false;
+			$scope.predicate = 'id';
+			projectFactory.refreshOpenStudies().then(function() {
+				// $scope.fetching.unset();
 
-	// CALLBACKS
+				angular.forEach($scope.studies, function(study) {
 
-	// uploader.onWhenAddingFileFailed = function(
-	// item /* {File|FileLikeObject} */, filter, options) {
-	// console.info('onWhenAddingFileFailed', item, filter, options);
-	// };
-	// uploader.onAfterAddingFile = function(fileItem) {
-	// console.info('onAfterAddingFile', fileItem);
-	// };
-	// uploader.onAfterAddingAll = function(addedFileItems) {
-	// console.info('onAfterAddingAll', addedFileItems);
-	// };
-	// uploader.onBeforeUploadItem = function(item) {
-	// console.info('onBeforeUploadItem', item);
-	// };
-	// uploader.onProgressItem = function(fileItem, progress) {
-	// console.info('onProgressItem', fileItem, progress);
-	// };
-	// uploader.onProgressAll = function(progress) {
-	// console.info('onProgressAll', progress);
-	// };
-	// uploader.onSuccessItem = function(fileItem, response, status, headers) {
-	// console.info('onSuccessItem', fileItem, response, status, headers);
-	// };
-	// uploader.onErrorItem = function(fileItem, response, status, headers) {
-	// console.info('onErrorItem', fileItem, response, status, headers);
-	// };
-	// uploader.onCancelItem = function(fileItem, response, status, headers) {
-	// console.info('onCancelItem', fileItem, response, status, headers);
-	// };
-	uploader.onCompleteItem = function(fileItem, response, status, headers) {
-		// console.info('onCompleteItem', fileItem, response, status, headers);
-		console.info(response);
-		MatcherFactory.openMatcherModal("space", "spaces", response.spaces,
-				response.spacesInDB).result.then(function(dialogResponse) {
-			console.log(dialogResponse);
-			HTTPFactory.backendPost("StoreObservationData", {
-				observationid : observation.id,
-				fileid : response.fileid,
-				spaces : dialogResponse
+					fetching.set('stps', study.id);
+					projectFactory.refreshStudyParts(study).then(function() {
+						fetching.unset('stps', study.id);
+					});
+				});
 			});
-		}, function(error) {
-			console.log(error);
-		});
+			$scope.addObservation = function(study) {
+				projectFactory.addStudyPart(study, 'observation');
+			};
+			$scope.addPlans = function(study) {
+				$modal.open({
+					templateUrl : 'studies/plans/addPlans.html',
+					controller : 'addPlansInstance',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			// $scope.fetchingObservationRounds = function(id) {
+			// return fetching.is('obs', id);
+			// }
+			$scope.setRoundModel = function(observation) {
+				fetching.set('obs', observation.id);
+				RoundModelFactory.getRoundModel(observation).then(function(response) {
+					var data = response.data[0];
+					if (data) {
+						// var startdate = new Date();
+						// startdate.parse(data['startdate']);
+						// var enddate = new Date();
+						// enddate.parse(data['enddate']);
+						if (!observation.roundModel) {
+							observation.roundModel = {
+								observationid : observation.id,
+								type : 'date_round_matrices'
+							};
+						}
+						console.log(response);
+						observation.roundModel.startdate = Date.parse(data.start_date);
+						observation.roundModel.enddate = Date.parse(data.end_date);
+						observation.roundModel.duration = 60;// data['roundduration'];
+					}
+					// console.log(observation);
+					fetching.unset('obs', observation.id);
+					$modal.open({
+						templateUrl : 'studies/observation/setRoundModel.html',
+						controller : 'setRoundModel',
+						size : 'lg',
+						resolve : {
+							observation : function() {
+								return observation;
+							}
+						}
+					});
+				}, function(error) {
+					console.log(error);
+				});
+			};
+			$scope.addObservationData = function(study, observation) {
+				$modal.open({
+					templateUrl : 'studies/observation/addObservationData.html',
+					controller : 'addObservationDataInstance',
+					resolve : {
+						study : function() {
+							return study;
+						},
+						observation : function() {
+							return observation;
+						}
+					}
+				});
+			};
+			$scope.addPolygons = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addPolygons.html',
+					controller : 'addPolygonsInstance',
+					windowClass : 'addPolys',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addDepthmap = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addDepthmap.html',
+					controller : 'addDepthmapInstance',
+					windowClass : 'addDepthmap',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addStaffSurvey = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addStaffSurvey.html',
+					controller : 'addStaffSurveyInstance',
+					windowClass : 'addStaffSurvey',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addStakeholders = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addStakeholders.html',
+					controller : 'addStakeholdersInstance',
+					windowClass : 'addStakeholders',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+		}
+]);
 
-	};
-	// uploader.onCompleteAll = function() {
-	// console.info('onCompleteAll');
-	// };
+app.controller("addObservationDataInstance", [
+		'$scope',
+		'$modalInstance',
+		'FileUploader',
+		'study',
+		'observation',
+		'MatcherFactory',
+		'HTTPFactory',
+		function($scope, $modalInstance, FileUploader, study, observation,
+				MatcherFactory, HTTPFactory) {
+			"use strict";
+			console.log('observid ' + observation.id);
+			var uploader = $scope.uploader = new FileUploader({
+				// url : 'studies/observation/uploadObservationData.php',
+				url : HTTPFactory.getBackend() + 'StoreObservationData',
+				formData : [
+					{
+						studyid : study.id,
+						observationid : observation.id
+					}
+				],
+			});
 
-	console.info('uploader', uploader);
+			// FILTERS
 
-	$scope.cancel = function() {
-		$modalInstance.dismiss('cancel');
-	};
-});
+			uploader.filters.push({
+				name : 'customFilter',
+				fn : function(item /* {File|FileLikeObject} */, options) {
+					return this.queue.length < 10;
+				}
+			});
+
+			// CALLBACKS
+
+			// uploader.onWhenAddingFileFailed = function(
+			// item /* {File|FileLikeObject} */, filter, options) {
+			// console.info('onWhenAddingFileFailed', item, filter, options);
+			// };
+			// uploader.onAfterAddingFile = function(fileItem) {
+			// console.info('onAfterAddingFile', fileItem);
+			// };
+			// uploader.onAfterAddingAll = function(addedFileItems) {
+			// console.info('onAfterAddingAll', addedFileItems);
+			// };
+			// uploader.onBeforeUploadItem = function(item) {
+			// console.info('onBeforeUploadItem', item);
+			// };
+			// uploader.onProgressItem = function(fileItem, progress) {
+			// console.info('onProgressItem', fileItem, progress);
+			// };
+			// uploader.onProgressAll = function(progress) {
+			// console.info('onProgressAll', progress);
+			// };
+			// uploader.onSuccessItem = function(fileItem, response, status, headers)
+			// {
+			// console.info('onSuccessItem', fileItem, response, status, headers);
+			// };
+			// uploader.onErrorItem = function(fileItem, response, status, headers) {
+			// console.info('onErrorItem', fileItem, response, status, headers);
+			// };
+			// uploader.onCancelItem = function(fileItem, response, status, headers) {
+			// console.info('onCancelItem', fileItem, response, status, headers);
+			// };
+			uploader.onCompleteItem = function(fileItem, response, status, headers) {
+				// console.info('onCompleteItem', fileItem, response, status, headers);
+				console.info(response);
+				MatcherFactory.openMatcherModal("space", "spaces", response.spaces,
+						response.spacesInDB).result.then(function(dialogResponse) {
+					console.log(dialogResponse);
+					HTTPFactory.backendPost("StoreObservationData", {
+						observationid : observation.id,
+						fileid : response.fileid,
+						spaces : dialogResponse
+					});
+				}, function(error) {
+					console.log(error);
+				});
+
+			};
+			// uploader.onCompleteAll = function() {
+			// console.info('onCompleteAll');
+			// };
+
+			console.info('uploader', uploader);
+
+			$scope.cancel = function() {
+				$modalInstance.dismiss('cancel');
+			};
+		}
+]);
 // app.controller("addPolygonsInstance", function($scope, $modalInstance,
 // FileUploader, study) {
 // var uploader = $scope.uploader = new FileUploader({
@@ -679,6 +710,7 @@ app.controller("addObservationDataInstance", function($scope, $modalInstance,
 // });
 app.controller('StdCtrlr', [
 		'$scope', '$stateParams', '$http', function($scope, $stateParams, $http) {
+			"use strict";
 
 			$scope.id = $stateParams.studyid;
 			console.log($scope.id);
@@ -697,90 +729,104 @@ app.controller('StdCtrlr', [
 						}
 					}
 				});
-			}
+			};
 		}
 ]);
 
-app.controller("addProjectInstance", function($scope, $modalInstance,
-		projectFactory) {
-	$scope.project = {};
-	var date = new Date().getFullYear();
-	$scope.project.id = date.toString().substring(2);
-	$scope.project.name = '';
-	$scope.add = function() {
-		if ($scope.project.name.length > 0 && $scope.project.id.length > 3) {
-			// $modalInstance.close($scope.selected.item);
-			projectFactory.addProject($scope.project.id, $scope.project.name).then(
-					function(response) {
+app.controller("addProjectInstance", [
+		'$scope',
+		'$modalInstance',
+		'projectFactory',
+		function($scope, $modalInstance, projectFactory) {
+			"use strict";
+			$scope.project = {};
+			var date = new Date().getFullYear();
+			$scope.project.id = date.toString().substring(2);
+			$scope.project.name = '';
+			$scope.add = function() {
+				if ($scope.project.name.length > 0 && $scope.project.id.length > 3) {
+					// $modalInstance.close($scope.selected.item);
+					projectFactory.addProject($scope.project.id, $scope.project.name)
+							.then(function(response) {
+								// console.log(response);
+								projectFactory.refreshProjects();
+							}, function(error) {
+								console.error(error);
+							});
+					$modalInstance.close();
+				}
+				// $modalInstance.dismiss('cancel');
+			};
+
+			$scope.validateID = function(value) {
+				return value.length > 3;
+			};
+			$scope.cancel = function() {
+				$modalInstance.dismiss('cancel');
+			};
+		}
+]);
+app.controller("addDeviceInstance", [
+		'$scope', '$modalInstance', 'projectFactory',
+		function($scope, $modalInstance, projectFactory) {
+			"use strict";
+			$scope.device = {
+				name : ''
+			};
+			$scope.add = function() {
+				if ($scope.device.name.length > 0) {
+					projectFactory.addDevice($scope.device.name).then(function(response) {
 						// console.log(response);
-						projectFactory.refreshProjects();
+						projectFactory.refreshDevices();
 					}, function(error) {
 						console.error(error);
 					});
-			$modalInstance.close();
-		}
-		// $modalInstance.dismiss('cancel');
-	};
+					$modalInstance.close();
+				}
+				// $modalInstance.dismiss('cancel');
+			};
 
-	$scope.validateID = function(value) {
-		return value.length > 3;
-	}
-	$scope.cancel = function() {
-		$modalInstance.dismiss('cancel');
-	};
-});
-app.controller("addDeviceInstance", function($scope, $modalInstance,
-		projectFactory) {
-	$scope.device = {
-		name : ''
-	};
-	$scope.add = function() {
-		if ($scope.device.name.length > 0) {
-			projectFactory.addDevice($scope.device.name).then(function(response) {
-				// console.log(response);
-				projectFactory.refreshDevices();
-			}, function(error) {
-				console.error(error);
-			});
-			$modalInstance.close();
+			$scope.validateID = function(value) {
+				return value.length > 3;
+			};
+			$scope.cancel = function() {
+				$modalInstance.dismiss('cancel');
+			};
 		}
-		// $modalInstance.dismiss('cancel');
-	};
+]);
+app.controller("addSpatialFunctionInstance", [
+		'$scope',
+		'$modalInstance',
+		'projectFactory',
+		function($scope, $modalInstance, projectFactory) {
+			"use strict";
+			$scope.func = {
+				alias : '',
+				name : ''
+			};
+			$scope.add = function() {
+				if ($scope.func.name.length > 0) {
+					projectFactory
+							.addSpatialFunction($scope.func.alias, $scope.func.name).then(
+									function(response) {
+										// console.log(response);
+										projectFactory.refreshSpatialFunctions();
+									}, function(error) {
+										console.error(error);
+									});
+					$modalInstance.close();
+				}
+				// $modalInstance.dismiss('cancel');
+			};
 
-	$scope.validateID = function(value) {
-		return value.length > 3;
-	}
-	$scope.cancel = function() {
-		$modalInstance.dismiss('cancel');
-	};
-});
-app.controller("addSpatialFunctionInstance", function($scope, $modalInstance,
-		projectFactory) {
-	$scope.func = {
-		alias : '',
-		name : ''
-	};
-	$scope.add = function() {
-		if ($scope.func.name.length > 0) {
-			projectFactory.addSpatialFunction($scope.func.alias, $scope.func.name)
-					.then(function(response) {
-						// console.log(response);
-						projectFactory.refreshSpatialFunctions();
-					}, function(error) {
-						console.error(error);
-					});
-			$modalInstance.close();
+			$scope.validateID = function(value) {
+				return value.length > 3;
+			};
+			$scope.cancel = function() {
+				$modalInstance.dismiss('cancel');
+			};
 		}
-		// $modalInstance.dismiss('cancel');
-	};
-
-	$scope.validateID = function(value) {
-		return value.length > 3;
-	}
-	$scope.cancel = function() {
-		$modalInstance.dismiss('cancel');
-	};
-});
+]);
 // define(['angular', 'app', 'require', './services/site-definition-service'],
 // function (angular, app, requirejs) {
 // 
@@ -813,126 +859,144 @@ app.controller("addSpatialFunctionInstance", function($scope, $modalInstance,
 // 
 // }]);
 // });
-app.config(function($stateProvider, $urlRouterProvider) {
-	//
-	// For any unmatched url, redirect to /state1
-	$urlRouterProvider.otherwise("/");
-	// $urlRouterProvider.when('study',{
-	// templateUrl: 'studies/study.html',
-	// resolve: resolveController('studies/study.js')
-	// });
-	//
-	// Now set up the states
-	$stateProvider.state('main', {
-		url : "/",
-		templateUrl : "main.html"
-	}).state('state1', {
-		url : "/state1",
-		templateUrl : "../observations/progress/index.php",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : function($scope, $stateParams) {
-			// get the id
-			$scope.id = $stateParams.partyID;
+app.config([
+		'$stateProvider', '$urlRouterProvider',
+		function($stateProvider, $urlRouterProvider) {
+			"use strict";
+			//
+			// For any unmatched url, redirect to /state1
+			$urlRouterProvider.otherwise("/");
+			// $urlRouterProvider.when('study',{
+			// templateUrl: 'studies/study.html',
+			// resolve: resolveController('studies/study.js')
+			// });
+			//
+			// Now set up the states
+			$stateProvider.state('main', {
+				url : "/",
+				templateUrl : "main.html"
+			}).state('state1', {
+				url : "/state1",
+				templateUrl : "../observations/progress/index.php",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : [
+						'$scope', '$stateParams', function($scope, $stateParams) {
+							// get the id
+							$scope.id = $stateParams.partyID;
 
-			// get the location
-			$scope.location = $stateParams.partyLocation;
-		}
-	}).state('observationssetup', {
-		url : "/observations/setup",
-		templateUrl : "../observations/setup/index.html",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : function($scope, $stateParams) {
-			// get the id
-			$scope.id = $stateParams.partyID;
+							// get the location
+							$scope.location = $stateParams.partyLocation;
+						}
+				]
+			}).state('observationssetup', {
+				url : "/observations/setup",
+				templateUrl : "../observations/setup/index.html",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : [
+						'$scope', '$stateParams', function($scope, $stateParams) {
+							// get the id
+							$scope.id = $stateParams.partyID;
 
-			// get the location
-			$scope.location = $stateParams.partyLocation;
-		}
-	}).state('observationsprogress', {
-		url : "/observations/progress",
-		templateUrl : "../observations/progress/index.php",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : function($scope, $stateParams) {
-			// get the id
-			$scope.id = $stateParams.partyID;
+							// get the location
+							$scope.location = $stateParams.partyLocation;
+						}
+				]
+			}).state('observationsprogress', {
+				url : "/observations/progress",
+				templateUrl : "../observations/progress/index.php",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : [
+						'$scope', '$stateParams', function($scope, $stateParams) {
+							// get the id
+							$scope.id = $stateParams.partyID;
 
-			// get the location
-			$scope.location = $stateParams.partyLocation;
-		}
-	}).state('projects', {
-		url : "/projects",
-		templateUrl : "projects.html",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : function($scope, $stateParams) {
-			// get the id
-			$scope.id = $stateParams.partyID;
+							// get the location
+							$scope.location = $stateParams.partyLocation;
+						}
+				]
+			}).state('projects', {
+				url : "/projects",
+				templateUrl : "projects.html",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : [
+						'$scope', '$stateParams', function($scope, $stateParams) {
+							// get the id
+							$scope.id = $stateParams.partyID;
 
-			// get the location
-			$scope.location = $stateParams.partyLocation;
+							// get the location
+							$scope.location = $stateParams.partyLocation;
+						}
+				]
+			}).state('devices', {
+				url : "/devices",
+				templateUrl : "devices.html",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : 'devCtrl'
+			}).state('spatialfunctions', {
+				url : "/spatialfunctions",
+				templateUrl : "spatialfunctions.html",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : 'spFuncCtrl'
+			}).state('studies', {
+				url : "/studies", //
+				templateUrl : "studies/index.html",
+				controller : 'opnStdCtrl'
+			}).state('study', {
+				url : "/studies/view/{studyid}", //
+				templateUrl : "studies/study.html",
+				controller : 'MainStudyCtrl'
+			}).state('studyissues', {
+				url : "/studies/issues/{studyid}/{viewAlias}", //
+				templateUrl : "studies/studyIssues.html",
+				controller : 'StudyIssuesCtrl'
+			}).state('allstudyissues', {
+				url : "/studies/issue/{issue}/{studyid}", //
+				templateUrl : "studies/allStudyIssues.html",
+				controller : 'AllStudyIssuesCtrl'
+			}).state('comparestudies', {
+				url : "/studies/compare/{studyid}", //
+				templateUrl : "studies/study.compare.html",
+				controller : 'StdCompareCtrl'
+			}).state('observation', {
+				url : "/observation/{part_id}",
+				templateUrl : "studies/observation/observation.html",
+				controller : "observationController"
+			}).state('part', {
+				url : "/part/:partid",
+				templateUrl : "studies/study.html",
+				controller : [
+						'$scope', '$stateParams', function($scope) {
+							$scope.items = [
+									"A", "List", "Of", "Items"
+							];
+						}
+				]
+			}).state('state1.list', {
+				url : "/list",
+				templateUrl : "state1.list.html",
+				controller : [
+						'$scope', '$stateParams', function($scope) {
+							$scope.items = [
+									"A", "List", "Of", "Items"
+							];
+						}
+				]
+			}).state('state2', {
+				url : "/state2",
+				templateUrl : "state2.html"
+			}).state('state2.list', {
+				url : "/list",
+				templateUrl : "state2.list.html",
+				controller : [
+						'$scope', '$stateParams', function($scope) {
+							$scope.things = [
+									"A", "Set", "Of", "Things"
+							];
+						}
+				]
+			});
 		}
-	}).state('devices', {
-		url : "/devices",
-		templateUrl : "devices.html",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : 'devCtrl'
-	}).state('spatialfunctions', {
-		url : "/spatialfunctions",
-		templateUrl : "spatialfunctions.html",
-		// for urls like this: /state1/:partyID/:partyLocation
-		controller : 'spFuncCtrl'
-	}).state('studies', {
-		url : "/studies", //
-		templateUrl : "studies/index.html",
-		controller : 'opnStdCtrl'
-	}).state('study', {
-		url : "/studies/view/{studyid}", //
-		templateUrl : "studies/study.html",
-		controller : 'MainStudyCtrl'
-	}).state('studyissues', {
-		url : "/studies/issues/{studyid}/{viewAlias}", //
-		templateUrl : "studies/studyIssues.html",
-		controller : 'StudyIssuesCtrl'
-	}).state('allstudyissues', {
-		url : "/studies/issue/{issue}/{studyid}", //
-		templateUrl : "studies/allStudyIssues.html",
-		controller : 'AllStudyIssuesCtrl'
-	}).state('comparestudies', {
-		url : "/studies/compare/{studyid}", //
-		templateUrl : "studies/study.compare.html",
-		controller : 'StdCompareCtrl'
-	}).state('observation', {
-		url : "/observation/{part_id}",
-		templateUrl : "studies/observation/observation.html",
-		controller : "observationController"
-	}).state('part', {
-		url : "/part/:partid",
-		templateUrl : "studies/study.html",
-		controller : function($scope) {
-			$scope.items = [
-					"A", "List", "Of", "Items"
-			];
-		}
-	}).state('state1.list', {
-		url : "/list",
-		templateUrl : "state1.list.html",
-		controller : function($scope) {
-			$scope.items = [
-					"A", "List", "Of", "Items"
-			];
-		}
-	}).state('state2', {
-		url : "/state2",
-		templateUrl : "state2.html"
-	}).state('state2.list', {
-		url : "/list",
-		templateUrl : "state2.list.html",
-		controller : function($scope) {
-			$scope.things = [
-					"A", "Set", "Of", "Things"
-			];
-		}
-	})
-});
+]);
 // var app = angular.module("app", []);
 // app.config(function($routeProvider) {
 // $routeProvider.when("/", {
@@ -948,69 +1012,76 @@ app.config(function($stateProvider, $urlRouterProvider) {
 /**
  * Master Controller
  */
-app.controller('MasterCtrl', function($scope, $cookieStore) {
+app.controller('MasterCtrl', [
+		'$scope', '$cookieStore', function($scope, $cookieStore) {
+			"use strict";
 
-	/**
-	 * Sidebar Toggle & Cookie Control
-	 * 
-	 */
-	var mobileView = 992;
+			/**
+			 * Sidebar Toggle & Cookie Control
+			 * 
+			 */
+			var mobileView = 992;
 
-	$scope.getWidth = function() {
-		return window.innerWidth;
-	};
+			$scope.getWidth = function() {
+				return window.innerWidth;
+			};
 
-	$scope.$watch($scope.getWidth, function(newValue, oldValue) {
-		if (newValue >= mobileView) {
-			if (angular.isDefined($cookieStore.get('toggle'))) {
-				if ($cookieStore.get('toggle') == false) {
-					$scope.toggle = false;
+			$scope.$watch($scope.getWidth, function(newValue, oldValue) {
+				if (newValue >= mobileView) {
+					if (angular.isDefined($cookieStore.get('toggle'))) {
+						if ($cookieStore.get('toggle') === false) {
+							$scope.toggle = false;
+						} else {
+							$scope.toggle = true;
+						}
+					} else {
+						$scope.toggle = true;
+					}
 				} else {
-					$scope.toggle = true;
+					$scope.toggle = false;
 				}
-			} else {
-				$scope.toggle = true;
-			}
-		} else {
-			$scope.toggle = false;
+
+			});
+
+			$scope.toggleSidebar = function() {
+				$scope.toggle = !$scope.toggle;
+
+				$cookieStore.put('toggle', $scope.toggle);
+			};
+
+			window.onresize = function() {
+				$scope.$apply();
+			};
 		}
-
-	});
-
-	$scope.toggleSidebar = function() {
-		$scope.toggle = !$scope.toggle;
-
-		$cookieStore.put('toggle', $scope.toggle);
-	};
-
-	window.onresize = function() {
-		$scope.$apply();
-	};
-});
+]);
 
 /**
  * Alerts Controller
  */
-app.controller('AlertsCtrl', function($scope) {
-	$scope.alerts = [
-	// {
-	// type : 'success',
-	// msg : 'Thanks for visiting! Feel free to create pull requests to improve
-	// the dashboard!'
-	// },
-	// {
-	// type : 'danger',
-	// msg : 'Found a bug? Create an issue with as many details as you can.'
-	// }
-	];
+app.controller('AlertsCtrl', [
+		'$scope', function($scope) {
+			"use strict";
+			$scope.alerts = [
+			// {
+			// type : 'success',
+			// msg : 'Thanks for visiting! Feel free to create pull requests to
+			// improve
+			// the dashboard!'
+			// },
+			// {
+			// type : 'danger',
+			// msg : 'Found a bug? Create an issue with as many details as you can.'
+			// }
+			];
 
-	$scope.addAlert = function() {
-		$scope.alerts.push({
-			msg : 'Another alert!'
-		});
-	};
+			$scope.addAlert = function() {
+				$scope.alerts.push({
+					msg : 'Another alert!'
+				});
+			};
 
-	$scope.closeAlert = function(index) {
-		$scope.alerts.splice(index, 1);
-	};
-});
+			$scope.closeAlert = function(index) {
+				$scope.alerts.splice(index, 1);
+			};
+		}
+]);
