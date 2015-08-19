@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +23,10 @@ import javax.servlet.http.Part;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.JSONHelper;
+import uk.co.spacelab.backend.MalformedDataException;
 
 /**
  * Servlet implementation class UploadGatheredData
@@ -115,16 +119,16 @@ public class StoreObservationData extends HttpServlet {
 			}
 			// writer.println("New file " + fileName + " created at " + path);
 
-//			System.out.println(UPLOAD_DIR + fileName + " exists: "
-//					+ new File(UPLOAD_DIR + fileName).exists());
+			// System.out.println(UPLOAD_DIR + fileName + " exists: "
+			// + new File(UPLOAD_DIR + fileName).exists());
 			JSONObject result =
-					SQLiteToPostgreSQL.getSpaces(observationID, UPLOAD_DIR
-							+ fileName);
-//			System.out.println(UPLOAD_DIR + fileName + " exists: "
-//					+ new File(UPLOAD_DIR + fileName).exists());
+					SQLiteToPostgreSQL.getSpaces(observationID,
+							UPLOAD_DIR + fileName);
+			// System.out.println(UPLOAD_DIR + fileName + " exists: "
+			// + new File(UPLOAD_DIR + fileName).exists());
 			String newFileName = UUID.randomUUID().toString();
-			new File(UPLOAD_DIR + fileName).renameTo(new File(UPLOAD_DIR
-					+ newFileName + ".db"));
+			new File(UPLOAD_DIR + fileName)
+					.renameTo(new File(UPLOAD_DIR + newFileName + ".db"));
 			result.put("fileid", newFileName);
 			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().print(result.toString());
@@ -157,7 +161,8 @@ public class StoreObservationData extends HttpServlet {
 	private String getFileName(final Part part) {
 		final String partHeader = part.getHeader("content-disposition");
 		System.out.println("Part Header = {0}" + partHeader);
-		for (String content : part.getHeader("content-disposition").split(";")) {
+		for (String content : part.getHeader("content-disposition")
+				.split(";")) {
 			if (content.trim().startsWith("filename")) {
 				return content.substring(content.indexOf('=') + 1).trim()
 						.replace("\"", "");
@@ -167,7 +172,7 @@ public class StoreObservationData extends HttpServlet {
 	}
 	private void updateDatabase(HttpServletRequest request,
 			HttpServletResponse response) throws ClassNotFoundException,
-			IOException, SQLException, ParseException {
+					IOException, SQLException, ParseException {
 		JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 
 		String fileName;
@@ -181,9 +186,9 @@ public class StoreObservationData extends HttpServlet {
 			throw new MalformedDataException("Malformed data buddy... -.-");
 		}
 		String UPLOAD_DIR = Database.getUploadDirectory();
-		System.out.println(UPLOAD_DIR + " exists: "
-				+ new File(UPLOAD_DIR).exists());
-		SQLiteToPostgreSQL
-				.convert(observationID, UPLOAD_DIR + fileName + ".db");
+		System.out.println(
+				UPLOAD_DIR + " exists: " + new File(UPLOAD_DIR).exists());
+		SQLiteToPostgreSQL.convert(observationID,
+				UPLOAD_DIR + fileName + ".db");
 	}
 }

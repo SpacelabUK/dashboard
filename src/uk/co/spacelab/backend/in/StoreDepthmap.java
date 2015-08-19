@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,11 @@ import org.json.JSONObject;
 import org.postgis.PGgeometry;
 
 import uk.co.spacelab.Converter.PGSQLWriter;
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.InternalException;
+import uk.co.spacelab.backend.JSONHelper;
+import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.depthmap.DepthMap;
 import uk.co.spacelab.depthmap.Raster;
 import uk.co.spacelab.depthmap.DepthMap.DepthCell;
@@ -70,17 +75,16 @@ public class StoreDepthmap extends FlowUpload {
 					List<String []> entities = dxf.breakDXFEntities(dxf.ent);
 					for (String [] ent : entities) {
 						if (ent[0].equals("INSERT"))
-							if (ent[2].startsWith(DXFReader.generalIdentifier)) {
-								JSONObject o = new JSONObject();
-								String alias =
-										ent[2].substring(
-												DXFReader.generalIdentifier
-														.length()).split("\\(")[0]
-												.trim();
-								o.put("name", alias);
-								o.put("alias", alias);
-								spaces.put(o);
-							}
+							if (ent[2]
+									.startsWith(DXFReader.generalIdentifier)) {
+							JSONObject o = new JSONObject();
+							String alias =
+									ent[2].substring(DXFReader.generalIdentifier
+											.length()).split("\\(")[0].trim();
+							o.put("name", alias);
+							o.put("alias", alias);
+							spaces.put(o);
+						}
 					}
 					result.put("spaces", spaces);
 					final File file = new File(filePath);
@@ -98,8 +102,8 @@ public class StoreDepthmap extends FlowUpload {
 					result.put("studyid", studyID);
 				}
 				int minutesToExpire = 1;
-				result.put("expire", new Date(new Date().getTime()
-						+ minutesToExpire * 60 * 1000));
+				result.put("expire", new Date(
+						new Date().getTime() + minutesToExpire * 60 * 1000));
 
 				response.setContentType("application/json; charset=UTF-8");
 				PrintWriter out = response.getWriter();
@@ -134,8 +138,9 @@ public class StoreDepthmap extends FlowUpload {
 			DXFReader dxf = new DXFReader();
 			dxf.addData(FileIO.loadStrings(fileDXF));
 			DepthMap dpm =
-					new DepthMap(depthmapName, FileIO.loadStrings(fileCSV),
-							dxf, 1.0f / scaleFromInterface);
+					new DepthMap(
+							depthmapName, FileIO.loadStrings(fileCSV), dxf,
+							1.0f / scaleFromInterface);
 			Map<String, double []> blockPositions = dpm.blockPositions;
 			System.out.println(blockPositions);
 			try {
@@ -151,15 +156,15 @@ public class StoreDepthmap extends FlowUpload {
 					for (int i = 0; i < spaces.length(); i++) {
 						JSONObject space = spaces.getJSONObject(i);
 
-						if (space.getString("alias").equals(
-								alias.split("\\(")[0].trim())) {
+						if (space.getString("alias")
+								.equals(alias.split("\\(")[0].trim())) {
 							currSpace = space;
 							break;
 						}
 					}
 					if (currSpace == null)
-						throw new MalformedDataException("No such space "
-								+ alias + " found");
+						throw new MalformedDataException(
+								"No such space " + alias + " found");
 					String plan_min = currSpace.getString("plan_min");
 					plan_min = plan_min.substring(1, plan_min.length() - 1);
 					String [] min = plan_min.split(",");
@@ -175,15 +180,13 @@ public class StoreDepthmap extends FlowUpload {
 					for (double d : limits)
 						System.out.println(d);
 					DepthMap n =
-							getDepthMapWithinLimits(dpm, alias, new double [] {
-									0, 0}, limits);
+							getDepthMapWithinLimits(dpm, alias,
+									new double [] {0, 0}, limits);
 					if (null == n) continue;
 					// throw new InternalException(
 					// "No cells found within limits");
 					int currSpaceID = currSpace.getInt("id");
-					Database.deleteFrom(
-							psql,
-							"depthmaps",
+					Database.deleteFrom(psql, "depthmaps",
 							"study_id=? AND space_id=? AND analysis_type=?::depthmap_types",
 							studyID, currSpaceID, type);
 					Raster r = n.getMeasuresMap();
@@ -312,12 +315,14 @@ public class StoreDepthmap extends FlowUpload {
 		}
 		// }
 	}
-	private boolean depthmapTypeValid(String type) throws SQLException,
-			ParseException {
+	private boolean depthmapTypeValid(String type)
+			throws SQLException, ParseException {
 		JSONArray result =
-				Database.customQuery("SELECT * FROM splab_get_depthmap_types() AS type");
+				Database.customQuery(
+						"SELECT * FROM splab_get_depthmap_types() AS type");
 		for (int i = 0; i < result.length(); i++)
-			if (type.equalsIgnoreCase(result.getJSONObject(i).getString("type")))
+			if (type.equalsIgnoreCase(
+					result.getJSONObject(i).getString("type")))
 				return true;
 		return false;
 	}
@@ -332,10 +337,10 @@ public class StoreDepthmap extends FlowUpload {
 				+ dpm.blockPositions.containsKey(alias) + " "
 				+ depthMapOffset[0] + " " + depthMapOffset[1]);
 		for (DepthCell c : dpm.cells) {
-			if (isWithinLimits(c.x - depthMapOffset[0],
-					c.y - depthMapOffset[1], limits)) {
-				cellsWithin.add(c
-						.copyAt(-depthMapOffset[0], -depthMapOffset[1]));
+			if (isWithinLimits(c.x - depthMapOffset[0], c.y - depthMapOffset[1],
+					limits)) {
+				cellsWithin
+						.add(c.copyAt(-depthMapOffset[0], -depthMapOffset[1]));
 			}
 		}
 		if (cellsWithin.size() < 1) return null;
@@ -349,15 +354,16 @@ public class StoreDepthmap extends FlowUpload {
 	}
 	private int writeRaster(Connection psql, int studyID, int spaceID,
 			String type, String mapName, Raster raster)
-			throws ClassNotFoundException, SQLException, ParseException {
+					throws ClassNotFoundException, SQLException,
+					ParseException {
 		String TABLE_MAP = "depthmaps";
 		String TABLE_BAND_ALIASES = "band_info";
 		Database.insertInto(psql, TABLE_MAP,
 				"name,analysis_type,study_id,space_id,map",
 				"?,?::depthmap_types,?,?,ST_MakeEmptyRaster( ?, ?, ?, ?, ?)",
 				mapName, type, studyID, spaceID, raster.cellNumX,
-				raster.cellNumY, raster.x, raster.y + raster.cellNumY
-						* raster.cellW, raster.cellW);
+				raster.cellNumY, raster.x,
+				raster.y + raster.cellNumY * raster.cellW, raster.cellW);
 
 		JSONArray result =
 				Database.selectWhatFromTableWhere(psql, TABLE_MAP, "id",
@@ -369,17 +375,15 @@ public class StoreDepthmap extends FlowUpload {
 
 		for (String measure : raster.bands.keySet()) {
 			RasterBand b = raster.bands.get(measure);
-			Database.update(
-					psql,
-					TABLE_MAP,
+			Database.update(psql, TABLE_MAP,
 					"map = ST_AddBand(map, ?::text,NULL::double precision,NULL )",
 					"id=?", b.dataType, mapID);
 
 			result =
-					Database.customQuery(psql, "SELECT * FROM "
-							+ "ST_BandMetadata((SELECT " + "map" + " FROM "
-							+ TABLE_MAP + " WHERE " + "id"
-							+ "= ?),ARRAY[]::integer[]);",
+					Database.customQuery(psql,
+							"SELECT * FROM " + "ST_BandMetadata((SELECT "
+									+ "map" + " FROM " + TABLE_MAP + " WHERE "
+									+ "id" + "= ?),ARRAY[]::integer[]);",
 							String.valueOf(mapID));
 
 			for (int i = 0; i < result.length(); i++) {
@@ -405,7 +409,7 @@ public class StoreDepthmap extends FlowUpload {
 		return mapID;
 	}
 	public void populateBand(Connection psql, int mapID, String bandAlias,
-			Float [][] fa) throws ParseException, ClassNotFoundException {
+			Float [] [] fa) throws ParseException, ClassNotFoundException {
 		String TABLE_BAND_ALIASES = "band_info";
 		int patchSizeX = 20;
 		int patchSizeY = fa.length;
@@ -437,20 +441,20 @@ public class StoreDepthmap extends FlowUpload {
 									TABLE_BAND_ALIASES, "band_id",
 									"map_id=? AND alias=?",
 									String.valueOf(mapID), bandAlias);
-					// pstmt =
-					// conn.prepareStatement("SELECT " + ALIASES_ID
-					// + " FROM " + TABLE_BAND_ALIASES + " WHERE "
-					// + ALIASES_MAPNAME + " = ? " + " AND "
-					// + ALIASES_ALIAS + " = ?");
-					// pstmt.setString(1, mapName);
-					// pstmt.setString(2, bandAlias);
-					// ResultSet rs = pstmt.executeQuery();
+									// pstmt =
+									// conn.prepareStatement("SELECT " +
+									// ALIASES_ID
+									// + " FROM " + TABLE_BAND_ALIASES + " WHERE
+									// "
+									// + ALIASES_MAPNAME + " = ? " + " AND "
+									// + ALIASES_ALIAS + " = ?");
+									// pstmt.setString(1, mapName);
+									// pstmt.setString(2, bandAlias);
+									// ResultSet rs = pstmt.executeQuery();
 
 					// rs.next();
 					int bandID = result.getJSONObject(0).getInt("band_id");
-					Database.update(
-							psql,
-							"depthmaps",
+					Database.update(psql, "depthmaps",
 							"map = ST_SetValues(map, ?, ?, ?," + patch + ")",
 							"id = ?",
 							new String [] {String.valueOf(bandID),
@@ -478,24 +482,22 @@ public class StoreDepthmap extends FlowUpload {
 		}
 	}
 	public void writeBasePoints(Connection psql, int studyID,
-			Map<String, double []> basePoints) throws ClassNotFoundException,
-			ParseException {
+			Map<String, double []> basePoints)
+					throws ClassNotFoundException, ParseException {
 		try {
 			for (String spaceAlias : basePoints.keySet()) {
 				String point =
-						"("
-								+ BigDecimal.valueOf(
-										basePoints.get(spaceAlias)[0])
-										.toPlainString()
+						"(" + BigDecimal.valueOf(basePoints.get(spaceAlias)[0])
+								.toPlainString()
 								+ ","
-								+ BigDecimal.valueOf(
-										basePoints.get(spaceAlias)[1])
-										.toPlainString() + ")";
+								+ BigDecimal
+										.valueOf(basePoints.get(spaceAlias)[1])
+										.toPlainString()
+								+ ")";
 				Database.update(psql, "spaces",
 						"depthmap_origin=CAST(? AS point)",
-						"study_id=? AND alias=?",
-						new String [] {point, String.valueOf(studyID),
-								spaceAlias});
+						"study_id=? AND alias=?", new String [] {point,
+								String.valueOf(studyID), spaceAlias});
 				// PreparedStatement pstmt;
 				// pstmt =
 				// conn.prepareStatement("INSERT INTO "

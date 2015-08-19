@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.File;
 import java.sql.Connection;
@@ -18,6 +18,9 @@ import javax.servlet.http.HttpServlet;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.Database.COL;
 
 public class SQLiteToPostgreSQL extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -166,32 +169,28 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 								String.valueOf(studyID), alias);
 				if (spacesInDB.length() != 0) {
 					int spaceID =
-							spacesInDB.getJSONObject(0).getInt(
-									Database.COL.SPACES_ID.toString());
-					Database.update(
-							psql,
-							"spaces",
+							spacesInDB.getJSONObject(0)
+									.getInt(Database.COL.SPACES_ID.toString());
+					Database.update(psql, "spaces",
 							"observation_offset=CAST(? AS point),display_order=?",
 							"id=?",
 							new Object [] {point, rs.getInt("displayorder"),
 									String.valueOf(spaceID)});
 					int inSpaceID = rs.getInt("_id");
 					spaceMapper.put(inSpaceID, spaceID);
-					spaceOffsetMap.put(
-							inSpaceID,
-							new double [] {rs.getDouble("offsetx"),
-									rs.getDouble("offsety")});
+					spaceOffsetMap.put(inSpaceID, new double [] {
+							rs.getDouble("offsetx"), rs.getDouble("offsety")});
 				} else {
 					Database.insertInto(psql, "spaces", columnString,
 							valueString, args);
 					int inSpaceID = rs.getInt("_id");
 					spaceMapper
-					        .put(inSpaceID,
-					                Database.getSequenceCurrVal(psql,
-					                        "spaces_id_seq").getJSONObject(0)
-					                .getInt("currval"));
+							.put(inSpaceID,
+									Database.getSequenceCurrVal(psql,
+											"spaces_id_seq").getJSONObject(0)
+									.getInt("currval"));
 					spaceOffsetMap.put(inSpaceID, new double [] {
-					        rs.getDouble("offsetx"), rs.getDouble("offsety")});
+							rs.getDouble("offsetx"), rs.getDouble("offsety")});
 				}
 			}
 
@@ -208,12 +207,9 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 									Database.TABLE_OBSERVATION_SNAPSHOTS,
 									"round_id=?", roundid);
 					for (int i = 0; i < snaps.length(); i++)
-						Database.deleteFrom(
-								psql,
-								"occupancy",
-								"snapshot_id=?",
-								String.valueOf(snaps.getJSONObject(i).getInt(
-										"id")));
+						Database.deleteFrom(psql, "occupancy", "snapshot_id=?",
+								String.valueOf(
+										snaps.getJSONObject(i).getInt("id")));
 					Database.deleteFrom(psql,
 							Database.TABLE_OBSERVATION_SNAPSHOTS, "round_id=?",
 							roundid);
@@ -245,18 +241,19 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				if (!knownRounds.get(dayNumber).containsKey(roundNumber)) {
 					Date start =
 							new Date(
-									(long) (rs.getLong("startunixtimestamp") * 1000));
+									(long) (rs.getLong("startunixtimestamp")
+											* 1000));
 					Date end =
 							new Date(
-									(long) (rs.getLong("endunixtimestamp") * 1000));
+									(long) (rs.getLong("endunixtimestamp")
+											* 1000));
 
 					Object [] args =
 							new Object [] {observationID, dayNumber,
 									roundNumber, df.format(start),
 									df.format(end)};
-					Database.insertInto(psql,
-							Database.TABLE_OBSERVATION_ROUNDS, colStringRounds,
-							valStringRounds, args);
+					Database.insertInto(psql, Database.TABLE_OBSERVATION_ROUNDS,
+							colStringRounds, valStringRounds, args);
 					newVal =
 							Database.getSequenceCurrVal(psql,
 									"observation_rounds_id_seq")
@@ -275,8 +272,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 						columnString, valueString, args);
 				newVal =
 						Database.getSequenceCurrVal(psql,
-								"observation_snapshots_id_seq")
-								.getJSONObject(0).getInt("currval");
+								"observation_snapshots_id_seq").getJSONObject(0)
+								.getInt("currval");
 				int inSnapID = rs.getInt("_id");
 				snapMapper.put(inSnapID, newVal);
 				snapSpaceMapper.put(inSnapID, inSpaceID);
@@ -296,10 +293,10 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				int inSpaceID = rs.getInt("spaceid");
 				double xpos = rs.getDouble("xpos");
 				double ypos = rs.getDouble("ypos");
-//				if (spaceOffsetMap.containsKey(inSpaceID)) {
-					xpos += spaceOffsetMap.get(inSpaceID)[0];
-					ypos += spaceOffsetMap.get(inSpaceID)[1];
-//				}
+				// if (spaceOffsetMap.containsKey(inSpaceID)) {
+				xpos += spaceOffsetMap.get(inSpaceID)[0];
+				ypos += spaceOffsetMap.get(inSpaceID)[1];
+				// }
 				// String point = "(" + xpos + "," + ypos + ")";
 				Object [] args =
 						new Object [] {observationID, rs.getInt("originalid"),
@@ -357,8 +354,8 @@ public class SQLiteToPostgreSQL extends HttpServlet {
 				if (spaceOffset != null) {
 					xpos += spaceOffset[0];
 					ypos += spaceOffset[1];
-//					 xpos += rs.getDouble("xpos") + spaceOffset[0];
-//					 ypos += rs.getDouble("ypos") + spaceOffset[1];
+					// xpos += rs.getDouble("xpos") + spaceOffset[0];
+					// ypos += rs.getDouble("ypos") + spaceOffset[1];
 				}
 				// String point = "(" + xpos + "," + ypos + ")";
 				int interaction = rs.getInt("interaction");

@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -16,6 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.JSONHelper;
 
 /**
  * Servlet implementation class StorePolygons
@@ -64,8 +67,8 @@ public class StorePolygons extends HttpServlet {
 								studyid, alias);
 
 				if (result.length() != 1)
-					throw new JSONException("no such space (" + alias
-							+ ") found");
+					throw new JSONException(
+							"no such space (" + alias + ") found");
 				int spaceID = result.getJSONObject(0).getInt("id");
 				String functeam = nameType[1];
 				if (functeam.equalsIgnoreCase("team")) continue;
@@ -84,20 +87,20 @@ public class StorePolygons extends HttpServlet {
 										"LOWER(alias) = LOWER(?)", type);
 
 						if (result.length() != 1)
-							throw new JSONException("no such type (" + type
-									+ ") found");
+							throw new JSONException(
+									"no such type (" + type + ") found");
 						typeID = result.getJSONObject(0).getInt("id");
 					}
 					System.out.println(functeam + " " + type + " " + typeID);
 					String sql =
 							"INSERT INTO polygons (polygon,space_id,functeam,type_id) VALUES ("
-							// ST_GeomFromText('POLYGON((-71.1776585052917
-							// 42.3902909739571,-71.1776820268866
-							// 42.3903701743239,
-							// -71.1776063012595
-							// 42.3903825660754,-71.1775826583081
-							// 42.3903033653531,-71.1776585052917
-							// 42.3902909739571))');
+									// ST_GeomFromText('POLYGON((-71.1776585052917
+									// 42.3902909739571,-71.1776820268866
+									// 42.3903701743239,
+									// -71.1776063012595
+									// 42.3903825660754,-71.1775826583081
+									// 42.3903033653531,-71.1776585052917
+									// 42.3902909739571))');
 									+ spaceID + functeam + typeID + ");";
 					sql =
 							"INSERT INTO polygons "

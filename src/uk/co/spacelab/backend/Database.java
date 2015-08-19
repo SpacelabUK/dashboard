@@ -48,7 +48,7 @@ public class Database {
 			TABLE_METRIC_FUNCTIONS_INPUTS = "metric_functions_inputs",
 			TABLE_METRIC_GROUPS = "metric_groups",
 			TABLE_METRIC_GROUP_METRICS = "metric_group_metrics";
-	enum TABLE {
+	public enum TABLE {
 		SPACES("spaces");
 		// OBSERVATION_ROUNDS("observation_rounds"),
 		// OBSERVATION_SNAPSHOTS("observation_snapshots");
@@ -66,7 +66,7 @@ public class Database {
 	enum COL_TYPE {
 		SERIAL, BIGSERIAL, INTEGER, INTEGER_ARRAY, TEXT, TEXT_ARRAY
 	}
-	enum COL {
+	public enum COL {
 		SPACES_STUDY_ID("study_id", COL_TYPE.INTEGER), //
 		SPACES_ID("id", COL_TYPE.INTEGER), //
 		SPACES_ALIAS("alias", COL_TYPE.TEXT),
@@ -226,16 +226,16 @@ public class Database {
 	//
 	// return psql;
 	// }
-	protected static JSONArray selectAllFromTableWhere(Connection con,
+	public static JSONArray selectAllFromTableWhere(Connection con,
 			String table, String where, Object... args)
 					throws SQLException, ParseException {
 		return selectWhatFromTableWhere(con, table, "*", where, args);
 	}
-	protected static JSONArray selectAllFromTableWhere(String table,
+	public static JSONArray selectAllFromTableWhere(String table,
 			String where, Object... args) throws SQLException, ParseException {
 		return selectWhatFromTableWhere(table, "*", where, args);
 	}
-	protected static JSONArray selectWhatFromTableWhere(String table,
+	public static JSONArray selectWhatFromTableWhere(String table,
 			String what, String where, Object... args)
 					throws SQLException, ParseException {
 		// try {
@@ -353,14 +353,14 @@ public class Database {
 	// }
 	//
 	// }
-	protected static JSONArray selectAllFromTable(Connection con, String table)
+	public static JSONArray selectAllFromTable(Connection con, String table)
 			throws ClassNotFoundException, SQLException, ParseException {
 		String sql = "SELECT * FROM " + table + ";";
 		try (ResultSet rs = execPrepared(con, sql)) {
 			return expandAndCloseResultSet(rs);
 		}
 	}
-	protected static JSONArray selectAllFromTable(String table)
+	public static JSONArray selectAllFromTable(String table)
 			throws ClassNotFoundException, SQLException, ParseException {
 		Connection con = getConnection();
 		String sql = "SELECT * FROM " + table + ";";
@@ -385,7 +385,7 @@ public class Database {
 		rs.close();
 		return result;
 	}
-	protected static void deleteFrom(Connection psql, String table,
+	public static void deleteFrom(Connection psql, String table,
 			String whereString, Object... args) throws ClassNotFoundException,
 					SQLException, ParseException {
 
@@ -470,7 +470,7 @@ public class Database {
 		update(table, toSetString, where, args);
 	}
 
-	protected static void update(String table, String toSetString, String where,
+	public static void update(String table, String toSetString, String where,
 			Object [] args) throws ClassNotFoundException, SQLException,
 					ParseException {
 		Connection con = getConnection();
@@ -487,7 +487,7 @@ public class Database {
 		// return new JSONArray("[{result:success}]");
 		// }
 	}
-	protected static void update(Connection psql, String table,
+	public static void update(Connection psql, String table,
 			String toSetString, String where, Object... args)
 					throws ClassNotFoundException, SQLException,
 					ParseException {
@@ -501,14 +501,14 @@ public class Database {
 		// return new JSONArray("[{result:success}]");
 		// }
 	}
-	protected static JSONArray getSequenceNextVal(Connection psql, String seq)
+	public static JSONArray getSequenceNextVal(Connection psql, String seq)
 			throws SQLException, ClassNotFoundException, ParseException {
 		String sql = "SELECT nextval('" + seq + "');";
 		try (ResultSet rs = execPrepared(psql, sql)) {
 			return expandAndCloseResultSet(rs);
 		}
 	}
-	protected static JSONArray getSequenceNextVal(String seq)
+	public static JSONArray getSequenceNextVal(String seq)
 			throws SQLException, ClassNotFoundException, ParseException {
 		Connection con = getConnection();
 		JSONArray result = getSequenceNextVal(con, seq);

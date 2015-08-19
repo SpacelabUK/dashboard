@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +28,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.MalformedDataException;
+
 import static uk.co.spacelab.backend.Constants.DEBUG;
 
 public class StakeholderReader {
@@ -36,7 +39,8 @@ public class StakeholderReader {
 			TABLE_CLIENT_ISSUES = "interview_client_issues",
 			TABLE_INTERVIEW_QUOTES = "interview_quotes",
 			TABLE_INTERVIEW_QUOTE_ISSUES = "interview_quote_issues",
-			TABLE_INTERVIEW_QUESTION_CHOICE_SCORE = "interview_team_question_choice_score",
+			TABLE_INTERVIEW_QUESTION_CHOICE_SCORE =
+					"interview_team_question_choice_score",
 			TABLE_INTERVIEW_QUESTIONS = "interview_questions",
 			TABLE_INTERVIEW_POSSIBLE_CHOICES = "interview_possible_choices";
 	Map<String, String> validations = new HashMap<String, String>();
@@ -98,7 +102,7 @@ public class StakeholderReader {
 	// protected Map<String, List<String>> getStaticData(String fileName,
 	protected JSONObject getStaticData(String fileName, String fileid,
 			int studyID) throws FileNotFoundException, IOException,
-			ClassNotFoundException, SQLException, ParseException {
+					ClassNotFoundException, SQLException, ParseException {
 		// Database.getConnection();
 
 		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
@@ -108,8 +112,9 @@ public class StakeholderReader {
 		for (int i = 0; i < ns; i++) {
 			if (wb.getSheetName(i).equalsIgnoreCase("TEAMS"))
 				teamSheet = wb.getSheetAt(i);
-			else if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS"))
-				questionSheet = wb.getSheetAt(i);
+			else
+				if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS"))
+					questionSheet = wb.getSheetAt(i);
 		}
 		if (teamSheet == null)
 			throw new MalformedDataException("Teams sheet missing");
@@ -117,8 +122,8 @@ public class StakeholderReader {
 			throw new MalformedDataException("Questions sheet missing");
 		ns = wb.getNumberOfNames();
 		String [] requiredNames =
-				new String [] {"DEPARTMENT_LIST", "QUESTION_LIST",
-						"ISSUE_LIST", "CLIENT_ISSUE_LIST"};
+				new String [] {"DEPARTMENT_LIST", "QUESTION_LIST", "ISSUE_LIST",
+						"CLIENT_ISSUE_LIST"};
 		Map<String, List<String>> staticData =
 				extractCellsFromNames(wb, requiredNames);
 		for (String name : requiredNames)
@@ -135,8 +140,7 @@ public class StakeholderReader {
 				Database.selectAllFromTableWhere(psql, TABLE_CLIENT_ISSUES,
 						"study_id=?", String.valueOf(studyID));
 		JSONArray databaseQuestions =
-				Database.customQuery(
-						psql,
+				Database.customQuery(psql,
 						"SELECT interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
 								+ "(SELECT alias FROM interview_questions "
 								+ "WHERE interview_questions.id=parent_questions.parent_id) AS parent FROM interview_questions JOIN "
@@ -163,8 +167,7 @@ public class StakeholderReader {
 					formulaKey = name;
 					break;
 				}
-			if (formulaKey != null)
-				perNameCellReferences.put(formulaKey, cral);
+			if (formulaKey != null) perNameCellReferences.put(formulaKey, cral);
 		}
 		Map<String, Question> idQuestion = new HashMap<String, Question>();
 		for (String alias : staticData.get("QUESTION_LIST")) {
@@ -182,8 +185,9 @@ public class StakeholderReader {
 			if (-1 == dotIndex) continue;
 			String parentID = key.substring(0, dotIndex);
 			if (!idQuestion.containsKey(parentID))
-				throw new MalformedDataException("Parent " + parentID
-						+ " of question " + question.alias + " does not exist");
+				throw new MalformedDataException(
+						"Parent " + parentID + " of question " + question.alias
+								+ " does not exist");
 			question.parent(idQuestion.get(parentID));
 		}
 		String choiceIdentifier = "CHOICE";
@@ -192,16 +196,17 @@ public class StakeholderReader {
 			for (CellRangeAddress cra : perNameCellReferences.get(key)) {
 				int firstColumnIndex = cra.getFirstColumn();
 				int lastColumnIndex = cra.getLastColumn();
-				if (lastColumnIndex - firstColumnIndex != 0
-						|| !firstRow.getCell(firstColumnIndex)
-								.getStringCellValue().trim()
-								.equalsIgnoreCase(choiceIdentifier)) continue;
+				if (lastColumnIndex - firstColumnIndex != 0 || !firstRow
+						.getCell(firstColumnIndex).getStringCellValue().trim()
+						.equalsIgnoreCase(choiceIdentifier))
+					continue;
 				List<String> questionRefs =
 						extractCellsFromRange(questionSheet, cra);
 				int choiceColumn = lastColumnIndex + 1;
 				List<String> choices = new ArrayList<String>();
 				Cell f = null, c = null;
-				for (int row = 0; row < questionSheet.getPhysicalNumberOfRows(); row++) {
+				for (int row = 0; row < questionSheet
+						.getPhysicalNumberOfRows(); row++) {
 					Cell d = questionSheet.getRow(row).getCell(choiceColumn);
 					if (d == null) continue;
 					String cellValue = d.getStringCellValue().trim();
@@ -214,18 +219,15 @@ public class StakeholderReader {
 				// System.out.println(choices + " " + f + " " + c);
 				if (c != null && f != null)
 					for (String questionRef : questionRefs) {
-						if (!questions.containsKey(questionRef))
-							throw new MalformedDataException(
-									"Excel file: Choice Question '"
-											+ questionRef
-											+ "' not found in list of questions");
-						questions.get(questionRef)
-								.choices(
-										new int [] {f.getRowIndex(),
-												c.getRowIndex(),
-												f.getColumnIndex(),
-												c.getColumnIndex()}, choices);
-					}
+					if (!questions.containsKey(questionRef))
+						throw new MalformedDataException(
+								"Excel file: Choice Question '" + questionRef
+										+ "' not found in list of questions");
+					questions.get(questionRef).choices(
+							new int [] {f.getRowIndex(), c.getRowIndex(),
+									f.getColumnIndex(), c.getColumnIndex()},
+							choices);
+				}
 			}
 		}
 		// JSONArray databaseQuestions =
@@ -260,11 +262,12 @@ public class StakeholderReader {
 						// o.put("parent_id", parentAlias[1]);
 					}
 					if (q.choices != null) {
-						o.put("choicesReference", new JSONArray(
-								q.choicesReference));
+						o.put("choicesReference",
+								new JSONArray(q.choicesReference));
 						o.put("choices", new JSONArray(q.choices));
 					}
-					outerloop : for (int i = 0; i < databaseQuestions.length(); i++) {
+					outerloop : for (int i = 0; i < databaseQuestions
+							.length(); i++) {
 						JSONObject dbQ = databaseQuestions.getJSONObject(i);
 						String dbAlias = dbQ.getString("alias");
 						int dbID = dbQ.getInt("id");
@@ -283,16 +286,15 @@ public class StakeholderReader {
 									continue outerloop;
 								if (currentQ.parent == null
 										&& !currentDBQ.has("parent")) {
-									if (currentDBQ
-											.getString("alias")
+									if (currentDBQ.getString("alias")
 											.equalsIgnoreCase(
-													clearQuestionAlias(currentQ.alias)[0]))
+													clearQuestionAlias(
+															currentQ.alias)[0]))
 										break;
 								}
-								if (!currentDBQ
-										.getString("parent")
-										.equalsIgnoreCase(
-												clearQuestionAlias(currentQ.parent.alias)[0]))
+								if (!currentDBQ.getString("parent")
+										.equalsIgnoreCase(clearQuestionAlias(
+												currentQ.parent.alias)[0]))
 									continue outerloop;
 								currentQ = currentQ.parent;
 								currentDBQ =
@@ -314,8 +316,8 @@ public class StakeholderReader {
 					arr.put(o);
 					for (int i = 0; i < databaseTeams.length(); i++) {
 						String teamDB =
-								databaseTeams.getJSONObject(i).getString(
-										"alias");
+								databaseTeams.getJSONObject(i)
+										.getString("alias");
 						if (teamDB.equalsIgnoreCase(alias)) {
 							o.put("prematchproperty", "id");
 							o.put("prematch", teamDB);
@@ -331,8 +333,8 @@ public class StakeholderReader {
 					arr.put(o);
 					for (int i = 0; i < databaseIssues.length(); i++) {
 						String issueDB =
-								databaseIssues.getJSONObject(i).getString(
-										"alias");
+								databaseIssues.getJSONObject(i)
+										.getString("alias");
 						if (issueDB.equalsIgnoreCase(alias)) {
 							o.put("prematchproperty", "id");
 							o.put("prematch", issueDB);
@@ -413,9 +415,8 @@ public class StakeholderReader {
 			return this;
 		}
 	}
-	int addQuestionToDB(String question, Integer parentID)
-			throws JSONException, ClassNotFoundException, SQLException,
-			ParseException {
+	int addQuestionToDB(String question, Integer parentID) throws JSONException,
+			ClassNotFoundException, SQLException, ParseException {
 		int nextval = -1;
 		try (Connection psql = Database.getConnection()) {
 			psql.setAutoCommit(false);
@@ -426,8 +427,9 @@ public class StakeholderReader {
 			if (parentID != null)
 				Database.insertInto(psql, "interview_questions",
 						"alias,parent_id", "?,?", question, parentID);
-			else Database.insertInto(psql, "interview_questions",
-					"alias,parent_id", "?,NULL", question);
+			else
+				Database.insertInto(psql, "interview_questions",
+						"alias,parent_id", "?,NULL", question);
 			psql.commit();
 			psql.setAutoCommit(true);
 		}
@@ -435,7 +437,7 @@ public class StakeholderReader {
 	}
 	void addScoreToDB(Connection psql, int studyID, int questionID,
 			int fromTeamID, int toTeamID, float score) throws JSONException,
-			ClassNotFoundException, SQLException, ParseException {
+					ClassNotFoundException, SQLException, ParseException {
 		// int nextval =
 		// Database.getSequenceNextVal(psql, "interview_questions_id_seq")
 		// .getJSONObject(0).getInt("nextval");
@@ -502,8 +504,8 @@ public class StakeholderReader {
 					if (questionsJSON.get(q).has("parent")) {
 						q = questionsJSON.get(q).getString("parent");
 						if (!questions.containsKey(q))
-							throw new MalformedDataException("Parent '" + q
-									+ "' missing");
+							throw new MalformedDataException(
+									"Parent '" + q + "' missing");
 						if (questions.get(q).matchID == -1)
 							validQuestions.add(q);
 						else {
@@ -525,8 +527,9 @@ public class StakeholderReader {
 					if (parentID != null)
 						Database.insertInto(psql, TABLE_INTERVIEW_QUESTIONS,
 								"alias,parent_id", "?,?", clearQ, parentID);
-					else Database.insertInto(psql, "interview_questions",
-							"alias,parent_id", "?,NULL", clearQ);
+					else
+						Database.insertInto(psql, "interview_questions",
+								"alias,parent_id", "?,NULL", clearQ);
 					int currval =
 							Database.getSequenceCurrVal(psql,
 									"interview_questions_id_seq")
@@ -539,8 +542,9 @@ public class StakeholderReader {
 									choice);
 					}
 					parentID = currval;
-					questions.put(validQuestions.get(i), new Question(
-							validQuestions.get(i)).matchID(parentID));
+					questions.put(validQuestions.get(i),
+							new Question(validQuestions.get(i))
+									.matchID(parentID));
 				}
 			}
 
@@ -587,8 +591,8 @@ public class StakeholderReader {
 					if (teamsJSON.get(teamNames.get(q)).has("parent")) {
 						q = teamsJSON.get(teamNames.get(q)).getString("parent");
 						if (!teams.containsKey(q))
-							throw new MalformedDataException("Parent '" + q
-									+ "' missing");
+							throw new MalformedDataException(
+									"Parent '" + q + "' missing");
 						if (teams.get(q) == -1)
 							validTeams.add(q);
 						else {
@@ -608,9 +612,10 @@ public class StakeholderReader {
 						Database.insertInto(psql, "teams",
 								"study_id,alias,parent_id", "?,?,?", studyID,
 								clearQ, parentID);
-					else Database.insertInto(psql, "teams",
-							"study_id,alias,parent_id", "?,?,NULL", studyID,
-							clearQ);
+					else
+						Database.insertInto(psql, "teams",
+								"study_id,alias,parent_id", "?,?,NULL", studyID,
+								clearQ);
 					int currval =
 							Database.getSequenceCurrVal(psql, "teams_id_seq")
 									.getJSONObject(0).getInt("currval");
@@ -679,10 +684,11 @@ public class StakeholderReader {
 				// for (int i = validIssues.size() - 1; i >= 0; i--) {
 				// String clearQ = validIssues.get(i);
 				if (groupID != null)
-					Database.insertInto(psql, TABLE_ISSUES,
-							"alias,issue_group", "?,?", issue, groupID);
-				else Database.insertInto(psql, TABLE_ISSUES,
-						"alias,issue_group", "?,NULL", issue);
+					Database.insertInto(psql, TABLE_ISSUES, "alias,issue_group",
+							"?,?", issue, groupID);
+				else
+					Database.insertInto(psql, TABLE_ISSUES, "alias,issue_group",
+							"?,NULL", issue);
 				int currval =
 						Database.getSequenceCurrVal(psql,
 								"interview_issues_id_seq").getJSONObject(0)
@@ -700,7 +706,7 @@ public class StakeholderReader {
 
 	protected void convert(String fileName, int studyID,
 			JSONObject staticDataJSON) throws ClassNotFoundException,
-			SQLException, IOException, ParseException {
+					SQLException, IOException, ParseException {
 
 		// Map<String, Map<String, String>> staticData =
 		// new HashMap<String, Map<String, String>>();
@@ -759,9 +765,9 @@ public class StakeholderReader {
 					String question =
 							sheet.getRow(0).getCell(0).getStringCellValue();
 					if (!questions.containsKey(question))
-						throw new MalformedDataException("Unknown question '"
-								+ question + "' in sheet"
-								+ sheet.getSheetName());
+						throw new MalformedDataException(
+								"Unknown question '" + question + "' in sheet"
+										+ sheet.getSheetName());
 					// if
 					// (!staticData.get("QUESTION_LIST").containsKey(question))
 					// continue;
@@ -772,7 +778,8 @@ public class StakeholderReader {
 					Map<Integer, String> teamsVertical =
 							new HashMap<Integer, String>();
 					int commentsColumn = -1;
-					for (int j = 0; j < firstRow.getPhysicalNumberOfCells(); j++) {
+					for (int j = 0; j < firstRow
+							.getPhysicalNumberOfCells(); j++) {
 						if (firstRow.getCell(j) == null) continue;
 						String cellVal =
 								firstRow.getCell(j).getStringCellValue().trim()
@@ -782,8 +789,9 @@ public class StakeholderReader {
 							// (staticData.get("DEPARTMENT_LIST").containsKey(
 							// cellVal))
 							teamsHorizontal.put(j, cellVal);
-						else if (cellVal.equalsIgnoreCase("COMMENTS"))
-							commentsColumn = j;
+						else
+							if (cellVal.equalsIgnoreCase("COMMENTS"))
+								commentsColumn = j;
 					}
 					for (int j = 1; j < sheet.getPhysicalNumberOfRows(); j++) {
 						Cell c = sheet.getRow(j).getCell(0);
@@ -791,23 +799,25 @@ public class StakeholderReader {
 						String cellVal =
 								c.getStringCellValue().trim().toUpperCase();
 						if (cellVal != null && cellVal.length() < 1
-						// || staticData.get("DEPARTMENT_LIST")
-								|| !teams.containsKey(cellVal)) continue;
+								// || staticData.get("DEPARTMENT_LIST")
+								|| !teams.containsKey(cellVal))
+							continue;
 						teamsVertical.put(j, cellVal);
 						// Database.insertInto(table, columnString, args)
 					}
 					for (Integer r : teamsVertical.keySet()) {
-						if (commentsColumn != -1
-								&& sheet.getRow(r).getCell(commentsColumn) != null) {
+						if (commentsColumn != -1 && sheet.getRow(r)
+								.getCell(commentsColumn) != null) {
 							String comment =
 									sheet.getRow(r).getCell(commentsColumn)
 											.getStringCellValue();
-							comments.add(new Quote(questions.get(question),
+							comments.add(new Quote(
+									questions.get(question),
 									teamsVertical.get(r), comment));
 						}
 						for (Integer c : teamsHorizontal.keySet()) {
-							if (teamsVertical.get(r).equalsIgnoreCase(
-									teamsHorizontal.get(c))) {
+							if (teamsVertical.get(r)
+									.equalsIgnoreCase(teamsHorizontal.get(c))) {
 								continue;
 							}
 							if (sheet.getRow(r) == null
@@ -817,9 +827,9 @@ public class StakeholderReader {
 									(float) sheet.getRow(r).getCell(c)
 											.getNumericCellValue();
 							if (score < 0.01) continue;
-							teamTeamScores.add(new Score(question,
-									teamsVertical.get(r), teamsHorizontal
-											.get(c), score, ""));
+							teamTeamScores.add(new Score(
+									question, teamsVertical.get(r),
+									teamsHorizontal.get(c), score, ""));
 						}
 					}
 				} else if (firstCellComment.equals("dept/question")) {
@@ -841,12 +851,12 @@ public class StakeholderReader {
 						}
 						// System.out.println(j+" " + cellVal+" " +
 						// teams.containsKey(cellVal.toUpperCase()));
-						if (!teams.containsKey(cellVal.toUpperCase()))
-							continue;
+						if (!teams.containsKey(cellVal.toUpperCase())) continue;
 						teamsVertical.put(j, cellVal);
 						currVal = cellVal;
 					}
-					for (int j = 0; j < firstRow.getPhysicalNumberOfCells(); j++) {
+					for (int j = 0; j < firstRow
+							.getPhysicalNumberOfCells(); j++) {
 						int currCell = j;
 						if (firstRow.getCell(j) == null) continue;
 						String question =
@@ -862,8 +872,8 @@ public class StakeholderReader {
 						for (int k = 0; k < maxSearchColumns; k++) {
 							if (firstRow.getCell(j + 1) == null) break;
 							String cellV =
-									firstRow.getCell(j + 1)
-											.getStringCellValue().trim();
+									firstRow.getCell(j + 1).getStringCellValue()
+											.trim();
 							if (cellV.equalsIgnoreCase("ISSUE CATEGORY")) {
 								issueCols.add(j + 1);
 								j++;
@@ -883,7 +893,8 @@ public class StakeholderReader {
 							// System.out.println(cellVal);
 							if (cellVal.length() < 1) continue;
 							Quote qt =
-									new Quote(questions.get(question),
+									new Quote(
+											questions.get(question),
 											teamsVertical.get(row), cellVal);
 							comments.add(qt);
 							if (sheet.getRow(row).getCell(flagColumn) != null
@@ -953,10 +964,11 @@ public class StakeholderReader {
 
 						boolean hasComment =
 								(sheet.getRow(j + 1) != null
-										&& (sheet.getRow(j + 1).getCell(0) != null) && (sheet
-										.getRow(j + 1).getCell(0)
-										.getStringCellValue().trim()
-										.equalsIgnoreCase("COMMENTS")));
+										&& (sheet.getRow(j + 1)
+												.getCell(0) != null)
+										&& (sheet.getRow(j + 1).getCell(0)
+												.getStringCellValue().trim()
+												.equalsIgnoreCase("COMMENTS")));
 						if (hasComment) haveComment.add(j);
 						if (c == null) {
 							if (qVal != null)
@@ -983,8 +995,7 @@ public class StakeholderReader {
 							if (tVal != null) teamsVertical.put(j, tVal);
 							continue;
 						}
-						if (!teams.containsKey(cellVal.toUpperCase()))
-							continue;
+						if (!teams.containsKey(cellVal.toUpperCase())) continue;
 
 						parentQuestionsVertical.put(j, nqVal);
 						qVal = nqVal;
@@ -999,7 +1010,8 @@ public class StakeholderReader {
 						if (q.choices != null)
 							possibleChoices.addAll(q.choices);
 
-					for (int col = 0; col < firstRow.getPhysicalNumberOfCells(); col++) {
+					for (int col = 0; col < firstRow
+							.getPhysicalNumberOfCells(); col++) {
 						if (firstRow.getCell(col) == null) continue;
 						String choice =
 								firstRow.getCell(col).getStringCellValue()
@@ -1026,13 +1038,15 @@ public class StakeholderReader {
 							if (actualQuestion == null) break;
 							if (haveComment.contains(row)
 									&& sheet.getRow(row + 1) != null
-									&& sheet.getRow(row + 1).getCell(col) != null) {
+									&& sheet.getRow(row + 1)
+											.getCell(col) != null) {
 								String cv =
 										sheet.getRow(row + 1).getCell(col)
 												.getStringCellValue().trim();
 								if (cv.length() > 0) {
 									Quote qt =
-											new Quote(actualQuestion, currTeam,
+											new Quote(
+													actualQuestion, currTeam,
 													cv);
 									comments.add(qt);
 									// System.out.println(qt);
@@ -1055,11 +1069,10 @@ public class StakeholderReader {
 							}
 							if (score < 0.001) continue;
 							if (!teamQuestionScores.containsKey(currTeam))
-								teamQuestionScores
-										.put(currTeam,
-												new HashMap<String, Map<String, Float>>());
-							if (!teamQuestionScores.get(currTeam).containsKey(
-									actualQuestion.alias))
+								teamQuestionScores.put(currTeam,
+										new HashMap<String, Map<String, Float>>());
+							if (!teamQuestionScores.get(currTeam)
+									.containsKey(actualQuestion.alias))
 								teamQuestionScores.get(currTeam).put(
 										actualQuestion.alias,
 										new HashMap<String, Float>());
@@ -1090,11 +1103,13 @@ public class StakeholderReader {
 			addScoreToDB(psql, studyID, questions.get(s.question).matchID,
 					teams.get(s.from), teams.get(s.to), s.score);
 		}
-		Database.customQueryNoResult(psql, "DELETE FROM "
-				+ TABLE_INTERVIEW_QUOTE_ISSUES
-				+ " WHERE quote_id IN (SELECT id FROM "
-				+ TABLE_INTERVIEW_QUOTES + " WHERE study_id=?)", studyID);
-		Database.deleteFrom(psql, TABLE_INTERVIEW_QUOTES, "study_id=?", studyID);
+		Database.customQueryNoResult(psql,
+				"DELETE FROM " + TABLE_INTERVIEW_QUOTE_ISSUES
+						+ " WHERE quote_id IN (SELECT id FROM "
+						+ TABLE_INTERVIEW_QUOTES + " WHERE study_id=?)",
+				studyID);
+		Database.deleteFrom(psql, TABLE_INTERVIEW_QUOTES, "study_id=?",
+				studyID);
 		for (Quote q : comments) {
 			Database.insertInto(psql, TABLE_INTERVIEW_QUOTES,
 					"study_id,question_id,quote,flag", "?,?,?,?", studyID,
@@ -1244,7 +1259,8 @@ public class StakeholderReader {
 	List<String> extractCellsFromRange(Sheet sheet, CellRangeAddress range) {
 		List<String> cells = new ArrayList<String>();
 		for (int row = range.getFirstRow(); row <= range.getLastRow(); row++) {
-			for (int col = range.getFirstColumn(); col <= range.getLastColumn(); col++) {
+			for (int col = range.getFirstColumn(); col <= range
+					.getLastColumn(); col++) {
 				Cell c = sheet.getRow(row).getCell(col);
 				if (c != null) {
 					String cellVal = c.getStringCellValue().trim();

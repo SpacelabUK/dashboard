@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -18,7 +18,7 @@ public class FlowUpload extends HttpServlet {
 
 	protected String post(HttpServletRequest request,
 			HttpServletResponse response, String UPLOAD_DIR)
-			throws ServletException, IOException {
+					throws ServletException, IOException {
 		int flowChunkNumber = getFlowChunkNumber(request);
 
 		FlowInfo info = getFlowInfo(request, UPLOAD_DIR);
@@ -57,15 +57,14 @@ public class FlowUpload extends HttpServlet {
 
 	}
 
-	protected void get(HttpServletRequest request,
-			HttpServletResponse response, String UPLOAD_DIR)
-			throws ServletException, IOException {
+	protected void get(HttpServletRequest request, HttpServletResponse response,
+			String UPLOAD_DIR) throws ServletException, IOException {
 		int flowChunkNumber = getFlowChunkNumber(request);
 
 		FlowInfo info = getFlowInfo(request, UPLOAD_DIR);
 
-		if (info.uploadedChunks.contains(new FlowInfo.FlowChunkNumber(
-				flowChunkNumber))) {
+		if (info.uploadedChunks
+				.contains(new FlowInfo.FlowChunkNumber(flowChunkNumber))) {
 			response.getWriter().print("Uploaded."); // This Chunk has been
 														// Uploaded.
 		} else {

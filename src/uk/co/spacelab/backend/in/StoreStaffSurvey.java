@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,9 @@ import org.apache.shiro.subject.Subject;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.JSONObject;
 
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.JSONHelper;
+
 //@WebServlet("/StoreStaffSurvey")
 @WebServlet(urlPatterns = {"/StoreStaffSurvey"}, asyncSupported = true)
 public class StoreStaffSurvey extends HttpServlet {
@@ -43,15 +46,15 @@ public class StoreStaffSurvey extends HttpServlet {
 	 * have status = 202 and are not errors
 	 */
 	protected void doGet(HttpServletRequest request,
-	        HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		Session session = SecurityUtils.getSubject().getSession();
 		JSONObject op = (JSONObject) session.getAttribute(sessionAtt);
 		System.out.println(op);
 		if (null != op) {
 			response.setStatus(202);
 			if (op.has("progress"))
-			    op.put("progress",
-			            Math.floor(op.getDouble("progress") * 100) / 100);
+				op.put("progress",
+						Math.floor(op.getDouble("progress") * 100) / 100);
 			response.getWriter().print(op);
 		} else response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
@@ -60,7 +63,7 @@ public class StoreStaffSurvey extends HttpServlet {
 	 * Stores the staff survey data
 	 */
 	protected void doPost(HttpServletRequest request,
-	        HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		final Subject s = SecurityUtils.getSubject();
 		request.setAttribute("org.apache.catalina.ASYNC_SUPPORTED", true);
 		AsyncContext ac = request.startAsync();
@@ -99,7 +102,7 @@ public class StoreStaffSurvey extends HttpServlet {
 	}
 	boolean validParam(Map<String, String []> params, String param) {
 		return params.containsKey(param) && params.get(param) != null
-		        && params.get(param).length == 1;
+				&& params.get(param).length == 1;
 	}
 	class StaffSurveyStoreProcess implements Runnable {
 		AsyncContext ac;
@@ -119,9 +122,9 @@ public class StoreStaffSurvey extends HttpServlet {
 			session.setAttribute(sessionAtt, progress);
 			try {
 				HttpServletRequest request =
-				        (HttpServletRequest) ac.getRequest();
+						(HttpServletRequest) ac.getRequest();
 				HttpServletResponse response =
-				        (HttpServletResponse) ac.getResponse();
+						(HttpServletResponse) ac.getResponse();
 				PrintWriter out = response.getWriter();
 				out.print("spl");
 				response.setContentType("text/html;charset=UTF-8");
@@ -129,17 +132,19 @@ public class StoreStaffSurvey extends HttpServlet {
 				int studyID = paramsJSON.getInt("studyid");
 				String fileName = paramsJSON.getString("fileid");
 				JSONObject datain = paramsJSON.getJSONObject("datain");
-				File file = new File(System.getProperty("java.io.tmpdir")
-				        + fileName + "." + inputFileType);
+				File file =
+						new File(
+								System.getProperty("java.io.tmpdir") + fileName
+										+ "." + inputFileType);
 				try (Connection psql = Database.getConnection();) {
 					psql.setAutoCommit(false);
 					new StaffSurveyReader().convert(psql, session, sessionAtt,
-					        file, studyID, datain);
+							file, studyID, datain);
 					psql.commit();
 					psql.close();
 					System.out.println("Done");
 				} catch (ClassNotFoundException | SQLException
-				        | ParseException e) {
+						| ParseException e) {
 					e.printStackTrace();
 				} finally {
 					if (out != null) {

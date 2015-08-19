@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.backend.in;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,7 +21,9 @@ import org.apache.shiro.session.Session;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import uk.co.spacelab.backend.StakeholderReader.Question;
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.backend.in.StakeholderReader.Question;
 import uk.co.spacelab.fileio.FileIO;
 
 public class StaffSurveyReader {
@@ -30,13 +32,13 @@ public class StaffSurveyReader {
 	// }
 
 	private static String IN_COL_ID = "id", //
-	        IN_COL_NAME = "name", //
-	        IN_COL_EMAIL = "email", //
-	        IN_COL_COMPLETED = "completed", //
-	        IN_COL_TEAM = "department", //
-	        IN_COL_LOCATION = "location", //
-	        IN_COL_BUILDING = "building", //
-	        IN_COL_FLOOR = "floor";
+			IN_COL_NAME = "name", //
+			IN_COL_EMAIL = "email", //
+			IN_COL_COMPLETED = "completed", //
+			IN_COL_TEAM = "department", //
+			IN_COL_LOCATION = "location", //
+			IN_COL_BUILDING = "building", //
+			IN_COL_FLOOR = "floor";
 	boolean locationColExists = false;
 	// IN_COL_COMPLETED_COMPLETE = "Complete",
 	// IN_COL_COMPLETED_NOT_STARTED = "NotStarted",
@@ -44,33 +46,33 @@ public class StaffSurveyReader {
 	// IN_COL_COMPLETED_BOUNCES = "Bounced",
 	private static final String //
 	TABLE_QUESTIONS = "staff_survey_questions",
-	        TABLE_QUESTIONS_SEQ = "staff_survey_questions_id_seq",
-	        QUESTION_ID = "id", QUESTION_ALIAS = "alias",
-	        QUESTION_TEXT = "question", QUESTION_BODY = "explanation",
-	        QUESTION_COMMENT = "comment",
-	        QUESTION_PARENT_ID = "parent_question_id",
-	        QUESTION_TYPE_ID = "type_id", //
-	        QUESTION_GROUP = "question_group", //
-	        // CREATE_TABLE_QUESTIONS = "create table " + TABLE_QUESTIONS //
-	        // + "(" //
-	        // + QUESTION_ID + " integer primary key not null, "//
-	        // + QUESTION_ALIAS + " text not null, " //
-	        // + QUESTION_TEXT + " text, " //
-	        // + QUESTION_BODY + " text, " //
-	        // + QUESTION_COMMENT + " text, "//
-	        // + QUESTION_PARENT_ID + " integer, " //
-	        // + QUESTION_TYPE_ID + " integer not null " //
-	        // + ");",
+			TABLE_QUESTIONS_SEQ = "staff_survey_questions_id_seq",
+			QUESTION_ID = "id", QUESTION_ALIAS = "alias",
+			QUESTION_TEXT = "question", QUESTION_BODY = "explanation",
+			QUESTION_COMMENT = "comment",
+			QUESTION_PARENT_ID = "parent_question_id",
+			QUESTION_TYPE_ID = "type_id", //
+			QUESTION_GROUP = "question_group", //
+			// CREATE_TABLE_QUESTIONS = "create table " + TABLE_QUESTIONS //
+			// + "(" //
+			// + QUESTION_ID + " integer primary key not null, "//
+			// + QUESTION_ALIAS + " text not null, " //
+			// + QUESTION_TEXT + " text, " //
+			// + QUESTION_BODY + " text, " //
+			// + QUESTION_COMMENT + " text, "//
+			// + QUESTION_PARENT_ID + " integer, " //
+			// + QUESTION_TYPE_ID + " integer not null " //
+			// + ");",
 
 	TABLE_POSSIBLE_CHOICES = "staff_survey_possible_choices",
-	        POSSIBLE_CHOICE_QUESTION_ID = "question_id", //
-	        POSSIBLE_CHOICE_ID = "id", POSSIBLE_CHOICE_MARK = "mark",
-	        // CREATE_TABLE_POSSIBLE_CHOICES = "create table "
-	        // + TABLE_POSSIBLE_CHOICES //
-	        // + "(" //
-	        // + POSSIBLE_CHOICE_QUESTION_ID + " integer not null, "//
-	        // + POSSIBLE_CHOICE_ID + " text not null " //
-	        // + ");",
+			POSSIBLE_CHOICE_QUESTION_ID = "question_id", //
+			POSSIBLE_CHOICE_ID = "id", POSSIBLE_CHOICE_MARK = "mark",
+			// CREATE_TABLE_POSSIBLE_CHOICES = "create table "
+			// + TABLE_POSSIBLE_CHOICES //
+			// + "(" //
+			// + POSSIBLE_CHOICE_QUESTION_ID + " integer not null, "//
+			// + POSSIBLE_CHOICE_ID + " text not null " //
+			// + ");",
 
 	// TABLE_SCALES = "staff_survey_scales",
 	// SCALE_STUDY_ID = "study_id", //
@@ -79,34 +81,34 @@ public class StaffSurveyReader {
 	// SCALE_POINT = "scale_point",
 
 	TABLE_CHOICES = "staff_survey_choices", CHOICE_STUDY_ID = "study_id", //
-	        CHOICE_PERSON_ID = "person_id", //
-	        CHOICE_QUESTION_ID = "question_id", //
-	        CHOICE_ID = "choice_id",
+			CHOICE_PERSON_ID = "person_id", //
+			CHOICE_QUESTION_ID = "question_id", //
+			CHOICE_ID = "choice_id",
 
 	TABLE_QUOTES = "staff_survey_quotes", //
-	        QUOTE_ID = "id", QUOTE_QUESTION_ID = "question_id",
-	        QUOTE_TEXT = "quote", //
-	        QUOTE_PERSON_ID = "person_id", //
-	        QUOTE_STUDY_ID = "study_id", //
-	        // CREATE_TABLE_QUOTES = "create table " + TABLE_QUOTES //
-	        // + "(" //
-	        // + QUOTE_ID + " integer primary key not null, "//
-	        // + QUOTE_QUESTION_ID + " integer not null, " //
-	        // + QUOTE_TEXT + " text, "//
-	        // + QUOTE_PERSON_ID + " integer " //
-	        // + ");",
+			QUOTE_ID = "id", QUOTE_QUESTION_ID = "question_id",
+			QUOTE_TEXT = "quote", //
+			QUOTE_PERSON_ID = "person_id", //
+			QUOTE_STUDY_ID = "study_id", //
+			// CREATE_TABLE_QUOTES = "create table " + TABLE_QUOTES //
+			// + "(" //
+			// + QUOTE_ID + " integer primary key not null, "//
+			// + QUOTE_QUESTION_ID + " integer not null, " //
+			// + QUOTE_TEXT + " text, "//
+			// + QUOTE_PERSON_ID + " integer " //
+			// + ");",
 
 	TABLE_ATTRIBUTES = "staff_attributes", //
-	        ATTRIBUTE_ID = "attribute_id",
-	        ATTRIBUTE_QUESTION_ID = "question_id", ATTRIBUTE_TEXT = "attribute", //
-	        ATTRIBUTE_PERSON_ID = "person_id", //
-	        // CREATE_TABLE_ATTRIBUTES = "create table " + TABLE_ATTRIBUTES //
-	        // + "(" //
-	        // + ATTRIBUTE_ID + " integer primary key not null, "//
-	        // + ATTRIBUTE_QUESTION_ID + " integer not null, " //
-	        // + ATTRIBUTE_TEXT + " text, "//
-	        // + ATTRIBUTE_PERSON_ID + " integer " //
-	        // + ");",
+			ATTRIBUTE_ID = "attribute_id",
+			ATTRIBUTE_QUESTION_ID = "question_id", ATTRIBUTE_TEXT = "attribute", //
+			ATTRIBUTE_PERSON_ID = "person_id", //
+			// CREATE_TABLE_ATTRIBUTES = "create table " + TABLE_ATTRIBUTES //
+			// + "(" //
+			// + ATTRIBUTE_ID + " integer primary key not null, "//
+			// + ATTRIBUTE_QUESTION_ID + " integer not null, " //
+			// + ATTRIBUTE_TEXT + " text, "//
+			// + ATTRIBUTE_PERSON_ID + " integer " //
+			// + ");",
 
 	// TABLE_SCORES = "survey_scores",
 	// SCORE_QUESTION_ID = "question_id",
@@ -121,29 +123,29 @@ public class StaffSurveyReader {
 	// + SCORE_CHOICE_ID + " integer, " //
 	// + SCORE_MARK + " real " //
 	// + ");", //
-	        TABLE_STAFF = "staff", STAFF_ID = "id",
-	        STAFF_SURVEY_ID = "survey_id", STAFF_TEAM_ID = "team_id",
-	        STAFF_FLOOR_ID = "floor_id", STAFF_ID_ON_SURVEY = "id_on_survey",
-	        STAFF_COMPLETED = "survey_completed", //
-	        // CREATE_TABLE_STAFF = "create table " + TABLE_STAFF //
-	        // + "(" //
-	        // + STAFF_ID_ON_SURVEY + " integer not null, " //
-	        // + STAFF_COMPLETED + " text not null " //
-	        // + ");", //
-	        // TABLE_TIE_TYPES = "survey_tie_types", //
-	        // TIE_TYPE_TYPE_ID = "id", //
-	        // TIE_TYPE_NAME = "name", //
-	        // CREATE_TABLE_TIE_TYPES = "create table " + TABLE_TIE_TYPES //
-	        // + "(" //
-	        // + TIE_TYPE_TYPE_ID + " integer not null, " //
-	        // + TIE_TYPE_NAME + " text not null " //
-	        // + ");", //
-	        TABLE_TIES = "staff_survey_ties", //
-	        TIE_FROM = "from_staff_id", //
-	        TIE_TO = "to_staff_id", //
-	        TIE_QUESTION_ID = "question_id", //
-	        TIE_SCORE = "score", //
-	        TIE_STUDY_ID = "study_id"; //
+			TABLE_STAFF = "staff", STAFF_ID = "id",
+			STAFF_SURVEY_ID = "survey_id", STAFF_TEAM_ID = "team_id",
+			STAFF_FLOOR_ID = "floor_id", STAFF_ID_ON_SURVEY = "id_on_survey",
+			STAFF_COMPLETED = "survey_completed", //
+			// CREATE_TABLE_STAFF = "create table " + TABLE_STAFF //
+			// + "(" //
+			// + STAFF_ID_ON_SURVEY + " integer not null, " //
+			// + STAFF_COMPLETED + " text not null " //
+			// + ");", //
+			// TABLE_TIE_TYPES = "survey_tie_types", //
+			// TIE_TYPE_TYPE_ID = "id", //
+			// TIE_TYPE_NAME = "name", //
+			// CREATE_TABLE_TIE_TYPES = "create table " + TABLE_TIE_TYPES //
+			// + "(" //
+			// + TIE_TYPE_TYPE_ID + " integer not null, " //
+			// + TIE_TYPE_NAME + " text not null " //
+			// + ");", //
+			TABLE_TIES = "staff_survey_ties", //
+			TIE_FROM = "from_staff_id", //
+			TIE_TO = "to_staff_id", //
+			TIE_QUESTION_ID = "question_id", //
+			TIE_SCORE = "score", //
+			TIE_STUDY_ID = "study_id"; //
 	// CREATE_TABLE_TIES = "create table " + TABLE_TIES //
 	// + "(" //
 	// + TIE_FROM + " bigint not null, " //
@@ -230,7 +232,7 @@ public class StaffSurveyReader {
 			}
 			if (null == nodeHeader) return null;
 			Map<Integer, List<String>> answerStrings =
-			        new HashMap<Integer, List<String>>();
+					new HashMap<Integer, List<String>>();
 
 			String [] head = nodeHeader.split(" ");
 
@@ -242,8 +244,9 @@ public class StaffSurveyReader {
 			for (String line : nodes) {
 				if (line.trim().length() < 1) continue;
 				// System.out.println(line);
-				String [] node = (line.substring(1, line.length() - 1) + " ")
-				        .split("\" \"");
+				String [] node =
+						(line.substring(1, line.length() - 1) + " ")
+								.split("\" \"");
 				// for (Integer i : answerStrings.keySet()) {
 				// String name = answerStrings.get(i).get(0);
 				// if (name.equals("XAwayFromDesk")) {
@@ -252,10 +255,10 @@ public class StaffSurveyReader {
 				// }
 				// }
 				if (node.length != head.length)
-				    throw new RuntimeException(
-				            "Error parsing! Check for double quotes(\") in the answers and convert them to single(') ones. Error on line: "
-				                    + line.substring(1, line.length() - 1)
-				                    + " (" + node[node.length - 1] + ")");
+					throw new RuntimeException(
+							"Error parsing! Check for double quotes(\") in the answers and convert them to single(') ones. Error on line: "
+									+ line.substring(1, line.length() - 1)
+									+ " (" + node[node.length - 1] + ")");
 				for (int i = 0; i < node.length; i++)
 					answerStrings.get(i).add(node[i]);
 			}
@@ -274,10 +277,10 @@ public class StaffSurveyReader {
 					locationColExists = true;
 				}
 				if (name.equalsIgnoreCase(IN_COL_BUILDING))
-				    IN_COL_BUILDING = name;
+					IN_COL_BUILDING = name;
 				if (name.equalsIgnoreCase(IN_COL_FLOOR)) IN_COL_FLOOR = name;
 				if (name.equalsIgnoreCase(IN_COL_COMPLETED))
-				    IN_COL_COMPLETED = name;
+					IN_COL_COMPLETED = name;
 			}
 
 			answerStrings = null;
@@ -310,7 +313,7 @@ public class StaffSurveyReader {
 			for (String line : tiesIn) {
 				if (line.trim().length() < 1) continue;
 				String [] tie =
-				        line.substring(1, line.length() - 1).split("\" \"");
+						line.substring(1, line.length() - 1).split("\" \"");
 				int from = -1, to = -1;
 				from = Integer.parseInt(tie[fromCol]);
 				to = Integer.parseInt(tie[toCol]);
@@ -320,7 +323,7 @@ public class StaffSurveyReader {
 					Tie t = null;
 					for (Tie nt : ties)
 						if (from == nt.from && to == nt.to
-						        && i == nt.question) {
+								&& i == nt.question) {
 							t = nt;
 							break;
 						}
@@ -339,47 +342,47 @@ public class StaffSurveyReader {
 			// System.out.println(answerStrings);
 			// if (true) return;
 
-			people = new HashMap<Integer, Person>(
-			        answers.get(IN_COL_ID).size());
+			people =
+					new HashMap<Integer, Person>(answers.get(IN_COL_ID).size());
 			for (int i = 0; i < answers.get(IN_COL_ID).size(); i++) {
 				try {
 					int id = Integer.parseInt(answers.get(IN_COL_ID).get(i));
 					String name = null;
 					if (answers.containsKey(IN_COL_NAME))
-					    name = answers.get(IN_COL_NAME).get(i).trim();
+						name = answers.get(IN_COL_NAME).get(i).trim();
 					String email = null;
 					if (answers.containsKey(IN_COL_EMAIL))
-					    email = answers.get(IN_COL_EMAIL).get(i).trim();
+						email = answers.get(IN_COL_EMAIL).get(i).trim();
 					String completed =
-					        answers.get(IN_COL_COMPLETED).get(i).trim();
+							answers.get(IN_COL_COMPLETED).get(i).trim();
 					Person p = new Person(id, name, email);
 					p.team = answers.get(IN_COL_TEAM).get(i).trim();
 					if (IN_COL_BUILDING != null
-					        && answers.containsKey(IN_COL_BUILDING))
-					    p.building = answers.get(IN_COL_BUILDING).get(i).trim();
+							&& answers.containsKey(IN_COL_BUILDING))
+						p.building = answers.get(IN_COL_BUILDING).get(i).trim();
 					if (IN_COL_FLOOR != null
-					        && answers.containsKey(IN_COL_FLOOR))
-					    p.floor = answers.get(IN_COL_FLOOR).get(i).trim();
+							&& answers.containsKey(IN_COL_FLOOR))
+						p.floor = answers.get(IN_COL_FLOOR).get(i).trim();
 					if (locationColExists)
 						p.location = answers.get(IN_COL_LOCATION).get(i).trim();
 					else
-					    if (IN_COL_BUILDING != null
-					            && answers.containsKey(IN_COL_BUILDING)
-					            && IN_COL_FLOOR != null
-					            && answers.containsKey(IN_COL_FLOOR)) {
+						if (IN_COL_BUILDING != null
+								&& answers.containsKey(IN_COL_BUILDING)
+								&& IN_COL_FLOOR != null
+								&& answers.containsKey(IN_COL_FLOOR)) {
 						p.location = p.building + "_" + p.floor;
 					} else
-					        if (IN_COL_FLOOR != null
-					                && answers.containsKey(IN_COL_FLOOR)) {
+							if (IN_COL_FLOOR != null
+									&& answers.containsKey(IN_COL_FLOOR)) {
 						p.location = p.floor;
 					}
 					for (String q : answers.keySet()) {
 						if (q.equals(IN_COL_COMPLETED))
 							p.setCompleted(completed);
 						else
-						    if (!q.equals(IN_COL_NAME)
-						            && !q.equals(IN_COL_NAME))
-						        p.setAnswer(q, answers.get(q).get(i));
+							if (!q.equals(IN_COL_NAME)
+									&& !q.equals(IN_COL_NAME))
+								p.setAnswer(q, answers.get(q).get(i));
 					}
 					people.put(id, p);
 				} catch (NumberFormatException e) {
@@ -427,7 +430,7 @@ public class StaffSurveyReader {
 					for (String choice : exchoices) {
 						Float scp = null;
 						if (scale != null && scale.containsKey(choice))
-						    scp = scale.get(choice);
+							scp = scale.get(choice);
 						((ChoiceQuestion) q).choiceScale.put(choice, scp);
 					}
 				} else q = new TextQuestion(question);
@@ -462,7 +465,7 @@ public class StaffSurveyReader {
 		}
 	}
 	Map<String, Integer> processTeams(JSONArray teamsIn, int studyID)
-	        throws ClassNotFoundException, SQLException, ParseException {
+			throws ClassNotFoundException, SQLException, ParseException {
 		Map<String, Integer> teams = new HashMap<String, Integer>();
 		Map<String, JSONObject> teamsJSON = new HashMap<String, JSONObject>();
 		for (int i = 0; i < teamsIn.length(); i++) {
@@ -496,8 +499,8 @@ public class StaffSurveyReader {
 					if (teamsJSON.get(q).has("parent")) {
 						q = teamsJSON.get(q).getString("parent");
 						if (!teams.containsKey(q))
-						    throw new MalformedDataException(
-						            "Parent '" + q + "' missing");
+							throw new MalformedDataException(
+									"Parent '" + q + "' missing");
 						if (teams.get(q) == -1)
 							validTeams.add(q);
 						else {
@@ -515,15 +518,15 @@ public class StaffSurveyReader {
 					String clearQ = validTeams.get(i);
 					if (parentID != null)
 						Database.insertInto(psql, "teams",
-						        "study_id,alias,parent_id", "?,?,?", studyID,
-						        clearQ, parentID);
+								"study_id,alias,parent_id", "?,?,?", studyID,
+								clearQ, parentID);
 					else
-					    Database.insertInto(psql, "teams",
-					            "study_id,alias,parent_id", "?,?,NULL", studyID,
-					            clearQ);
+						Database.insertInto(psql, "teams",
+								"study_id,alias,parent_id", "?,?,NULL", studyID,
+								clearQ);
 					int currval =
-					        Database.getSequenceCurrVal(psql, "teams_id_seq")
-					                .getJSONObject(0).getInt("currval");
+							Database.getSequenceCurrVal(psql, "teams_id_seq")
+									.getJSONObject(0).getInt("currval");
 					parentID = currval;
 					teams.put(validTeams.get(i), parentID);
 				}
@@ -535,7 +538,7 @@ public class StaffSurveyReader {
 		return teams;
 	}
 	Map<String, Integer> processFloors(JSONArray floorsIn, int studyID)
-	        throws ClassNotFoundException, SQLException, ParseException {
+			throws ClassNotFoundException, SQLException, ParseException {
 		Map<String, Integer> floors = new HashMap<String, Integer>();
 		Map<String, JSONObject> floorsJSON = new HashMap<String, JSONObject>();
 		for (int i = 0; i < floorsIn.length(); i++) {
@@ -582,12 +585,13 @@ public class StaffSurveyReader {
 					if (buildingName != null && floorName == null) {
 						int index = location.indexOf(buildingName);
 						if (index + buildingName.length() < location.length())
-						    floorName = location
-						            .substring(index + buildingName.length());
+							floorName =
+									location.substring(
+											index + buildingName.length());
 					} else if (floorName != null && buildingName == null) {
 						int index = location.indexOf(floorName);
 						if (index != 0)
-						    buildingName = location.substring(0, index);
+							buildingName = location.substring(0, index);
 					}
 				}
 				// q = floorsJSON.get(q).getString("parent");
@@ -626,9 +630,10 @@ public class StaffSurveyReader {
 					args.add(floorName);
 				}
 				Database.insertInto(psql, "spaces", colString, valString,
-				        args.toArray());
-				int currval = Database.getSequenceCurrVal(psql, "spaces_id_seq")
-				        .getJSONObject(0).getInt("currval");
+						args.toArray());
+				int currval =
+						Database.getSequenceCurrVal(psql, "spaces_id_seq")
+								.getJSONObject(0).getInt("currval");
 				floors.put(q, currval);
 				// }
 			}
@@ -639,14 +644,14 @@ public class StaffSurveyReader {
 		return floors;
 	}
 	public void convert(Connection psql, Session session, String sessionAtt,
-	        File inFile, Integer studyID, JSONObject staticDataJSON)
-	                throws ClassNotFoundException, SQLException,
-	                ParseException {
+			File inFile, Integer studyID, JSONObject staticDataJSON)
+					throws ClassNotFoundException, SQLException,
+					ParseException {
 
 		Map<String, Integer> teams =
-		        processTeams(staticDataJSON.getJSONArray("teams"), studyID);
+				processTeams(staticDataJSON.getJSONArray("teams"), studyID);
 		Map<String, Integer> floors =
-		        processFloors(staticDataJSON.getJSONArray("floors"), studyID);
+				processFloors(staticDataJSON.getJSONArray("floors"), studyID);
 		// System.out.println(teams);
 		// Logger.getLogger("com.almworks.sqlite4java").setLevel(Level.OFF);
 		Dataset dst = new Dataset().expand(inFile);
@@ -673,8 +678,9 @@ public class StaffSurveyReader {
 			counter++;
 			progress.put("progress", counter / (float) dst.questions.size());
 			Question qst = dst.questions.get(q);
-			JSONArray r = Database.selectWhatFromTableWhere(psql,
-			        TABLE_QUESTIONS, QUESTION_ID, "alias=?", q);
+			JSONArray r =
+					Database.selectWhatFromTableWhere(psql, TABLE_QUESTIONS,
+							QUESTION_ID, "alias=?", q);
 			int quid = -1;
 			if (r.length() == 0) {
 				String columnString = QUESTION_ALIAS + "," + QUESTION_TYPE_ID;
@@ -688,28 +694,30 @@ public class StaffSurveyReader {
 					vals.add(qst.group);
 				}
 				Database.insertInto(psql, TABLE_QUESTIONS, columnString,
-				        valueString, vals.toArray());
-				quid = Database.getSequenceCurrVal(psql, TABLE_QUESTIONS_SEQ)
-				        .getJSONObject(0).getInt("currval");
+						valueString, vals.toArray());
+				quid =
+						Database.getSequenceCurrVal(psql, TABLE_QUESTIONS_SEQ)
+								.getJSONObject(0).getInt("currval");
 				if (qst instanceof ChoiceQuestion) {
 					for (String choice : ((ChoiceQuestion) qst).choiceScale
-					        .keySet()) {
+							.keySet()) {
 
-						columnString = POSSIBLE_CHOICE_QUESTION_ID + ","
-						        + POSSIBLE_CHOICE_ID;
+						columnString =
+								POSSIBLE_CHOICE_QUESTION_ID + ","
+										+ POSSIBLE_CHOICE_ID;
 						valueString = "?,?";
 						vals = new ArrayList<Object>();
 						vals.add(quid);
 						vals.add(choice);
 						Float mark =
-						        ((ChoiceQuestion) qst).choiceScale.get(choice);
+								((ChoiceQuestion) qst).choiceScale.get(choice);
 						if (mark != null) {
 							columnString += "," + POSSIBLE_CHOICE_MARK;
 							valueString += ",?";
 							vals.add(mark);
 						}
 						Database.insertInto(psql, TABLE_POSSIBLE_CHOICES,
-						        columnString, valueString, vals.toArray());
+								columnString, valueString, vals.toArray());
 					}
 				}
 			} else {
@@ -718,29 +726,34 @@ public class StaffSurveyReader {
 				if (qst instanceof ChoiceQuestion) {
 
 					for (String choice : ((ChoiceQuestion) qst).choiceScale
-					        .keySet()) {
-						JSONArray ch = Database.selectWhatFromTableWhere(psql,
-						        TABLE_POSSIBLE_CHOICES, POSSIBLE_CHOICE_ID,
-						        POSSIBLE_CHOICE_QUESTION_ID + "=? AND "
-						                + POSSIBLE_CHOICE_ID + " =?::text",
-						        quid, choice);
+							.keySet()) {
+						JSONArray ch =
+								Database.selectWhatFromTableWhere(psql,
+										TABLE_POSSIBLE_CHOICES,
+										POSSIBLE_CHOICE_ID,
+										POSSIBLE_CHOICE_QUESTION_ID + "=? AND "
+												+ POSSIBLE_CHOICE_ID
+												+ " =?::text",
+										quid, choice);
 						if (ch.length() == 0) {
 
-							String columnString = POSSIBLE_CHOICE_QUESTION_ID
-							        + "," + POSSIBLE_CHOICE_ID;
+							String columnString =
+									POSSIBLE_CHOICE_QUESTION_ID + ","
+											+ POSSIBLE_CHOICE_ID;
 							String valueString = "?,?";
 							List<Object> vals = new ArrayList<Object>();
 							vals.add(quid);
 							vals.add(choice);
-							Float mark = ((ChoiceQuestion) qst).choiceScale
-							        .get(choice);
+							Float mark =
+									((ChoiceQuestion) qst).choiceScale
+											.get(choice);
 							if (mark != null) {
 								columnString += "," + POSSIBLE_CHOICE_MARK;
 								valueString += ",?";
 								vals.add(mark);
 							}
 							Database.insertInto(psql, TABLE_POSSIBLE_CHOICES,
-							        columnString, valueString, vals.toArray());
+									columnString, valueString, vals.toArray());
 						}
 					}
 				}
@@ -777,7 +790,7 @@ public class StaffSurveyReader {
 		// Database.deleteFrom(psql, TABLE_SCALES, CHOICE_STUDY_ID + "=?",
 		// studyid);
 		Database.deleteFrom(psql, TABLE_CHOICES, CHOICE_STUDY_ID + "=?",
-		        studyID);
+				studyID);
 		progress.put("progress", 0.75);
 		Database.deleteFrom(psql, TABLE_STAFF, STAFF_SURVEY_ID + "=?", studyID);
 
@@ -785,8 +798,10 @@ public class StaffSurveyReader {
 		progress.put("progress", 0);
 		progress.put("text", "Storing staff data...");
 
-		String columnString = STAFF_ID_ON_SURVEY + "," + STAFF_COMPLETED + ","
-		        + STAFF_SURVEY_ID + "," + STAFF_TEAM_ID + "," + STAFF_FLOOR_ID;
+		String columnString =
+				STAFF_ID_ON_SURVEY + "," + STAFF_COMPLETED + ","
+						+ STAFF_SURVEY_ID + "," + STAFF_TEAM_ID + ","
+						+ STAFF_FLOOR_ID;
 		String valueString = "?,?,?,?,?";
 
 		Map<Person, Integer> peopleMap = new HashMap<Person, Integer>();
@@ -796,13 +811,13 @@ public class StaffSurveyReader {
 			progress.put("progress", counter / (float) dst.people.size());
 			// Skipping *dummy people
 			if (null != dst.people.get(i).name
-			        && dst.people.get(i).name.startsWith("*"))
-			    continue;
+					&& dst.people.get(i).name.startsWith("*"))
+				continue;
 			JSONArray r =
-			        Database.selectWhatFromTableWhere(psql, TABLE_STAFF,
-			                STAFF_ID, STAFF_ID_ON_SURVEY + "=? AND "
-			                        + STAFF_SURVEY_ID + "=?",
-			                dst.people.get(i).ID, studyID);
+					Database.selectWhatFromTableWhere(psql, TABLE_STAFF,
+							STAFF_ID, STAFF_ID_ON_SURVEY + "=? AND "
+									+ STAFF_SURVEY_ID + "=?",
+							dst.people.get(i).ID, studyID);
 			if (r.length() < 1) {
 				String team = dst.people.get(i).team;
 				if (!teams.containsKey(team)) continue;
@@ -810,18 +825,20 @@ public class StaffSurveyReader {
 				String floor = dst.people.get(i).location;
 				if (!floors.containsKey(floor)) continue;
 				int floorID = floors.get(floor);
-				Object [] args = new Object [] {dst.people.get(i).ID,
-				        dst.people.get(i).completed, studyID, teamID, floorID};
+				Object [] args =
+						new Object [] {dst.people.get(i).ID,
+								dst.people.get(i).completed, studyID, teamID,
+								floorID};
 				Database.insertInto(psql, TABLE_STAFF, columnString,
-				        valueString, args);
+						valueString, args);
 				peopleMap
-				        .put(dst.people.get(i),
-				                Database.getSequenceCurrVal(psql,
-				                        "staff_id_seq").getJSONObject(0)
-				                .getInt("currval"));
+						.put(dst.people.get(i),
+								Database.getSequenceCurrVal(psql,
+										"staff_id_seq").getJSONObject(0)
+								.getInt("currval"));
 			} else {
 				peopleMap.put(dst.people.get(i),
-				        r.getJSONObject(0).getInt("id"));
+						r.getJSONObject(0).getInt("id"));
 			}
 		}
 		dst.people = null;
@@ -841,17 +858,20 @@ public class StaffSurveyReader {
 					// if (simpleQuestions.containsKey(questionAlias))
 					// switch (questions.get(questionAlias)) {
 					// case TEXT :
-					String quote = cleanString(p.answers.get(
-					        (q.group != null ? q.group : "") + questionAlias));
+					String quote =
+							cleanString(p.answers
+									.get((q.group != null ? q.group : "")
+											+ questionAlias));
 					if (quote.trim().length() != 0) {
 
-						columnString = QUOTE_QUESTION_ID + "," + QUOTE_TEXT
-						        + "," + QUOTE_PERSON_ID + ",study_id";
+						columnString =
+								QUOTE_QUESTION_ID + "," + QUOTE_TEXT + ","
+										+ QUOTE_PERSON_ID + ",study_id";
 						valueString = "?,?,?,?";
 						Database.insertInto(psql, TABLE_QUOTES, columnString,
-						        valueString, String.valueOf(questionID), quote,
-						        String.valueOf(peopleMap.get(p)),
-						        String.valueOf(studyID));
+								valueString, String.valueOf(questionID), quote,
+								String.valueOf(peopleMap.get(p)),
+								String.valueOf(studyID));
 					}
 					// break;
 					// case SCORE :
@@ -908,8 +928,8 @@ public class StaffSurveyReader {
 
 				for (Person p : peopleMap.keySet()) {
 					String choice =
-					        p.answers.get((q.group != null ? q.group + "-" : "")
-					                + questionAlias).trim();
+							p.answers.get((q.group != null ? q.group + "-" : "")
+									+ questionAlias).trim();
 					if (choice.length() > 0 && ch.contains(choice)) {
 
 						// if (Database.selectWhatFromTableWhere(
@@ -921,12 +941,13 @@ public class StaffSurveyReader {
 						// + "=? AND " + SCORE_PERSON_ID + "=?",
 						// new Object [] {studyid, questionID, c,
 						// peopleMap.get(p)}).length() < 1) {
-						columnString = CHOICE_STUDY_ID + "," + CHOICE_PERSON_ID
-						        + "," + CHOICE_QUESTION_ID + "," + CHOICE_ID;
+						columnString =
+								CHOICE_STUDY_ID + "," + CHOICE_PERSON_ID + ","
+										+ CHOICE_QUESTION_ID + "," + CHOICE_ID;
 						valueString = "?,?,?,?";
 						Database.insertInto(psql, TABLE_CHOICES, columnString,
-						        valueString, studyID, peopleMap.get(p),
-						        questionID, choice);
+								valueString, studyID, peopleMap.get(p),
+								questionID, choice);
 						// } else Database.update(psql, TABLE_SCORES,
 						// SCORE_MARK
 						// + "=?", SCORE_STUDY_ID + "=? AND "
@@ -964,8 +985,9 @@ public class StaffSurveyReader {
 				}
 			}
 			if (fromID == -1 || toID == -1) continue;
-			columnString = TIE_FROM + "," + TIE_TO + "," + TIE_QUESTION_ID + ","
-			        + TIE_SCORE + "," + TIE_STUDY_ID;
+			columnString =
+					TIE_FROM + "," + TIE_TO + "," + TIE_QUESTION_ID + ","
+							+ TIE_SCORE + "," + TIE_STUDY_ID;
 			valueString = "?,?,?,?,?";
 			// TODO update this with UPSERT when introduced in Postgres. If we
 			// accept that there will never be duplicates in the file this won't
@@ -978,7 +1000,7 @@ public class StaffSurveyReader {
 			// TIE_FROM + " = ? AND " + TIE_TO + " = ? AND "
 			// + TIE_QUESTION_ID, fromID, toID, qID).length() == 0)
 			Database.insertInto(psql, TABLE_TIES, columnString, valueString,
-			        fromID, toID, qID, t.score, studyID);
+					fromID, toID, qID, t.score, studyID);
 			// else Database.update(psql, TABLE_TIES, TABLE_TIES, TIE_FROM +
 			// " = ? AND " + TIE_TO + " = ? AND "
 			// + TIE_QUESTION_ID, fromID, toID, qID);
@@ -993,7 +1015,7 @@ public class StaffSurveyReader {
 		}
 	}
 	private Map<String, Float> extractScale(List<String> list,
-	        String... ignore) {
+			String... ignore) {
 		// will not catch quoted numbers i.e. "2"
 		// try {
 		Map<String, Float> scale = new HashMap<String, Float>();
@@ -1036,16 +1058,16 @@ public class StaffSurveyReader {
 	}
 	private String cleanString(String s) {
 		return s.replaceAll("\"", "\"\"")
-		        // unicode 8211 EN DASH
-		        .replaceAll(String.valueOf(((char) 8211)), "-")
-		        // unicode 8216 LEFT SINGLE QUOTATION MARK
-		        .replaceAll(String.valueOf(((char) 8216)), "'")
-		        // unicode 8217 RIGHT SINGLE QUOTATION MARK
-		        .replaceAll(String.valueOf(((char) 8217)), "'")
-		        // unicode 8220 LEFT DOUBLE QUOTATION MARK
-		        .replaceAll(String.valueOf(((char) 8220)), "\"")
-		        // unicode 8211 RIGHT DOUBLE QUOTATION MARK
-		        .replaceAll(String.valueOf(((char) 8221)), "\"");
+				// unicode 8211 EN DASH
+				.replaceAll(String.valueOf(((char) 8211)), "-")
+				// unicode 8216 LEFT SINGLE QUOTATION MARK
+				.replaceAll(String.valueOf(((char) 8216)), "'")
+				// unicode 8217 RIGHT SINGLE QUOTATION MARK
+				.replaceAll(String.valueOf(((char) 8217)), "'")
+				// unicode 8220 LEFT DOUBLE QUOTATION MARK
+				.replaceAll(String.valueOf(((char) 8220)), "\"")
+				// unicode 8211 RIGHT DOUBLE QUOTATION MARK
+				.replaceAll(String.valueOf(((char) 8221)), "\"");
 
 	}
 	class Tie {
@@ -1094,12 +1116,12 @@ public class StaffSurveyReader {
 		}
 	}
 	public JSONObject getStaticData(File file, String fileid, int studyID)
-	        throws SQLException, ParseException {
+			throws SQLException, ParseException {
 
 		Dataset dst = new Dataset().expand(file);
 		if (null == dst) return null;
 		Map<String, List<String>> staticData =
-		        new HashMap<String, List<String>>();
+				new HashMap<String, List<String>>();
 		Set<String> teams = new HashSet<String>();
 		for (Person p : dst.people.values()) {
 			// System.out.println(p.);
@@ -1116,10 +1138,12 @@ public class StaffSurveyReader {
 			floors.put(p.location, f);
 		}
 		staticData.put("FLOOR_LIST", new ArrayList<String>(floors.keySet()));
-		JSONArray databaseTeams = Database.selectAllFromTableWhere("teams",
-		        "study_id=?", studyID);
-		JSONArray databaseFloors = Database.selectAllFromTableWhere("spaces",
-		        "study_id=?", studyID);
+		JSONArray databaseTeams =
+				Database.selectAllFromTableWhere("teams", "study_id=?",
+						studyID);
+		JSONArray databaseFloors =
+				Database.selectAllFromTableWhere("spaces", "study_id=?",
+						studyID);
 		JSONArray databaseQuestions = new JSONArray();
 		// Database.customQuery("SELECT
 		// interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
@@ -1210,8 +1234,9 @@ public class StaffSurveyReader {
 					o.put("alias", alias);
 					arr.put(o);
 					for (int i = 0; i < databaseTeams.length(); i++) {
-						String teamDB = databaseTeams.getJSONObject(i)
-						        .getString("alias");
+						String teamDB =
+								databaseTeams.getJSONObject(i)
+										.getString("alias");
 						if (teamDB.equalsIgnoreCase(alias)) {
 							o.put("prematchproperty", "id");
 							o.put("prematch", teamDB);
@@ -1229,8 +1254,9 @@ public class StaffSurveyReader {
 					if (f.name != null) o.put("floor", f.name);
 					arr.put(o);
 					for (int i = 0; i < databaseFloors.length(); i++) {
-						String floorDB = databaseFloors.getJSONObject(i)
-						        .getString("alias");
+						String floorDB =
+								databaseFloors.getJSONObject(i)
+										.getString("alias");
 						if (floorDB.equalsIgnoreCase(alias)) {
 							o.put("prematchproperty", "id");
 							o.put("prematch", floorDB);
