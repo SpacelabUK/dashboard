@@ -73,96 +73,12 @@
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-lg-6">
-          <div class="widget">
-            <div class="widget-title">
-              <i class="fa fa-tasks"></i> Spaces <input type="text"
-                placeholder="Search"
-                class="form-control input-sm pull-right"
-                ng-model="searchSpaces" />
-            </div>
-            <div class="widget-body medium no-padding">
-              <div class="table-responsive">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Valid</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      ng-repeat="space in foundBasepoints | orderBy:predicate:reverse | filter:searchSpaces">
-                      <td>{{space.alias}}</td>
-                      <td><span
-                        ng-class="(space.valid) ? 'text-success' : 'text-danger'"><i
-                          class="fa"
-                          ng-class="(space.valid) ? 'fa-check' : 'fa-warning'"
-                          tooltip="{{getSpaceValidityTooltip(space)}}"></i></span>
-                        <!-- 
-                    <span class="text-success"><i
-                      class="fa fa-check"></i></span>--></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="widget-footer">
-              <a class="btn pull-right" ng-click="selectAllSpaces()"
-                href="#" onclick="return false;">Select all</a>
-              <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="widget">
-            <div class="widget-title">
-              <i class="fa fa-tasks"></i>Measures <input type="text"
-                placeholder="Search"
-                class="form-control input-sm pull-right"
-                ng-model="searchMeasures" />
-            </div>
-            <div class="widget-body medium no-padding">
-              <div class="table-responsive">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Measure</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      ng-repeat="layer in measures | orderBy:layerpredicate:reverse | filter:searchMeasures"">
-                      <td>{{layer.name}}</td>
-                      <td><span
-                        ng-class="(layer.uploaded) ? 'text-success' : ''"><i
-                          class="fa"
-                          ng-class="(layer.uploaded) ? 'fa-check' : ''"></i></span>
-                        <!-- 
-                    <span class="text-success"><i
-                      class="fa fa-check"></i></span>--></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="widget-footer">
-              <a class="btn pull-right"
-                ng-click="deleteSelectedSpaces(study)" href="#"
-                onclick="return false;">Delete selected</a>
-              <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-12">
       <button class="btn btn-sm btn-info pull-right"
-        ng-click="submit(study)" ng-disabled="dataInvalid()">Attach</button>
+        ng-click="attach(study)" ng-disabled="dataInvalid()">Attach</button>
 
     </div>
   </div>

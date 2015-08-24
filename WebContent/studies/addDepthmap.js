@@ -12,8 +12,9 @@ app
 						'FileUploader',
 						'PlanFactory',
 						'HTTPFactory',
+						'ModalFactory',
 						function($scope, $modalInstance, $http, $modal, $q, study,
-								FileUploader, PlanFactory, HTTPFactory) {
+								FileUploader, PlanFactory, HTTPFactory, ModalFactory) {
 							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
@@ -67,24 +68,10 @@ app
 									return this.queue.length < 10;
 								}
 							});
-							var csvflow = new Flow({
-								method : 'octet',
-								target : HTTPFactory.getBackend() + 'StoreDepthmap',
-								query : {
-									studyid : $scope.study.id
-								}
-							});
 							dxfuploader.filters.push({
 								name : 'customFilter',
 								fn : function(item, options) {
 									return this.queue.length < 10;
-								}
-							});
-							var dxfflow = new Flow({
-								method : 'octet',
-								target : HTTPFactory.getBackend() + 'StoreDepthmap',
-								query : {
-									studyid : $scope.study.id
 								}
 							});
 
@@ -97,12 +84,6 @@ app
 											alert("oi! that's not a CSV!");
 											return;
 										}
-										csvflow.addFile(theFile);
-										csvflow.upload();
-										csvflow.on('fileSuccess', function(file, message) {
-											var data = JSON.parse(message);
-											afterCSVaddition(data);
-										});
 									};
 								})(fileItem._file);
 								reader.readAsDataURL(fileItem._file);
@@ -117,37 +98,77 @@ app
 											return;
 										}
 
-										dxfflow.addFile(theFile);
-										dxfflow.upload();
-										dxfflow.on('fileSuccess', function(file, message) {
-											console.log(message);
-											var data = JSON.parse(message);
-											afterDXFaddition(data);
-										});
 									};
 								})(fileItem._file);
 								reader.readAsDataURL(fileItem._file);
 							};
-							function afterCSVaddition(data) {
-								$scope.csvData = data;
-							}
-							function afterDXFaddition(data) {
-								$scope.dxfData = data;
-							}
 							$scope.dataInvalid = function() {
 								return !($scope.properties.name &&
 										$scope.properties.name.trim().length > 0 &&
 										$scope.properties.type && $scope.properties.type.trim().length > 0);
 							};
-							$scope.submit = function(study) {
-								var data = {
-									studyid : study.id,
-									fileidCSV : $scope.csvData.fileid,
-									fileidDXF : $scope.dxfData.fileid,
-									type : $scope.properties.type,
-									name : $scope.properties.name,
-								};
-								HTTPFactory.backendPost("StoreDepthmap", data);
+							$scope.attach = function(study) {
+								var csvData, dxfData;
+								// ModalFactory.openWaitModal('Getting Validation data...');
+								ModalFactory.openWaitModal('Storing data...');
+								var promises = [];
+
+								var csvflow = new Flow({
+									method : 'octet',
+									target : HTTPFactory.getBackend() + 'StoreDepthmap',
+									query : {
+										studyid : $scope.study.id
+									}
+								});
+								csvflow.addFile(csvuploader.queue[0]._file);
+								csvflow.upload();
+								var csvdefer = $q.defer();
+								promises.push(csvdefer.promise);
+								csvflow.on('fileSuccess', function(file, message) {
+									var data = JSON.parse(message);
+									csvdefer.resolve(data);
+								});
+
+								var dxfflow = new Flow({
+									method : 'octet',
+									target : HTTPFactory.getBackend() + 'StoreDepthmap',
+									query : {
+										studyid : $scope.study.id
+									}
+								});
+								dxfflow.addFile(dxfuploader.queue[0]._file);
+								dxfflow.upload();
+								var dxfdefer = $q.defer();
+								promises.push(dxfdefer.promise);
+								dxfflow.on('fileSuccess', function(file, message) {
+									var data = JSON.parse(message);
+									dxfdefer.resolve(data);
+								});
+								$q.all(promises).then(
+										function(response) {
+											var csvData = response[0];
+											var dxfData = response[1];
+											console.log(response);
+											var data = {
+												studyid : study.id,
+												fileidCSV : csvData.fileid,
+												fileidDXF : dxfData.fileid,
+												type : $scope.properties.type,
+												name : $scope.properties.name,
+											};
+											HTTPFactory.backendPost("StoreDepthmap", data).then(
+													function(response) {
+														ModalFactory.modifyWaitMessage("Success!");
+														setTimeout(function() {
+															ModalFactory.closeWaitModal();
+															$modalInstance.close();
+														}, 2000);
+													}, function(error) {
+														ModalFactory.closeWaitModal();
+														ModalFactory.openErrorModal(error.data);
+														console.log(error);
+													});
+										});
 							};
 							csvuploader.onBeforeUploadItem = function(item) {
 								item.formData.push({
