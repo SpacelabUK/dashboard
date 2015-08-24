@@ -94,6 +94,9 @@ app.controller('addPlansInstance', [
 								ModalFactory.closeWaitModal();
 								$modalInstance.close();
 							}, 2000);
+						}, function(error) {
+							ModalFactory.closeWaitModal();
+							ModalFactory.openErrorModal(error.data);
 						});
 					}, function(error) {
 						console.log(error);

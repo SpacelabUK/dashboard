@@ -25,8 +25,10 @@ public class SplabSessionListener implements SessionListener {
 		@SuppressWarnings("unchecked")
 		List<String> tempFiles = (List<String>) s.getAttribute("tempFiles");
 		if (null != tempFiles) for (String f : tempFiles) {
-			File file = new File(System.getProperty("java.io.tmpdir") + f);
+			File file = new File(FileHandler.getTempDir(), f);
+			System.out.println(file.getAbsolutePath());
 			if (file.exists()) {
+				System.out.println("deleting...");
 				file.delete();
 			}
 		}
@@ -35,7 +37,7 @@ public class SplabSessionListener implements SessionListener {
 	public static List<String> getTempFiles(Session session) {
 		@SuppressWarnings("unchecked")
 		List<String> tempFiles =
-		        (List<String>) session.getAttribute("tempFiles");
+				(List<String>) session.getAttribute("tempFiles");
 		if (null == tempFiles) {
 			tempFiles = new ArrayList<String>();
 			session.setAttribute("tempFiles", tempFiles);

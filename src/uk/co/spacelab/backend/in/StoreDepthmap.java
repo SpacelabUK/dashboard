@@ -20,16 +20,22 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.postgis.PGgeometry;
 
+import flow.js.upload.FlowInfoStorage;
 import uk.co.spacelab.Converter.PGSQLWriter;
 import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.InternalException;
 import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.depthmap.DepthMap;
 import uk.co.spacelab.depthmap.Raster;
@@ -45,14 +51,21 @@ import uk.co.spacelab.plan.GeometryLayer;
 @SuppressWarnings("serial")
 @WebServlet("/StoreDepthmap")
 public class StoreDepthmap extends FlowUpload {
+	private static final String inputPlanDataType = "depthmapdxf";
+	private static final String inputPlanFileType = "dxf";
+	private static final String inputDepthDataType = "depthmapcsv";
+	private static final String inputDepthFileType = "csv";
 	@Override
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		get(request, response, Database.getUploadDirectory());
+		get(request, response);
 	}
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
+		Subject currentUser = SecurityUtils.getSubject();
+		Session session = currentUser.getSession();
+
 		String UPLOAD_DIR = null, FILES_PATH = null;
 		try {
 			FILES_PATH = Database.getProperty("files_path");
@@ -60,15 +73,31 @@ public class StoreDepthmap extends FlowUpload {
 		} catch (SQLException | ParseException e) {
 			throw new InternalException("Error while getting properties");
 		}
+		PrintWriter out = response.getWriter();
 		UPLOAD_DIR = FILES_PATH + UPLOAD_DIR;
 		if (request.getCharacterEncoding() == null) {
 			if (!Util.validParam(request.getParameterMap(), "flowIdentifier"))
 				return;
 			int studyID = Integer.parseInt(request.getParameter("studyid"));
-			String filePath = post(request, response, UPLOAD_DIR);
+			String filePath = post(request, response);
 			if (filePath != null) {
+
 				JSONObject result = new JSONObject();
 				if (filePath.toUpperCase().endsWith(".DXF")) {
+
+					File f =
+							FileHandler.createTempFile(inputPlanDataType,
+									"." + inputPlanFileType);
+					String fileID =
+							f.getName().substring(inputPlanDataType.length(),
+									f.getName().length()
+											- ("." + inputPlanFileType)
+													.length());
+					new File(filePath).renameTo(f);
+					filePath = f.getAbsolutePath();
+					System.out.println(filePath);
+					SplabSessionListener.getTempFiles(session).add(f.getName());
+
 					JSONArray spaces = new JSONArray();
 					DXFReader dxf = new DXFReader();
 					dxf.addData(FileIO.loadStrings(filePath));
@@ -87,18 +116,31 @@ public class StoreDepthmap extends FlowUpload {
 						}
 					}
 					result.put("spaces", spaces);
-					final File file = new File(filePath);
-					filePath = UUID.randomUUID().toString();
-					FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
-					result.put("fileid", filePath);
+					// final File file = new File(filePath);
+					// filePath = UUID.randomUUID().toString();
+					// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
+					result.put("fileid", fileID);
 					result.put("studyid", studyID);
 				} else if (filePath.toUpperCase().endsWith(".CSV")) {
+
+					File f =
+							FileHandler.createTempFile(inputDepthDataType,
+									"." + inputDepthFileType);
+					String fileID =
+							f.getName().substring(inputDepthDataType.length(),
+									f.getName().length()
+											- ("." + inputDepthFileType)
+													.length());
+					new File(filePath).renameTo(f);
+					filePath = f.getAbsolutePath();
+					SplabSessionListener.getTempFiles(session).add(f.getName());
+
 					JSONArray measures = new JSONArray();
 					result.put("measures", measures);
-					final File file = new File(filePath);
-					filePath = UUID.randomUUID().toString();
-					FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
-					result.put("fileid", filePath);
+					// final File file = new File(filePath);
+					// filePath = UUID.randomUUID().toString();
+					// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
+					result.put("fileid", fileID);
 					result.put("studyid", studyID);
 				}
 				int minutesToExpire = 1;
@@ -106,24 +148,35 @@ public class StoreDepthmap extends FlowUpload {
 						new Date().getTime() + minutesToExpire * 60 * 1000));
 
 				response.setContentType("application/json; charset=UTF-8");
-				PrintWriter out = response.getWriter();
+
 				out.print(result.toString());
 			}
 		} else {
 			boolean append = false;
 			System.out.println("analysis...");
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
-			String fileCSV, fileDXF, type, name;
+			File fileCSV, fileDXF;
+			String type, name;
 			Integer studyID;
 			boolean allNew = true;
 			try {
-				fileCSV = UPLOAD_DIR + "/" + paramsJSON.getString("fileidCSV");
-				fileDXF = UPLOAD_DIR + "/" + paramsJSON.getString("fileidDXF");
+				fileCSV =
+						FileHandler.getTempFile(inputDepthDataType,
+								paramsJSON.getString("fileidCSV"),
+								inputDepthFileType);
+				fileDXF =
+						FileHandler.getTempFile(inputPlanDataType,
+								paramsJSON.getString("fileidDXF"),
+								inputPlanFileType);
 				type = paramsJSON.getString("type");
-				if (!depthmapTypeValid(type))
-					throw new MalformedDataException(
-							"Malformed data buddy... -.- (unknown type " + type
-									+ ")");
+				if (!depthmapTypeValid(type)) {
+					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+					out.print("Unknown type " + type);
+					return;
+					// throw new MalformedDataException(
+					// "Malformed data buddy... -.- (unknown type " + type
+					// + ")");
+				}
 				name = paramsJSON.getString("name");
 				studyID = paramsJSON.getInt("studyid");
 			} catch (NullPointerException | JSONException | ParseException
@@ -136,10 +189,11 @@ public class StoreDepthmap extends FlowUpload {
 
 			String depthmapName = "Visibility";
 			DXFReader dxf = new DXFReader();
-			dxf.addData(FileIO.loadStrings(fileDXF));
+			dxf.addData(FileIO.loadStrings(fileDXF.getAbsolutePath()));
 			DepthMap dpm =
 					new DepthMap(
-							depthmapName, FileIO.loadStrings(fileCSV), dxf,
+							depthmapName,
+							FileIO.loadStrings(fileCSV.getAbsolutePath()), dxf,
 							1.0f / scaleFromInterface);
 			Map<String, double []> blockPositions = dpm.blockPositions;
 			System.out.println(blockPositions);
@@ -312,6 +366,8 @@ public class StoreDepthmap extends FlowUpload {
 			// } catch (ClassNotFoundException e) {
 			// e.printStackTrace();
 			// }
+			fileCSV.delete();
+			fileDXF.delete();
 		}
 		// }
 	}

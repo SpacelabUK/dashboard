@@ -1115,7 +1115,7 @@ public class StaffSurveyReader {
 			this.alias = alias;
 		}
 	}
-	public JSONObject getStaticData(File file, String fileid, int studyID)
+	public JSONObject getStaticData(File file, int studyID)
 			throws SQLException, ParseException {
 
 		Dataset dst = new Dataset().expand(file);
@@ -1276,7 +1276,6 @@ public class StaffSurveyReader {
 		out.put("DATABASE_TEAMS", databaseTeams);
 		out.put("DATABASE_FLOORS", databaseFloors);
 		out.put("DATABASE_QUESTIONS", databaseQuestions);
-		out.put("fileid", fileid);
 		return out;
 	}
 }

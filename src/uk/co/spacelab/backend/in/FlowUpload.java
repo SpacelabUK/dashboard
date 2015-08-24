@@ -5,9 +5,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.session.Session;
+
 import flow.js.upload.FlowInfo;
 import flow.js.upload.FlowInfoStorage;
 import flow.js.upload.HttpUtils;
+import uk.co.spacelab.backend.Constants;
+import uk.co.spacelab.backend.FileHandler;
+import uk.co.spacelab.backend.SplabSessionListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,11 +22,10 @@ import java.io.RandomAccessFile;
 public class FlowUpload extends HttpServlet {
 
 	protected String post(HttpServletRequest request,
-			HttpServletResponse response, String UPLOAD_DIR)
-					throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		int flowChunkNumber = getFlowChunkNumber(request);
 
-		FlowInfo info = getFlowInfo(request, UPLOAD_DIR);
+		FlowInfo info = getFlowInfo(request);
 
 		RandomAccessFile raf = new RandomAccessFile(info.flowFilePath, "rw");
 
@@ -57,11 +61,11 @@ public class FlowUpload extends HttpServlet {
 
 	}
 
-	protected void get(HttpServletRequest request, HttpServletResponse response,
-			String UPLOAD_DIR) throws ServletException, IOException {
+	protected void get(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		int flowChunkNumber = getFlowChunkNumber(request);
 
-		FlowInfo info = getFlowInfo(request, UPLOAD_DIR);
+		FlowInfo info = getFlowInfo(request);
 
 		if (info.uploadedChunks
 				.contains(new FlowInfo.FlowChunkNumber(flowChunkNumber))) {
@@ -76,9 +80,8 @@ public class FlowUpload extends HttpServlet {
 		return HttpUtils.toInt(request.getParameter("flowChunkNumber"), -1);
 	}
 
-	private FlowInfo getFlowInfo(HttpServletRequest request, String UPLOAD_DIR)
+	private FlowInfo getFlowInfo(HttpServletRequest request)
 			throws ServletException {
-		String base_dir = UPLOAD_DIR;
 
 		int flowChunkSize =
 				HttpUtils.toInt(request.getParameter("flowChunkSize"), -1);
@@ -89,7 +92,8 @@ public class FlowUpload extends HttpServlet {
 		String flowRelativePath = request.getParameter("flowRelativePath");
 		// Here we add a ".temp" to every upload file to indicate NON-FINISHED
 		String flowFilePath =
-				new File(base_dir, flowFilename).getAbsolutePath() + ".temp";
+				new File(FileHandler.getTempDir(), flowFilename)
+						.getAbsolutePath() + ".temp";
 
 		FlowInfoStorage storage = FlowInfoStorage.getInstance();
 

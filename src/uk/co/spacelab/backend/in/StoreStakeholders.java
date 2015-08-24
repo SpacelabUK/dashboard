@@ -1,5 +1,6 @@
 package uk.co.spacelab.backend.in;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -17,17 +18,17 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
+import uk.co.spacelab.backend.SplabHttpServlet;
 
 /**
  * Servlet implementation class StoreStakeholders
  */
 @WebServlet("/StoreStakeholders")
-@MultipartConfig(
-		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/temp",
-		fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
-public class StoreStakeholders extends HttpServlet {
+public class StoreStakeholders extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String inputDataType = "stakeholders";
 	private static final String inputFileType = "xlsx";
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -70,47 +71,51 @@ public class StoreStakeholders extends HttpServlet {
 						"malformed data... -_-");
 				return;
 			}
-			String fileName = null;
+			String fileID = null;
 			if (!validParam(request.getParameterMap(), "fileid"))
-				fileName =
-						FileHandler.uploadFileAndGetAlias(request,
-								inputFileType, 3600);
-			else fileName = request.getParameter("fileid");
+				fileID =
+						FileHandler
+								.uploadTempFileAndGetAlias(request,
+										inputDataType, inputFileType, 3600)
+								.substring(inputDataType.length());
+			else fileID = request.getParameter("fileid");
+			System.out.println(FileHandler.getTempFile(inputDataType, fileID,
+					inputFileType));
 			JSONObject dataIn = null;
 			if (!validParam(request.getParameterMap(), "datain")) {
-				getDataToValidate(request, response,
-						FileHandler.path + fileName + "." + inputFileType,
-						fileName);
+				getDataToValidate(request, response, FileHandler.getTempFile(
+						inputDataType, fileID, inputFileType), fileID);
 				return;
-
 			}
 		} else {
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 			int studyID = paramsJSON.getInt("studyid");
-			String fileName = paramsJSON.getString("fileid");
+			File file =
+					FileHandler.getTempFile(inputDataType,
+							paramsJSON.getString("fileid"), inputFileType);
 			JSONObject datain = paramsJSON.getJSONObject("datain");
 			try {
-				new StakeholderReader().convert(
-						FileHandler.path + fileName + "." + inputFileType,
-						studyID, datain);
+				new StakeholderReader().convert(file, studyID, datain);
 			} catch (ClassNotFoundException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} finally {
+				file.delete();
 			}
 		}
 	}
 	private void getDataToValidate(HttpServletRequest request,
-			HttpServletResponse response, String filePath, String fileid)
+			HttpServletResponse response, File file, String fileid)
 					throws IOException, ServletException {
 
 		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		try {
 			JSONObject out =
-					new StakeholderReader().getStaticData(filePath, fileid,
-							studyID);
+					new StakeholderReader().getStaticData(file, studyID);
+			out.put("fileid", fileid);
 			PrintWriter pw = response.getWriter();
 			pw.print(out.toString());
 		} catch (ClassNotFoundException e) {

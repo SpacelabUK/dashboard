@@ -1,5 +1,6 @@
 package uk.co.spacelab.backend.in;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -100,12 +101,12 @@ public class StakeholderReader {
 		return result;
 	}
 	// protected Map<String, List<String>> getStaticData(String fileName,
-	protected JSONObject getStaticData(String fileName, String fileid,
-			int studyID) throws FileNotFoundException, IOException,
-					ClassNotFoundException, SQLException, ParseException {
+	protected JSONObject getStaticData(File file, int studyID)
+			throws FileNotFoundException, IOException, ClassNotFoundException,
+			SQLException, ParseException {
 		// Database.getConnection();
 
-		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
+		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(file));
 		int ns = wb.getNumberOfSheets();
 		XSSFSheet teamSheet = null;
 		XSSFSheet questionSheet = null;
@@ -372,7 +373,6 @@ public class StakeholderReader {
 		out.put("DATABASE_TEAMS", databaseTeams);
 		out.put("DATABASE_QUESTIONS", databaseQuestions);
 		out.put("DATABASE_ISSUES", databaseIssues);
-		out.put("fileid", fileid);
 		return out;
 	}
 	JSONObject findDBQ(JSONArray databaseQuestions, int id) {
@@ -704,9 +704,9 @@ public class StakeholderReader {
 		return issues;
 	}
 
-	protected void convert(String fileName, int studyID,
-			JSONObject staticDataJSON) throws ClassNotFoundException,
-					SQLException, IOException, ParseException {
+	protected void convert(File file, int studyID, JSONObject staticDataJSON)
+			throws ClassNotFoundException, SQLException, IOException,
+			ParseException {
 
 		// Map<String, Map<String, String>> staticData =
 		// new HashMap<String, Map<String, String>>();
@@ -738,7 +738,7 @@ public class StakeholderReader {
 		psql.commit();
 		psql.setAutoCommit(true);
 		// if (true) return;
-		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(fileName));
+		XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(file));
 		int ns = wb.getNumberOfSheets();
 		List<Score> teamTeamScores = new ArrayList<Score>();
 		List<Quote> comments = new ArrayList<Quote>();

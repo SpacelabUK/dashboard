@@ -21,7 +21,7 @@ import java.io.RandomAccessFile;
 public class UploadServlet extends HttpServlet {
 
 	public static final String UPLOAD_DIR =
-			"/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/flowjs/";
+			System.getProperty("java.io.tempdir");
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -67,8 +67,8 @@ public class UploadServlet extends HttpServlet {
 
 		FlowInfo info = getFlowInfo(request);
 
-		if (info.uploadedChunks.contains(new FlowInfo.FlowChunkNumber(
-				flowChunkNumber))) {
+		if (info.uploadedChunks
+				.contains(new FlowInfo.FlowChunkNumber(flowChunkNumber))) {
 			response.getWriter().print("Uploaded."); // This Chunk has been
 														// Uploaded.
 		} else {

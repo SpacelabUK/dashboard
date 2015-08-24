@@ -39,41 +39,47 @@ public class GetAll extends HttpServlet {
 		response.setContentType("application/json; charset=UTF-8");
 		PrintWriter out = response.getWriter();
 		try {
-			if (type.equals("devices") || type.equals("projects")
-					|| type.equals("polygon_types")) {
+			if (type.equals("devices") || type.equals("projects")) {
 				out.println(Database.selectAllFromTable(type));
+			} else if (type.equals("spatial_functions")) {
+				out.println(Database.selectAllFromTableWhere("polygon_types",
+						"type_group='func'"));
 			} else if (type.equals("openstudies")) {
 				out.println(Database.selectAllFromTableWhere("studies",
 						"status='open'"));
-			} else if (type.equals("study_parts")
-					&& params.containsKey("studyid")
-					&& params.get("studyid") != null) {
+			} else
+				if (type.equals("study_parts") && params.containsKey("studyid")
+						&& params.get("studyid") != null) {
 				if (Database.selectAllFromTableWhere("studies", "id=?",
 						params.get("studyid")).length() < 1)
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 							"no such study exists");
 				out.println(Database.selectAllFromTableWhere("observations",
 						"study_id=?", params.get("studyid")));
-			} else if (type.equals("studies")
-					&& params.containsKey("projectid")
-					&& params.get("projectid") != null) {
+			} else
+					if (type.equals("studies")
+							&& params.containsKey("projectid")
+							&& params.get("projectid") != null) {
 				if (Database.selectAllFromTableWhere("projects", "id=?",
 						params.get("projectid")).length() < 1)
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 							"no such project exists");
 				out.println(Database.selectAllFromTableWhere("studies",
 						"project_id=?", params.get("projectid")));
-			} else if (type.equals("spaces") && params.containsKey("studyid")
-					&& params.get("studyid") != null) {
+			} else
+						if (type.equals("spaces")
+								&& params.containsKey("studyid")
+								&& params.get("studyid") != null) {
 				if (Database.selectAllFromTableWhere("studies", "id=?",
 						params.get("studyid")).length() < 1)
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 							"no such study exists");
 				out.println(Database.selectAllFromTableWhere("spaces",
 						"study_id=?", params.get("studyid")));
-			} else if (type.equals("round_model")
-					&& params.containsKey("observationid")
-					&& params.get("observationid") != null) {
+			} else
+							if (type.equals("round_model")
+									&& params.containsKey("observationid")
+									&& params.get("observationid") != null) {
 				if (Database.selectAllFromTableWhere("observations", "id=?",
 						params.get("observationid")).length() < 1)
 					response.sendError(HttpServletResponse.SC_BAD_REQUEST,

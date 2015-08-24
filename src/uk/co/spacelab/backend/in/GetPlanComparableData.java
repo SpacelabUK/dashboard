@@ -18,14 +18,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.InternalException;
+import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.backend.Database.COL;
 import uk.co.spacelab.backend.Database.TABLE;
+import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.dxf.DXFReader;
 import uk.co.spacelab.fileio.FileIO;
 
@@ -37,6 +42,8 @@ public class GetPlanComparableData extends FlowUpload {
 	private static final long serialVersionUID = 1L;
 	private static final String accIdentifier = "-ACC";
 	private static final String teamIdentifier = "-TEAM";
+	private static final String inputDataType = "plan";
+	private static final String inputFileType = "dxf";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -49,7 +56,7 @@ public class GetPlanComparableData extends FlowUpload {
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		get(request, response, Database.getUploadDirectory());
+		get(request, response);
 	}
 
 	/**
@@ -59,6 +66,9 @@ public class GetPlanComparableData extends FlowUpload {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+
+		Subject currentUser = SecurityUtils.getSubject();
+		Session session = currentUser.getSession();
 
 		String UPLOAD_DIR = null, PLANS_DIR = null;
 		try {
@@ -82,10 +92,22 @@ public class GetPlanComparableData extends FlowUpload {
 				return;
 			int studyID = Integer.parseInt(request.getParameter("studyid"));
 
-			String filePath = post(request, response, UPLOAD_DIR);
+			String filePath = post(request, response);
 			// String filePath = get(request, response,
 			// Database.getUploadDirectory());
 			if (filePath != null) {
+
+				File f =
+						FileHandler.createTempFile(inputDataType,
+								"." + inputFileType);
+				String fileID =
+						f.getName().substring(inputDataType.length(),
+								f.getName().length()
+										- ("." + inputFileType).length());
+				new File(filePath).renameTo(f);
+				filePath = f.getAbsolutePath();
+				SplabSessionListener.getTempFiles(session).add(f.getName());
+
 				JSONObject result = new JSONObject();
 				JSONArray spaces = new JSONArray();
 				JSONArray accSpaces = new JSONArray();
@@ -263,11 +285,11 @@ public class GetPlanComparableData extends FlowUpload {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				final File file = new File(filePath);
-				filePath = UUID.randomUUID().toString();
-				FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
+				// final File file = new File(filePath);
+				// filePath = UUID.randomUUID().toString();
+				// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
 				// file.renameTo(new File());
-				result.put("fileid", filePath);
+				result.put("fileid", fileID);
 				result.put("studyid", studyID);
 				int minutesToExpire = 1;
 
@@ -279,8 +301,8 @@ public class GetPlanComparableData extends FlowUpload {
 				// }
 				// };
 				// worker.schedule(task, minutesToExpire, TimeUnit.MINUTES);
-				result.put("expire", new Date(
-						new Date().getTime() + minutesToExpire * 60 * 1000));
+				// result.put("expire", new Date(
+				// new Date().getTime() + minutesToExpire * 60 * 1000));
 
 				response.setContentType("application/json; charset=UTF-8");
 				PrintWriter out = response.getWriter();

@@ -297,6 +297,11 @@ app
 									}
 								}
 							}
+							vnauploader.onErrorItem = function(item, response, status,
+									headers) {
+								ModalFactory.closeWaitModal();
+								// TODO pop error dialog
+							}
 							vnauploader.onCompleteItem = function(item, response, status,
 									headers) {
 								ModalFactory.closeWaitModal();

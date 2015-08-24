@@ -21,23 +21,28 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.backend.SplabSessionListener;
 
 /**
  * Servlet implementation class UploadGatheredData
  */
 @WebServlet("/StoreObservationData")
-@MultipartConfig(
-		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/temp",
-		fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StoreObservationData extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String inputDataType = "observation";
+	private static final String inputFileType = "db";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -93,48 +98,73 @@ public class StoreObservationData extends HttpServlet {
 		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		int observationID =
 				Integer.parseInt(request.getParameter("observationid"));
-		// Create path components to save the file
-		// final String path =
-		// "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/";
 
 		String UPLOAD_DIR = Database.getUploadDirectory();
 		// request.getParameter("destination");
 		// System.out.println(path);
-		final Part filePart = request.getPart("file");
-		final String fileName = getFileName(filePart);
 
-		OutputStream out = null;
-		InputStream filecontent = null;
+		response.setContentType("text/html;charset=UTF-8");
+		Subject currentUser = SecurityUtils.getSubject();
+		Session session = currentUser.getSession();
+		System.out.println(request.getParameterMap());
+		if (!validParam(request.getParameterMap(), "studyid")) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					"malformed data... -_-");
+			return;
+		}
+		// JSONObject dataIn = null;
+
+		// final Part filePart = request.getPart("file");
+		// final String fileName = getFileName(filePart);
+		//
+		// OutputStream out = null;
+		// InputStream filecontent = null;
 		final PrintWriter writer = response.getWriter();
 
 		try {
-			out = new FileOutputStream(new File(UPLOAD_DIR + fileName));
-			filecontent = filePart.getInputStream();
+			// out = new FileOutputStream(new File(UPLOAD_DIR + fileName));
+			// filecontent = filePart.getInputStream();
+			//
+			// int read = 0;
+			// final byte [] bytes = new byte [1024];
+			//
+			// while ((read = filecontent.read(bytes)) != -1) {
+			// out.write(bytes, 0, read);
+			// }
 
-			int read = 0;
-			final byte [] bytes = new byte [1024];
-
-			while ((read = filecontent.read(bytes)) != -1) {
-				out.write(bytes, 0, read);
-			}
-			// writer.println("New file " + fileName + " created at " + path);
+			response.setContentType("text/json;charset=UTF-8");
+			String fileID =
+					FileHandler
+							.uploadTempFileAndGetAlias(request, inputDataType,
+									inputFileType, 3600)
+							.substring(inputDataType.length());
+			SplabSessionListener.getTempFiles(session)
+					.add(inputDataType + fileID + "." + inputFileType);
+					// } else return;
+					// writer.println("New file " + fileName + " created at " +
+					// path);
 
 			// System.out.println(UPLOAD_DIR + fileName + " exists: "
 			// + new File(UPLOAD_DIR + fileName).exists());
 			JSONObject result =
-					SQLiteToPostgreSQL.getSpaces(observationID,
-							UPLOAD_DIR + fileName);
+					SQLiteToPostgreSQL
+							.getSpaces(observationID,
+									FileHandler
+											.getTempFile(inputDataType, fileID,
+													inputFileType)
+											.getAbsolutePath());
 			// System.out.println(UPLOAD_DIR + fileName + " exists: "
 			// + new File(UPLOAD_DIR + fileName).exists());
-			String newFileName = UUID.randomUUID().toString();
-			new File(UPLOAD_DIR + fileName)
-					.renameTo(new File(UPLOAD_DIR + newFileName + ".db"));
-			result.put("fileid", newFileName);
+			// new File(UPLOAD_DIR + fileName)
+			// .renameTo(new File(UPLOAD_DIR + newFileName + ".db"));
+			System.out.println(fileID);
+			System.out.println(result);
+			result.put("fileid", fileID);
 			response.setContentType("application/json; charset=UTF-8");
 			response.getWriter().print(result.toString());
 
-			System.out.println("File{0}being uploaded to {1}" + fileName + " "
-					+ UPLOAD_DIR);
+			// System.out.println(
+			// "File{0}being uploaded to {1}" + fileID + " " + UPLOAD_DIR);
 		} catch (FileNotFoundException fne) {
 			writer.println("You either did not specify a file to upload or are "
 					+ "trying to upload a file to a protected or nonexistent "
@@ -147,12 +177,12 @@ public class StoreObservationData extends HttpServlet {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			if (out != null) {
-				out.close();
-			}
-			if (filecontent != null) {
-				filecontent.close();
-			}
+			// if (out != null) {
+			// out.close();
+			// }
+			// if (filecontent != null) {
+			// filecontent.close();
+			// }
 			if (writer != null) {
 				writer.close();
 			}
@@ -189,6 +219,7 @@ public class StoreObservationData extends HttpServlet {
 		System.out.println(
 				UPLOAD_DIR + " exists: " + new File(UPLOAD_DIR).exists());
 		SQLiteToPostgreSQL.convert(observationID,
-				UPLOAD_DIR + fileName + ".db");
+				FileHandler.getTempFile(inputDataType, fileName, inputFileType)
+						.getAbsolutePath());
 	}
 }

@@ -19,6 +19,7 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.json.JSONObject;
 
+import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.SplabSessionListener;
 
@@ -26,12 +27,11 @@ import uk.co.spacelab.backend.SplabSessionListener;
  * Servlet implementation class GetStaffSurveyComparableData
  */
 @WebServlet("/GetStaffSurveyComparableData")
-@MultipartConfig(
-		location = "/Users/petros/Dropbox/ktp2013/code/Eclipse/Database/data/upload/temp",
-		fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class GetStaffSurveyComparableData extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String inputDataType = "staff";
 	private static final String inputFileType = "vna";
 
 	/**
@@ -71,21 +71,22 @@ public class GetStaffSurveyComparableData extends HttpServlet {
 				return;
 			}
 			response.setContentType("text/json;charset=UTF-8");
-			String fileName = null;
+			String fileID = null;
+			File temp = null;
 			if (!validParam(request.getParameterMap(), "fileid")) {
 
-				fileName =
-						FileHandler.uploadTempFileAndGetAlias(request, "staff",
-								inputFileType, 3600);
-				SplabSessionListener.getTempFiles(session)
-						.add(fileName + "." + inputFileType);
-			} else fileName = request.getParameter("fileid");
-			// JSONObject dataIn = null;
+				fileID =
+						FileHandler
+								.uploadTempFileAndGetAlias(request,
+										inputDataType, inputFileType, 3600)
+								.substring(inputDataType.length());
+				temp =
+						FileHandler.getTempFile(inputDataType, fileID,
+								inputFileType);
+				SplabSessionListener.getTempFiles(session).add(temp.getName());
+			} else fileID = request.getParameter("fileid");
 			if (!validParam(request.getParameterMap(), "datain")) {
-				getDataToValidate(request, response,
-						System.getProperty("java.io.tmpdir") + fileName + "."
-								+ inputFileType,
-						fileName);
+				getDataToValidate(request, response, temp, fileID);
 				return;
 
 			}
@@ -98,18 +99,18 @@ public class GetStaffSurveyComparableData extends HttpServlet {
 	}
 
 	private void getDataToValidate(HttpServletRequest request,
-			HttpServletResponse response, String filePath, String fileid)
+			HttpServletResponse response, File file, String fileid)
 					throws IOException, ServletException {
 
 		int studyID = Integer.parseInt(request.getParameter("studyid"));
 		try {
 			JSONObject out =
-					new StaffSurveyReader().getStaticData(new File(filePath),
-							fileid, studyID);
+					new StaffSurveyReader().getStaticData(file, studyID);
 			if (null == out) {
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 				return;
 			}
+			out.put("fileid", fileid);
 			PrintWriter pw = response.getWriter();
 			pw.print(out.toString());
 			// } catch (ClassNotFoundException e) {

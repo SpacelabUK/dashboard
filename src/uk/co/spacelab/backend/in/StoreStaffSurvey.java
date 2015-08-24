@@ -26,7 +26,9 @@ import org.apache.shiro.subject.Subject;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.JSONObject;
 
+import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
 
 //@WebServlet("/StoreStaffSurvey")
@@ -34,6 +36,7 @@ import uk.co.spacelab.backend.JSONHelper;
 public class StoreStaffSurvey extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String sessionAtt = "currentOperation";
+	private static final String inputDataType = "staff";
 	private static final String inputFileType = "vna";
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -133,9 +136,8 @@ public class StoreStaffSurvey extends HttpServlet {
 				String fileName = paramsJSON.getString("fileid");
 				JSONObject datain = paramsJSON.getJSONObject("datain");
 				File file =
-						new File(
-								System.getProperty("java.io.tmpdir") + fileName
-										+ "." + inputFileType);
+						FileHandler.getTempFile(inputDataType, fileName,
+								inputFileType);
 				try (Connection psql = Database.getConnection();) {
 					psql.setAutoCommit(false);
 					new StaffSurveyReader().convert(psql, session, sessionAtt,
@@ -143,6 +145,7 @@ public class StoreStaffSurvey extends HttpServlet {
 					psql.commit();
 					psql.close();
 					System.out.println("Done");
+					file.delete();
 				} catch (ClassNotFoundException | SQLException
 						| ParseException e) {
 					e.printStackTrace();

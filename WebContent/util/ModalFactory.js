@@ -82,7 +82,7 @@ app.factory('MatcherFactory', [
 					if (!options)
 						options = {};
 					var promise = $modal.open({
-						templateUrl : 'util/matcher.html',
+						templateUrl : 'util/matcherModal.html',
 						controller : 'matcherModalInstance',
 						resolve : {
 							type : function() {
