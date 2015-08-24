@@ -8,8 +8,9 @@ app.controller('addStakeholdersInstance', [
 		'FileUploader',
 		'MatcherFactory',
 		'HTTPFactory',
+		'ModalFactory',
 		function($scope, $modalInstance, $http, $modal, $q, study, FileUploader,
-				MatcherFactory, HTTPFactory) {
+				MatcherFactory, HTTPFactory, ModalFactory) {
 			"use strict";
 			$scope.study = study;
 			$scope.predicate = 'building';
@@ -66,6 +67,7 @@ app.controller('addStakeholdersInstance', [
 							studyid : study.id
 						});
 						getXLSXData(data);
+						$scope.$apply();
 						// console.log(e.target);
 						// };
 
@@ -93,11 +95,16 @@ app.controller('addStakeholdersInstance', [
 			var rounds = 0;
 			var days = 0;
 			$scope.attach = function(study) {
-
+				ModalFactory.openWaitModal('Getting Validation data...');
 				uploader.uploadAll();
 			};
 			uploader.onCompleteItem = function(item, response, status, headers) {
 				// console.log(JSON.stringify(response));
+				ModalFactory.closeWaitModal();
+				if (status === 400) {
+					ModalFactory.openErrorModal(response);
+					return;
+				}
 				var newData = "DEPARTMENT_LIST";
 				var dbData = "DATABASE_TEAMS";
 				MatcherFactory.openMatcherModal("team", "teams", response[newData],
@@ -137,7 +144,18 @@ app.controller('addStakeholdersInstance', [
 								}
 							};
 							console.log(data);
-							HTTPFactory.backendPost('StoreStakeholders', data);
+							ModalFactory.openWaitModal('Storing...');
+							HTTPFactory.backendPost('StoreStakeholders', data).then(
+									function(response) {
+										ModalFactory.modifyWaitMessage("Success!");
+										setTimeout(function() {
+											ModalFactory.closeWaitModal();
+											$modalInstance.close();
+										}, 2000);
+									}, function(error) {
+										ModalFactory.closeWaitModal();
+										ModalFactory.openErrorModal(response);
+									});
 						}, function(error) {
 							console.log(error);
 						});

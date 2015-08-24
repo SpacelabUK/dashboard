@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
+import uk.co.spacelab.backend.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
 
 /**
@@ -79,12 +80,15 @@ public class StoreStakeholders extends SplabHttpServlet {
 										inputDataType, inputFileType, 3600)
 								.substring(inputDataType.length());
 			else fileID = request.getParameter("fileid");
-			System.out.println(FileHandler.getTempFile(inputDataType, fileID,
-					inputFileType));
 			JSONObject dataIn = null;
 			if (!validParam(request.getParameterMap(), "datain")) {
-				getDataToValidate(request, response, FileHandler.getTempFile(
-						inputDataType, fileID, inputFileType), fileID);
+				try {
+					getDataToValidate(request, response, FileHandler
+							.getTempFile(inputDataType, fileID, inputFileType),
+							fileID);
+				} catch (MalformedDataException e) {
+					sendInterfaceError(response, e.getLocalizedMessage());
+				}
 				return;
 			}
 		} else {
