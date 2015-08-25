@@ -18,27 +18,41 @@ function endsWithIgnoreCase(str, suffix) {
 			.toUpperCase();
 }
 
-var app = angular.module('Dashboard', [
-		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
-		'gridster'
-], [
-		'$provide', '$httpProvider', function($provide, $httpProvider) {
-			$provide.factory('requestInterceptor', [
-					'$q', '$window', function($q, $window) {
-						return {
-							'response' : function(response) {
-								// check if we have been logged out,
-								if (startsWith(response.data, '<!-- login'))
-									// in that case redirect to login
-									$window.location.href = 'login.html';
-								return response;
-							},
-						};
-					}
-			]);
-			$httpProvider.interceptors.push('requestInterceptor');
-		}
-]);
+var app = angular
+		.module(
+				'Dashboard',
+				[
+						'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload',
+						'flow', 'gridster'
+				],
+				[
+						'$provide',
+						'$httpProvider',
+						function($provide, $httpProvider) {
+							$provide
+									.factory(
+											'requestInterceptor',
+											[
+													'$q',
+													'$window',
+													function($q, $window) {
+														return {
+															'response' : function(response) {
+																// check if we have been logged out,
+																if (startsWith(response.data, '<!-- login')) {
+																	// in that case redirect to login
+//																	response.config.headers["urlAfterLogin"] = $window.location.href;
+																	$window.location.href = 'login.html';
+																}
+																// console.log(response);
+																return response;
+															},
+														};
+													}
+											]);
+							$httpProvider.interceptors.push('requestInterceptor');
+						}
+				]);
 // // hack to allow downloading js-generated blob objects
 // app
 // .config([
