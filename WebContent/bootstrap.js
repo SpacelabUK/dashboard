@@ -21,6 +21,23 @@ function endsWithIgnoreCase(str, suffix) {
 var app = angular.module('Dashboard', [
 		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
 		'gridster'
+], [
+		'$provide', '$httpProvider', function($provide, $httpProvider) {
+			$provide.factory('requestInterceptor', [
+					'$q', '$window', function($q, $window) {
+						return {
+							'response' : function(response) {
+								// check if we have been logged out,
+								if (startsWith(response.data, '<!-- login'))
+									// in that case redirect to login
+									$window.location.href = 'login.html';
+								return response;
+							},
+						};
+					}
+			]);
+			$httpProvider.interceptors.push('requestInterceptor');
+		}
 ]);
 // // hack to allow downloading js-generated blob objects
 // app
@@ -557,96 +574,6 @@ app.controller('opnStdCtrl', [
 		}
 ]);
 
-app.controller("addObservationDataInstance", [
-		'$scope',
-		'$modalInstance',
-		'FileUploader',
-		'study',
-		'observation',
-		'MatcherFactory',
-		'HTTPFactory',
-		function($scope, $modalInstance, FileUploader, study, observation,
-				MatcherFactory, HTTPFactory) {
-			"use strict";
-			console.log('observid ' + observation.id);
-			var uploader = $scope.uploader = new FileUploader({
-				// url : 'studies/observation/uploadObservationData.php',
-				url : HTTPFactory.getBackend() + 'StoreObservationData',
-				formData : [
-					{
-						studyid : study.id,
-						observationid : observation.id
-					}
-				],
-			});
-
-			// FILTERS
-
-			uploader.filters.push({
-				name : 'customFilter',
-				fn : function(item /* {File|FileLikeObject} */, options) {
-					return this.queue.length < 10;
-				}
-			});
-
-			// CALLBACKS
-
-			// uploader.onWhenAddingFileFailed = function(
-			// item /* {File|FileLikeObject} */, filter, options) {
-			// console.info('onWhenAddingFileFailed', item, filter, options);
-			// };
-			// uploader.onAfterAddingFile = function(fileItem) {
-			// console.info('onAfterAddingFile', fileItem);
-			// };
-			// uploader.onAfterAddingAll = function(addedFileItems) {
-			// console.info('onAfterAddingAll', addedFileItems);
-			// };
-			// uploader.onBeforeUploadItem = function(item) {
-			// console.info('onBeforeUploadItem', item);
-			// };
-			// uploader.onProgressItem = function(fileItem, progress) {
-			// console.info('onProgressItem', fileItem, progress);
-			// };
-			// uploader.onProgressAll = function(progress) {
-			// console.info('onProgressAll', progress);
-			// };
-			// uploader.onSuccessItem = function(fileItem, response, status, headers)
-			// {
-			// console.info('onSuccessItem', fileItem, response, status, headers);
-			// };
-			// uploader.onErrorItem = function(fileItem, response, status, headers) {
-			// console.info('onErrorItem', fileItem, response, status, headers);
-			// };
-			// uploader.onCancelItem = function(fileItem, response, status, headers) {
-			// console.info('onCancelItem', fileItem, response, status, headers);
-			// };
-			uploader.onCompleteItem = function(fileItem, response, status, headers) {
-				// console.info('onCompleteItem', fileItem, response, status, headers);
-				console.info(response);
-				MatcherFactory.openMatcherModal("space", "spaces", response.spaces,
-						response.spacesInDB).result.then(function(dialogResponse) {
-					console.log(dialogResponse);
-					HTTPFactory.backendPost("StoreObservationData", {
-						observationid : observation.id,
-						fileid : response.fileid,
-						spaces : dialogResponse
-					});
-				}, function(error) {
-					console.log(error);
-				});
-
-			};
-			// uploader.onCompleteAll = function() {
-			// console.info('onCompleteAll');
-			// };
-
-			console.info('uploader', uploader);
-
-			$scope.cancel = function() {
-				$modalInstance.dismiss('cancel');
-			};
-		}
-]);
 // app.controller("addPolygonsInstance", function($scope, $modalInstance,
 // FileUploader, study) {
 // var uploader = $scope.uploader = new FileUploader({
