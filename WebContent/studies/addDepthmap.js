@@ -13,8 +13,10 @@ app
 						'PlanFactory',
 						'HTTPFactory',
 						'ModalFactory',
+						'MatcherFactory',
 						function($scope, $modalInstance, $http, $modal, $q, study,
-								FileUploader, PlanFactory, HTTPFactory, ModalFactory) {
+								FileUploader, PlanFactory, HTTPFactory, ModalFactory,
+								MatcherFactory) {
 							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
@@ -84,6 +86,8 @@ app
 											alert("oi! that's not a CSV!");
 											return;
 										}
+										$scope.csvValid = true;
+										$scope.$apply();
 									};
 								})(fileItem._file);
 								reader.readAsDataURL(fileItem._file);
@@ -97,7 +101,8 @@ app
 											alert("oi! that's not a DXF!");
 											return;
 										}
-
+										$scope.dxfValid = true;
+										$scope.$apply();
 									};
 								})(fileItem._file);
 								reader.readAsDataURL(fileItem._file);
@@ -105,17 +110,18 @@ app
 							$scope.dataInvalid = function() {
 								return !($scope.properties.name &&
 										$scope.properties.name.trim().length > 0 &&
-										$scope.properties.type && $scope.properties.type.trim().length > 0);
+										$scope.properties.type &&
+										$scope.properties.type.trim().length > 0 && $scope.csvValid && $scope.dxfValid);
 							};
 							$scope.attach = function(study) {
 								var csvData, dxfData;
-								// ModalFactory.openWaitModal('Getting Validation data...');
-								ModalFactory.openWaitModal('Storing data...');
+								ModalFactory.openWaitModal('Getting Validation data...');
 								var promises = [];
 
 								var csvflow = new Flow({
 									method : 'octet',
-									target : HTTPFactory.getBackend() + 'StoreDepthmap',
+									target : HTTPFactory.getBackend() +
+											'GetDepthmapComparableData',
 									query : {
 										studyid : $scope.study.id
 									}
@@ -128,10 +134,14 @@ app
 									var data = JSON.parse(message);
 									csvdefer.resolve(data);
 								});
+								csvflow.on('fileError', function(file, message) {
+									csvdefer.reject(message);
+								});
 
 								var dxfflow = new Flow({
 									method : 'octet',
-									target : HTTPFactory.getBackend() + 'StoreDepthmap',
+									target : HTTPFactory.getBackend() +
+											'GetDepthmapComparableData',
 									query : {
 										studyid : $scope.study.id
 									}
@@ -144,30 +154,51 @@ app
 									var data = JSON.parse(message);
 									dxfdefer.resolve(data);
 								});
+								dxfflow.on('fileError', function(file, message) {
+									dxfdefer.reject(message);
+								});
 								$q.all(promises).then(
 										function(response) {
 											var csvData = response[0];
 											var dxfData = response[1];
-											console.log(response);
-											var data = {
-												studyid : study.id,
-												fileidCSV : csvData.fileid,
-												fileidDXF : dxfData.fileid,
-												type : $scope.properties.type,
-												name : $scope.properties.name,
-											};
-											HTTPFactory.backendPost("StoreDepthmap", data).then(
-													function(response) {
-														ModalFactory.modifyWaitMessage("Success!");
-														setTimeout(function() {
-															ModalFactory.closeWaitModal();
-															$modalInstance.close();
-														}, 2000);
+											// console.log(response);
+
+											var newData = "SPACES_FILE";
+											var dbData = "SPACES_DATABASE";
+											ModalFactory.closeWaitModal();
+											MatcherFactory.openMatcherModal("space", "spaces",
+													dxfData[newData], dxfData[dbData]).result.then(
+													function(spaces_message) {
+														var data = {
+															studyid : study.id,
+															fileidCSV : csvData.fileid,
+															fileidDXF : dxfData.fileid,
+															type : $scope.properties.type,
+															name : $scope.properties.name,
+															datain : {
+																spaces : spaces_message,
+															}
+														};
+														ModalFactory.openWaitModal('Storing...');
+														HTTPFactory.backendPost("StoreDepthmap", data)
+																.then(function(response) {
+																	ModalFactory.modifyWaitMessage("Success!");
+																	setTimeout(function() {
+																		ModalFactory.closeWaitModal();
+																		$modalInstance.close();
+																	}, 2000);
+																}, function(error) {
+																	ModalFactory.closeWaitModal();
+																	ModalFactory.openErrorModal(error.data);
+																	console.log(error);
+																});
 													}, function(error) {
-														ModalFactory.closeWaitModal();
-														ModalFactory.openErrorModal(error.data);
-														console.log(error);
 													});
+
+										}, function(error) {
+											ModalFactory.closeWaitModal();
+											ModalFactory.openErrorModal(error);
+											console.log(error);
 										});
 							};
 							csvuploader.onBeforeUploadItem = function(item) {

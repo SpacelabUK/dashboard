@@ -659,7 +659,6 @@ public class StakeholderReader {
 				List<String> validIssues = new ArrayList<String>();
 				String q = issue;
 				validIssues.add(q);
-				int breakcounter = 100;
 				String groupID = null;
 				// while (breakcounter > 1) {
 				if (issuesJSON.get(q).has("group"))

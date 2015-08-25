@@ -133,11 +133,19 @@ public class StoreObservationData extends HttpServlet {
 			// }
 
 			response.setContentType("text/json;charset=UTF-8");
-			String fileID =
-					FileHandler
-							.uploadTempFileAndGetAlias(request, inputDataType,
-									inputFileType, 3600)
-							.substring(inputDataType.length());
+			String fileID = null;
+			if (!validParam(request.getParameterMap(), "fileid")) {
+				fileID =
+						FileHandler
+								.uploadTempFileAndGetAlias(request,
+										inputDataType, inputFileType, 3600)
+								.substring(inputDataType.length());
+			} else fileID = request.getParameter("fileid");
+			File temp =
+					FileHandler.getTempFile(inputDataType, fileID,
+							inputFileType);
+			SplabSessionListener.cleanTempFilesOfType(session, inputDataType,
+					temp.length());
 			SplabSessionListener.getTempFiles(session)
 					.add(inputDataType + fileID + "." + inputFileType);
 					// } else return;
@@ -147,12 +155,8 @@ public class StoreObservationData extends HttpServlet {
 			// System.out.println(UPLOAD_DIR + fileName + " exists: "
 			// + new File(UPLOAD_DIR + fileName).exists());
 			JSONObject result =
-					SQLiteToPostgreSQL
-							.getSpaces(observationID,
-									FileHandler
-											.getTempFile(inputDataType, fileID,
-													inputFileType)
-											.getAbsolutePath());
+					SQLiteToPostgreSQL.getSpaces(observationID,
+							temp.getAbsolutePath());
 			// System.out.println(UPLOAD_DIR + fileName + " exists: "
 			// + new File(UPLOAD_DIR + fileName).exists());
 			// new File(UPLOAD_DIR + fileName)

@@ -42,7 +42,9 @@ public class Database {
 	private static String pass = "x";
 	public static final String TABLE_OBSERVATION_ROUNDS = "observation_rounds",
 			TABLE_OBSERVATION_SNAPSHOTS = "observation_snapshots",
-			TABLE_METRICS = "metrics", SEQUENCE_METRICS = "metrics_id_seq",
+			TABLE_METRICS = "metrics", //
+			SEQUENCE_METRICS = "metrics_id_seq",
+			SEQUENCE_SPACES = "spaces_id_seq",
 			TABLE_METRICS_INPUTS = "metrics_inputs",
 			TABLE_METRIC_FUNCTIONS = "metric_functions",
 			TABLE_METRIC_FUNCTIONS_INPUTS = "metric_functions_inputs",
@@ -64,12 +66,14 @@ public class Database {
 		}
 	}
 	enum COL_TYPE {
-		SERIAL, BIGSERIAL, INTEGER, INTEGER_ARRAY, TEXT, TEXT_ARRAY
+		SERIAL, BIGSERIAL, INTEGER, INTEGER_ARRAY, TEXT, TEXT_ARRAY, POINT
 	}
 	public enum COL {
 		SPACES_STUDY_ID("study_id", COL_TYPE.INTEGER), //
 		SPACES_ID("id", COL_TYPE.INTEGER), //
 		SPACES_ALIAS("alias", COL_TYPE.TEXT),
+		SPACES_PLAN_MIN("plan_min", COL_TYPE.POINT),
+		SPACES_PLAN_MAX("plan_max", COL_TYPE.POINT),
 		POLYGON_TYPES_ALIAS("alias", COL_TYPE.TEXT),
 		OBSERVATION_SNAPSHOTS_ID("id", COL_TYPE.INTEGER) //
 		; //
@@ -114,8 +118,9 @@ public class Database {
 				}
 
 				// actual jndi name is "jdbc/postgres"
-				datasource = (DataSource) initialContext
-						.lookup("java:/comp/env/jdbc/postgres");
+				datasource =
+						(DataSource) initialContext
+								.lookup("java:/comp/env/jdbc/postgres");
 
 				if (datasource == null) {
 					String message =
@@ -231,13 +236,12 @@ public class Database {
 					throws SQLException, ParseException {
 		return selectWhatFromTableWhere(con, table, "*", where, args);
 	}
-	public static JSONArray selectAllFromTableWhere(String table,
-			String where, Object... args) throws SQLException, ParseException {
+	public static JSONArray selectAllFromTableWhere(String table, String where,
+			Object... args) throws SQLException, ParseException {
 		return selectWhatFromTableWhere(table, "*", where, args);
 	}
-	public static JSONArray selectWhatFromTableWhere(String table,
-			String what, String where, Object... args)
-					throws SQLException, ParseException {
+	public static JSONArray selectWhatFromTableWhere(String table, String what,
+			String where, Object... args) throws SQLException, ParseException {
 		// try {
 		Connection con = getConnection();
 		String sql =
@@ -407,8 +411,9 @@ public class Database {
 					throws ClassNotFoundException, SQLException,
 					ParseException {
 
-		String sql = "INSERT INTO " + table + " (" + columnString + ") VALUES ("
-				+ valueString + ");";
+		String sql =
+				"INSERT INTO " + table + " (" + columnString + ") VALUES ("
+						+ valueString + ");";
 		// try {
 		// try (
 		execPreparedNoResults(psql, sql, args);
@@ -433,8 +438,8 @@ public class Database {
 			// return result;
 		}
 	}
-	protected static Map.Entry<String, String []>
-			reconstructValueMap(Map<String, String> toSet) {
+	protected static Map.Entry<String, String []> reconstructValueMap(
+			Map<String, String> toSet) {
 
 		String [] args = new String [toSet.size()];
 		String toSetString = "";
@@ -487,10 +492,9 @@ public class Database {
 		// return new JSONArray("[{result:success}]");
 		// }
 	}
-	public static void update(Connection psql, String table,
-			String toSetString, String where, Object... args)
-					throws ClassNotFoundException, SQLException,
-					ParseException {
+	public static void update(Connection psql, String table, String toSetString,
+			String where, Object... args) throws ClassNotFoundException,
+					SQLException, ParseException {
 		String sql =
 				"UPDATE " + table + " SET " + toSetString + " WHERE " + where;
 		// try {
@@ -579,8 +583,8 @@ public class Database {
 	 *         [observation_id, space_id, lel]=[15, 6, 1]
 	 *         </p>
 	 */
-	protected static Map.Entry<String, Map.Entry<Set<String>, List<String>>>
-			constructBooleanString(JSONObject json) {
+	protected static Map.Entry<String, Map.Entry<Set<String>, List<String>>> constructBooleanString(
+			JSONObject json) {
 		String result = "";
 		Set<String> cols = new HashSet<String>();
 		List<String> args = new ArrayList<String>();
@@ -620,8 +624,9 @@ public class Database {
 	}
 	public static String getProperty(String property)
 			throws SQLException, ParseException {
-		JSONArray result = selectAllFromTableWhere("app_settings", "property=?",
-				new String [] {property});
+		JSONArray result =
+				selectAllFromTableWhere("app_settings", "property=?",
+						new String [] {property});
 		if (result.length() < 1) return null;
 		return result.getJSONObject(0).getString("value");
 	}
@@ -646,7 +651,6 @@ public class Database {
 		return null;
 	}
 
-	
 	// UNSAFE DON'T USE
 	// protected static String constructBooleanString(JSONObject o) {
 	// String result = "";

@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.FileHandler;
+import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.backend.SplabSessionListener;
 
 /**
@@ -29,7 +30,7 @@ import uk.co.spacelab.backend.SplabSessionListener;
 @WebServlet("/GetStaffSurveyComparableData")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
 		maxRequestSize = 1024 * 1024 * 5 * 5)
-public class GetStaffSurveyComparableData extends HttpServlet {
+public class GetStaffSurveyComparableData extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String inputDataType = "staff";
 	private static final String inputFileType = "vna";
@@ -72,7 +73,6 @@ public class GetStaffSurveyComparableData extends HttpServlet {
 			}
 			response.setContentType("text/json;charset=UTF-8");
 			String fileID = null;
-			File temp = null;
 			if (!validParam(request.getParameterMap(), "fileid")) {
 
 				fileID =
@@ -80,22 +80,24 @@ public class GetStaffSurveyComparableData extends HttpServlet {
 								.uploadTempFileAndGetAlias(request,
 										inputDataType, inputFileType, 3600)
 								.substring(inputDataType.length());
-				temp =
-						FileHandler.getTempFile(inputDataType, fileID,
-								inputFileType);
-				SplabSessionListener.getTempFiles(session).add(temp.getName());
 			} else fileID = request.getParameter("fileid");
+			File temp =
+					FileHandler.getTempFile(inputDataType, fileID,
+							inputFileType);
+			if (!temp.exists()) {
+				sendInterfaceError(response,
+						"File has expired, restart the process");
+				return;
+			}
+			SplabSessionListener.cleanTempFilesOfType(session, inputDataType,
+					temp.length());
+			SplabSessionListener.getTempFiles(session).add(temp.getName());
 			if (!validParam(request.getParameterMap(), "datain")) {
 				getDataToValidate(request, response, temp, fileID);
 				return;
 
 			}
 		}
-	}
-
-	boolean validParam(Map<String, String []> params, String param) {
-		return params.containsKey(param) && params.get(param) != null
-				&& params.get(param).length == 1;
 	}
 
 	private void getDataToValidate(HttpServletRequest request,

@@ -81,7 +81,7 @@ public class FileHandler {
 	public static File getTempDir() {
 		File tmpDir =
 				new File(
-						System.getProperty("java.io.tmpdir") + Constants.appName
+						System.getProperty("java.io.tmpdir") + Constants.APPLICATION_NAME
 								+ "/");
 		if (!tmpDir.exists()) tmpDir.mkdir();
 		return tmpDir;

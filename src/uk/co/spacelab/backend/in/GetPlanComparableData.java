@@ -97,16 +97,32 @@ public class GetPlanComparableData extends FlowUpload {
 			// Database.getUploadDirectory());
 			if (filePath != null) {
 
-				File f =
-						FileHandler.createTempFile(inputDataType,
-								"." + inputFileType);
-				String fileID =
-						f.getName().substring(inputDataType.length(),
-								f.getName().length()
-										- ("." + inputFileType).length());
-				new File(filePath).renameTo(f);
-				filePath = f.getAbsolutePath();
-				SplabSessionListener.getTempFiles(session).add(f.getName());
+				String fileID = null;
+				File temp = null;
+				if (!validParam(request.getParameterMap(), "fileid")) {
+					temp =
+							FileHandler.createTempFile(inputDataType,
+									"." + inputFileType);
+					fileID =
+							temp.getName().substring(inputDataType.length(),
+									temp.getName().length()
+											- ("." + inputFileType).length());
+				} else {
+					fileID = request.getParameter("fileid");
+					temp =
+							FileHandler.getTempFile(inputDataType, fileID,
+									inputFileType);
+				}
+				if (!temp.exists()) {
+					sendInterfaceError(response,
+							"File has expired, restart the process");
+					return;
+				}
+				SplabSessionListener.cleanTempFilesOfType(session,
+						inputDataType, temp.length());
+				new File(filePath).renameTo(temp);
+				filePath = temp.getAbsolutePath();
+				SplabSessionListener.getTempFiles(session).add(temp.getName());
 
 				JSONObject result = new JSONObject();
 				JSONArray spaces = new JSONArray();

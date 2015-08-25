@@ -12,6 +12,7 @@ import flow.js.upload.FlowInfoStorage;
 import flow.js.upload.HttpUtils;
 import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.FileHandler;
+import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.backend.SplabSessionListener;
 
 import java.io.File;
@@ -19,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
-public class FlowUpload extends HttpServlet {
+public class FlowUpload extends SplabHttpServlet {
 
 	protected String post(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {

@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.Database.COL;
 
-public class SQLiteToPostgreSQL extends HttpServlet {
+public class SQLiteToPostgreSQL {
 	private static final long serialVersionUID = 1L;
 	private static String dbDriver = "org.sqlite.JDBC";
 	public static JSONObject getSpaces(int observationID, String sqliteFile)

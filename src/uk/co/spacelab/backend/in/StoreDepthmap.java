@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +36,7 @@ import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.InternalException;
 import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.depthmap.DepthMap;
@@ -50,7 +52,7 @@ import uk.co.spacelab.plan.GeometryLayer;
  */
 @SuppressWarnings("serial")
 @WebServlet("/StoreDepthmap")
-public class StoreDepthmap extends FlowUpload {
+public class StoreDepthmap extends SplabHttpServlet {
 	private static final String inputPlanDataType = "depthmapdxf";
 	private static final String inputPlanFileType = "dxf";
 	private static final String inputDepthDataType = "depthmapcsv";
@@ -58,14 +60,68 @@ public class StoreDepthmap extends FlowUpload {
 	@Override
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		get(request, response);
 	}
+
+	Map<String, Integer> processSpaces(JSONArray spacesIn, int studyID)
+			throws  SQLException, ParseException {
+		Map<String, Integer> spaces = new HashMap<String, Integer>();
+		Map<String, JSONObject> spacesJSON = new HashMap<String, JSONObject>();
+		Map<String, String> spaceNames = new HashMap<String, String>();
+		Connection psql = Database.getConnection();
+		psql.setAutoCommit(false);
+		for (int i = 0; i < spacesIn.length(); i++) {
+			JSONObject q = spacesIn.getJSONObject(i);
+			if (q.optString("match").equals("*")) {
+				// is new
+				System.out.println(q.getString("alias") + " is new");
+				// do not accept new spaces, we need the plans first
+				continue;
+				// spaces.put(q.getString("alias").toUpperCase(), -1);
+
+			} else if (q.optString("match").equals("-")) {
+				// ignore this
+				System.out.println(q.getString("alias") + " to be ingored");
+				continue;
+			} else if (q.has("match")) {
+				String matchAlias = q.getJSONObject("match").getString("alias");
+				if (matchAlias.trim().length() < 1)
+					throw new MalformedDataException(
+							"Matching space alias is empty");
+				JSONArray results =
+						Database.selectWhatFromTableWhere(psql, "spaces", "id",
+								"study_id=? AND alias=?", studyID, matchAlias);
+				if (results.length() == 0)
+					throw new MalformedDataException(
+							"No such space " + matchAlias + " found");
+				spaces.put(q.getString("alias").toUpperCase(),
+						results.getJSONObject(0).getInt("id"));
+			}
+			spacesJSON.put(q.getString("alias"), q);
+			spaceNames.put(q.getString("alias").toUpperCase(),
+					q.getString("alias"));
+		}
+		// for (String space : spaces.keySet()) {
+		//
+		// if (spaces.get(space) == -1) {
+		//
+		// Database.insertInto(psql, "spaces", "study_id,alias", "?,?",
+		// studyID, space);
+		// int currval =
+		// Database.getSequenceCurrVal(psql,
+		// Database.SEQUENCE_SPACES).getJSONObject(0)
+		// .getInt("currval");
+		// spaces.put(space, currval);
+		// }
+		// }
+		psql.commit();
+		psql.setAutoCommit(true);
+
+		return spaces;
+	}
+
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		Subject currentUser = SecurityUtils.getSubject();
-		Session session = currentUser.getSession();
-
 		String UPLOAD_DIR = null, FILES_PATH = null;
 		try {
 			FILES_PATH = Database.getProperty("files_path");
@@ -75,91 +131,24 @@ public class StoreDepthmap extends FlowUpload {
 		}
 		PrintWriter out = response.getWriter();
 		UPLOAD_DIR = FILES_PATH + UPLOAD_DIR;
-		if (request.getCharacterEncoding() == null) {
-			if (!Util.validParam(request.getParameterMap(), "flowIdentifier"))
-				return;
-			int studyID = Integer.parseInt(request.getParameter("studyid"));
-			String filePath = post(request, response);
-			if (filePath != null) {
-
-				JSONObject result = new JSONObject();
-				if (filePath.toUpperCase().endsWith(".DXF")) {
-
-					File f =
-							FileHandler.createTempFile(inputPlanDataType,
-									"." + inputPlanFileType);
-					String fileID =
-							f.getName().substring(inputPlanDataType.length(),
-									f.getName().length()
-											- ("." + inputPlanFileType)
-													.length());
-					new File(filePath).renameTo(f);
-					filePath = f.getAbsolutePath();
-					System.out.println(filePath);
-					SplabSessionListener.getTempFiles(session).add(f.getName());
-
-					JSONArray spaces = new JSONArray();
-					DXFReader dxf = new DXFReader();
-					dxf.addData(FileIO.loadStrings(filePath));
-					List<String []> entities = dxf.breakDXFEntities(dxf.ent);
-					for (String [] ent : entities) {
-						if (ent[0].equals("INSERT"))
-							if (ent[2]
-									.startsWith(DXFReader.generalIdentifier)) {
-							JSONObject o = new JSONObject();
-							String alias =
-									ent[2].substring(DXFReader.generalIdentifier
-											.length()).split("\\(")[0].trim();
-							o.put("name", alias);
-							o.put("alias", alias);
-							spaces.put(o);
-						}
-					}
-					result.put("spaces", spaces);
-					// final File file = new File(filePath);
-					// filePath = UUID.randomUUID().toString();
-					// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
-					result.put("fileid", fileID);
-					result.put("studyid", studyID);
-				} else if (filePath.toUpperCase().endsWith(".CSV")) {
-
-					File f =
-							FileHandler.createTempFile(inputDepthDataType,
-									"." + inputDepthFileType);
-					String fileID =
-							f.getName().substring(inputDepthDataType.length(),
-									f.getName().length()
-											- ("." + inputDepthFileType)
-													.length());
-					new File(filePath).renameTo(f);
-					filePath = f.getAbsolutePath();
-					SplabSessionListener.getTempFiles(session).add(f.getName());
-
-					JSONArray measures = new JSONArray();
-					result.put("measures", measures);
-					// final File file = new File(filePath);
-					// filePath = UUID.randomUUID().toString();
-					// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
-					result.put("fileid", fileID);
-					result.put("studyid", studyID);
-				}
-				int minutesToExpire = 1;
-				result.put("expire", new Date(
-						new Date().getTime() + minutesToExpire * 60 * 1000));
-
-				response.setContentType("application/json; charset=UTF-8");
-
-				out.print(result.toString());
-			}
-		} else {
+		if (request.getCharacterEncoding() != null) {
+			Integer studyID;
 			boolean append = false;
 			System.out.println("analysis...");
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 			File fileCSV, fileDXF;
 			String type, name;
-			Integer studyID;
 			boolean allNew = true;
+			Map<String, Integer> spaceMatch = null;
 			try {
+				name = paramsJSON.getString("name");
+				studyID = paramsJSON.getInt("studyid");
+				if (!paramsJSON.has("datain")
+						|| !paramsJSON.getJSONObject("datain").has("spaces"))
+					throw new MalformedDataException("No data");
+				spaceMatch =
+						processSpaces(paramsJSON.getJSONObject("datain")
+								.getJSONArray("spaces"), studyID);
 				fileCSV =
 						FileHandler.getTempFile(inputDepthDataType,
 								paramsJSON.getString("fileidCSV"),
@@ -177,11 +166,19 @@ public class StoreDepthmap extends FlowUpload {
 					// "Malformed data buddy... -.- (unknown type " + type
 					// + ")");
 				}
-				name = paramsJSON.getString("name");
-				studyID = paramsJSON.getInt("studyid");
 			} catch (NullPointerException | JSONException | ParseException
 					| SQLException e) {
 				throw new MalformedDataException("Malformed data buddy... -.-");
+			}
+			if (spaceMatch.size() == 0) {
+				sendInterfaceError(response, "No spaces selected");
+				return;
+			}
+			if (!fileCSV.exists() || !fileDXF.exists()) {
+				// look in SplabSessionListener
+				sendInterfaceError(response,
+						"Files have expired, restart the process");
+				return;
 			}
 			float scaleFromInterface = 1000;
 			float scale = 1f / scaleFromInterface;
@@ -210,15 +207,20 @@ public class StoreDepthmap extends FlowUpload {
 					for (int i = 0; i < spaces.length(); i++) {
 						JSONObject space = spaces.getJSONObject(i);
 
-						if (space.getString("alias")
-								.equals(alias.split("\\(")[0].trim())) {
+						if (space.getInt("id") == spaceMatch
+								.get(alias.split("\\(")[0].trim())) {
 							currSpace = space;
 							break;
 						}
 					}
-					if (currSpace == null)
-						throw new MalformedDataException(
-								"No such space " + alias + " found");
+					if (currSpace == null) {
+						// sendInterfaceError(response,
+						// "No such space " + alias + " found");
+						// return;
+						// as we are validating above this error is not
+						// required, just...
+						continue;
+					}
 					String plan_min = currSpace.getString("plan_min");
 					plan_min = plan_min.substring(1, plan_min.length() - 1);
 					String [] min = plan_min.split(",");

@@ -14,12 +14,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.subject.Subject;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
+import uk.co.spacelab.backend.SplabSessionListener;
 
 /**
  * Servlet implementation class StoreStakeholders
@@ -48,14 +52,6 @@ public class StoreStakeholders extends SplabHttpServlet {
 		// TODO Auto-generated method stub
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	boolean validParam(Map<String, String []> params, String param) {
-		return params.containsKey(param) && params.get(param) != null
-				&& params.get(param).length == 1;
-	}
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		processRequest(request, response);
@@ -64,6 +60,8 @@ public class StoreStakeholders extends SplabHttpServlet {
 	protected void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
+		Subject currentUser = SecurityUtils.getSubject();
+		Session session = currentUser.getSession();
 		response.setContentType("text/json;charset=UTF-8");
 		if (request.getCharacterEncoding() == null) {
 			System.out.println(request.getParameterMap());
@@ -73,19 +71,26 @@ public class StoreStakeholders extends SplabHttpServlet {
 				return;
 			}
 			String fileID = null;
-			if (!validParam(request.getParameterMap(), "fileid"))
+
+			if (!validParam(request.getParameterMap(), "fileid")) {
+
 				fileID =
 						FileHandler
 								.uploadTempFileAndGetAlias(request,
 										inputDataType, inputFileType, 3600)
 								.substring(inputDataType.length());
-			else fileID = request.getParameter("fileid");
+			} else fileID = request.getParameter("fileid");
+			File temp =
+					FileHandler.getTempFile(inputDataType, fileID,
+							inputFileType);
+			SplabSessionListener.cleanTempFilesOfType(session, inputDataType,
+					temp.length());
+			SplabSessionListener.getTempFiles(session)
+					.add(inputDataType + fileID + "." + inputFileType);
 			JSONObject dataIn = null;
 			if (!validParam(request.getParameterMap(), "datain")) {
 				try {
-					getDataToValidate(request, response, FileHandler
-							.getTempFile(inputDataType, fileID, inputFileType),
-							fileID);
+					getDataToValidate(request, response, temp, fileID);
 				} catch (MalformedDataException e) {
 					sendInterfaceError(response, e.getLocalizedMessage());
 				}
@@ -97,6 +102,12 @@ public class StoreStakeholders extends SplabHttpServlet {
 			File file =
 					FileHandler.getTempFile(inputDataType,
 							paramsJSON.getString("fileid"), inputFileType);
+			if (!file.exists()) {
+				// look in SplabSessionListener
+				sendInterfaceError(response,
+						"File has expired, restart the process");
+				return;
+			}
 			JSONObject datain = paramsJSON.getJSONObject("datain");
 			try {
 				new StakeholderReader().convert(file, studyID, datain);
