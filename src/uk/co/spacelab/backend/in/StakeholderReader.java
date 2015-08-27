@@ -8,10 +8,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -20,6 +23,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -71,10 +75,11 @@ public class StakeholderReader {
 	// String.valueOf(studyID));
 	// return null;
 	// }
-	protected Map<String, List<String>> extractCellsFromNames(Workbook wb,
+	protected Map<String, Collection<String>> extractCellsFromNames(Workbook wb,
 			String... findNames) {
 		int ns = wb.getNumberOfNames();
-		Map<String, List<String>> result = new HashMap<String, List<String>>();
+		Map<String, Collection<String>> result =
+				new HashMap<String, Collection<String>>();
 		for (int i = 0; i < ns; i++) {
 			for (String name : findNames) {
 				if (wb.getNameAt(i).getNameName().equalsIgnoreCase(name)) {
@@ -100,7 +105,41 @@ public class StakeholderReader {
 		}
 		return result;
 	}
-	// protected Map<String, List<String>> getStaticData(String fileName,
+	private Map<String, List<String>> getDepartmentStakeholders(
+			XSSFSheet peopleSheet) {
+		Map<String, List<String>> people = new HashMap<String, List<String>>();
+		XSSFRow r = peopleSheet.getRow(0);
+		XSSFCell c;
+		int nameHeaderIndx = -1;
+		int departmentHeaderIndx = -1;
+		for (int j = 0; j < r.getPhysicalNumberOfCells(); j++) {
+			c = r.getCell(j);
+			if (null != c && c.getStringCellValue()
+					.equalsIgnoreCase("Name of stakeholder"))
+				nameHeaderIndx = j;
+			else
+				if (null != c
+						&& c.getStringCellValue().equalsIgnoreCase("Team"))
+					departmentHeaderIndx = j;
+		}
+		if (nameHeaderIndx == -1 || departmentHeaderIndx == -1) return people;
+		String department = null;
+		for (int i = 1; i < peopleSheet.getPhysicalNumberOfRows(); i++) {
+			r = peopleSheet.getRow(i);
+			c = r.getCell(nameHeaderIndx);
+			if (null == c || c.getStringCellValue().trim().length() < 1)
+				continue;
+			String name = c.getStringCellValue();
+			c = r.getCell(departmentHeaderIndx);
+			if (null != c && c.getStringCellValue().trim().length() > 0)
+				department = c.getStringCellValue();
+			if (department == null) continue;
+			if (!people.containsKey(department))
+				people.put(department, new ArrayList<String>());
+			people.get(department).add(name);
+		}
+		return people;
+	}
 	protected JSONObject getStaticData(File file, int studyID)
 			throws FileNotFoundException, IOException, ClassNotFoundException,
 			SQLException, ParseException {
@@ -110,12 +149,15 @@ public class StakeholderReader {
 		int ns = wb.getNumberOfSheets();
 		XSSFSheet teamSheet = null;
 		XSSFSheet questionSheet = null;
+		XSSFSheet peopleSheet = null;
 		for (int i = 0; i < ns; i++) {
 			if (wb.getSheetName(i).equalsIgnoreCase("TEAMS"))
 				teamSheet = wb.getSheetAt(i);
+			else if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS"))
+				questionSheet = wb.getSheetAt(i);
 			else
-				if (wb.getSheetName(i).equalsIgnoreCase("QUESTIONS"))
-					questionSheet = wb.getSheetAt(i);
+				if (wb.getSheetName(i).equalsIgnoreCase("STAKEHOLDER LIST"))
+					peopleSheet = wb.getSheetAt(i);
 		}
 		if (teamSheet == null)
 			throw new MalformedDataException("Teams sheet missing");
@@ -125,7 +167,7 @@ public class StakeholderReader {
 		String [] requiredNames =
 				new String [] {"DEPARTMENT_LIST", "QUESTION_LIST", "ISSUE_LIST",
 						"CLIENT_ISSUE_LIST"};
-		Map<String, List<String>> staticData =
+		Map<String, Collection<String>> staticData =
 				extractCellsFromNames(wb, requiredNames);
 		for (String name : requiredNames)
 			if (!staticData.containsKey(name))
@@ -230,6 +272,14 @@ public class StakeholderReader {
 							choices);
 				}
 			}
+		}
+
+		Map<String, List<String>> depPeople =
+				getDepartmentStakeholders(peopleSheet);
+		if (depPeople.size() > 0) {
+			staticData.put("STAKEHOLDER_LIST", new HashSet<String>());
+			for (List<String> dp : depPeople.values())
+				staticData.get("STAKEHOLDER_LIST").addAll(dp);
 		}
 		// JSONArray databaseQuestions =
 		// Database.selectAllFromTable("questions");

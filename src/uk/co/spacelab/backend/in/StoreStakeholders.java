@@ -29,8 +29,6 @@ import uk.co.spacelab.backend.SplabSessionListener;
  * Servlet implementation class StoreStakeholders
  */
 @WebServlet("/StoreStakeholders")
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5,
-		maxRequestSize = 1024 * 1024 * 5 * 5)
 public class StoreStakeholders extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final String inputDataType = "stakeholders";
@@ -63,40 +61,7 @@ public class StoreStakeholders extends SplabHttpServlet {
 		Subject currentUser = SecurityUtils.getSubject();
 		Session session = currentUser.getSession();
 		response.setContentType("text/json;charset=UTF-8");
-		if (request.getCharacterEncoding() == null) {
-			System.out.println(request.getParameterMap());
-			if (!validParam(request.getParameterMap(), "studyid")) {
-				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-						"malformed data... -_-");
-				return;
-			}
-			String fileID = null;
-
-			if (!validParam(request.getParameterMap(), "fileid")) {
-
-				fileID =
-						FileHandler
-								.uploadTempFileAndGetAlias(request,
-										inputDataType, inputFileType, 3600)
-								.substring(inputDataType.length());
-			} else fileID = request.getParameter("fileid");
-			File temp =
-					FileHandler.getTempFile(inputDataType, fileID,
-							inputFileType);
-			SplabSessionListener.cleanTempFilesOfType(session, inputDataType,
-					temp.length());
-			SplabSessionListener.getTempFiles(session)
-					.add(inputDataType + fileID + "." + inputFileType);
-			JSONObject dataIn = null;
-			if (!validParam(request.getParameterMap(), "datain")) {
-				try {
-					getDataToValidate(request, response, temp, fileID);
-				} catch (MalformedDataException e) {
-					sendInterfaceError(response, e.getLocalizedMessage());
-				}
-				return;
-			}
-		} else {
+		if (request.getCharacterEncoding() != null) {
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 			int studyID = paramsJSON.getInt("studyid");
 			File file =
@@ -122,24 +87,5 @@ public class StoreStakeholders extends SplabHttpServlet {
 			}
 		}
 	}
-	private void getDataToValidate(HttpServletRequest request,
-			HttpServletResponse response, File file, String fileid)
-					throws IOException, ServletException {
 
-		int studyID = Integer.parseInt(request.getParameter("studyid"));
-		try {
-			JSONObject out =
-					new StakeholderReader().getStaticData(file, studyID);
-			out.put("fileid", fileid);
-			PrintWriter pw = response.getWriter();
-			pw.print(out.toString());
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 }
