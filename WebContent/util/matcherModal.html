@@ -57,6 +57,7 @@
                   <th>Name</th>
                   <th ng-repeat="property in options.fromProperties">{{capitalize(property)}}</th>
                   <th>Matches</th>
+                  <th ng-if="options.toMatchProperty">{{options.toMatchProperty.name}}</th>
                   <th>Valid</th>
                   <th></th>
                 </tr>
@@ -68,6 +69,11 @@
                   <td>{{element.alias}}</td>
                   <td ng-repeat="property in options.fromProperties">{{getElementProperty(element,property)}}</td>
                   <td ng-class="(element.match) ? 'success' : 'danger'">{{getElementMatch(element)}}</td>
+                  <td ng-class="(element.match) ? 'success' : 'danger'"
+                    ng-if="options.toMatchProperty">{{element.match
+                    ?
+                    getElementProperty(element.match,options.toMatchProperty.name)
+                    : ''}}</td>
                   <td ng-class="(element.match) ? 'success' : 'danger'"><span
                     ng-class="(element.match) ? 'text-success' : 'text-danger'"><i
                       class="fa"
@@ -77,10 +83,14 @@
                       class="fa fa-check"></i></span>--></td>
                   <td><a class="btn"
                       ng-class="element.state == 'ignored'? 'btn-primary':''"
-                      ng-click="element.state = 'ignored'">Ignore</a> <a
+                      ng-click="element.state = 'ignored'">Ignore</a> <!-- <a
                       class="btn"
                       ng-class="element.state == 'overwrite'? 'btn-primary':''"
-                      ng-click="element.state = 'overwrite'">Overwrite</a>
+                      ng-click="element.state = 'overwrite'">Overwrite</a> -->
+                    <a ng-show="options.allowManualEnty" class="btn"
+                      ng-click="setValueManually(element)">Set value</a>
+                    <a ng-show="options.allowManualEnty" class="btn"
+                      ng-click="element.match = undefined">Clear</a>
                 </tr>
               </tbody>
             </table>
@@ -93,7 +103,7 @@
             href="#" onclick="return false;">{{capitalize(type)}} is
             new</a>
           <a class="btn pull-right" ng-click="reset()" href="#"
-            onclick="return false;">Reset</a>
+            onclick="return false;">Reset All</a>
           <div class="clearfix"></div>
         </div>
       </div>
