@@ -13,9 +13,10 @@ app
 						'HTTPFactory',
 						'MatcherFactory',
 						'ModalFactory',
+						'TextFactory',
 						function($scope, $modalInstance, $http, $modal, $q, study,
 								FileUploader, PlanFactory, HTTPFactory, MatcherFactory,
-								ModalFactory) {
+								ModalFactory, TextFactory) {
 							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
@@ -41,62 +42,30 @@ app
 							var dxfText = {};
 							vnauploader.onAfterAddingFile = function(fileItem) {
 								var reader = new FileReader();
-								reader.onload = (function(theFile) {
-									return function(e) {
-										if (!endsWith(theFile.name, 'vna')) {
-											alert("oi! that's not a VNA!");
-											return;
-										}
-										reader.readAsText(theFile);
-										// fileItem.formData.push({
-										// studyid : study.id
-										// });
-										reader.onload = function(e) {
-											var vna = e.target.result;
-											getVNAData(vna, false);
+								reader.onload = function(e) {
+									if (!endsWith(fileItem._file.name, 'vna')) {
+										alert("oi! that's not a VNA!");
+										return;
+									}
+									var vna = TextFactory.getVNAData(e.target.result);
+									processVNAData(vna, false);
 
-										};
-									};
-								})(fileItem._file);
-								reader.readAsDataURL(fileItem._file);
+								};
+								reader.readAsText(fileItem._file);
 							};
 							$scope.searchcomment = '';
 							$scope.foundspaces = [];
 
 							/**
-							 * Parses the vna file to display its contents on the modal. If
+							 * Parses the vna data to display the contents on the modal. If
 							 * splitFile is true it will also split the file in two, sensitive
 							 * (name, email) and clear data (the rest)
 							 */
-							function getVNAData(text, splitFile) {
+							function processVNAData(vnadata, splitFile) {
 								var i, j;
-								text = text.replace('\r', '\n');
-								text = text.replace(/ {1,}/g, ' ');
-								var lines = text.split('\n');
-								var headers = null;
-								var node_data = {
-									headers : '',
-									rows : []
-								};
-								var tie_data = {
-									headers : '',
-									rows : []
-								};
-								var currentRows = null;
-								for (i = 0; i < lines.length; i++) {
-									if (lines[i].trim().toUpperCase() == '*NODE DATA') {
-										currentRows = node_data.rows;
-										node_data.headers = lines[i + 1].trim();
-										i++;
-									} else if (lines[i].trim().toUpperCase() == '*TIE DATA') {
-										currentRows = tie_data.rows;
-										tie_data.headers = lines[i + 1].trim();
-										i++;
-									} else if (currentRows) {
-										currentRows.push(lines[i].trim());
-									}
-								}
-								headers = node_data.headers.split(' ');
+								var node_data = vnadata.node_data;
+								var tie_data = vnadata.tie_data;
+								var headers = node_data.headers;
 								var nameColumn = -1;
 								var emailColumn = -1;
 								var idColumn = -1;
@@ -148,16 +117,16 @@ app
 									clearLine = clearLine.trim();
 									clearLine += '\n';
 									clearRowData.push(clearLine);
+									sensRowData.push("*node data\n");
 									sensLine = '';
 									for (j = 0; j < sensHeaders.length; j++)
-										sensLine += headers[sensHeaders[j]] + '\t';
+										sensLine += headers[sensHeaders[j]] + ' ';
 									sensLine = sensLine.trim();
 									sensLine += '\n';
 									sensRowData.push(sensLine);
 								}
 								for (i = 0; i < node_data.rows.length; i++) {
-									var line = node_data.rows[i].slice(1,
-											node_data.rows[i].length - 1).split("\" \"");
+									var line = node_data.rows[i];
 									var completed = line[completedColumn].toUpperCase() == 'COMPLETE';
 									if (completed)
 										$scope.completed++;
@@ -195,20 +164,21 @@ app
 										clearRowData.push(clearLine);
 										sensLine = '';
 										for (j = 0; j < sensHeaders.length; j++)
-											sensLine += '"' + line[sensHeaders[j]] + '"\t';
+											sensLine += '"' + line[sensHeaders[j]] + '" ';
 										sensLine = sensLine.trim();
 										sensLine += '\n';
 										sensRowData.push(sensLine);
 									}
 								}
 
+								$scope.$apply();
 								if (splitFile) {
 									clearRowData.push('*tie data\n');
-									clearRowData.push(tie_data.headers + '\n');
+									clearRowData.push(tie_data.headers.join(' ') + '\n');
 									for (i = 0; i < tie_data.rows.length; i++)
-										clearRowData.push(tie_data.rows[i] + '\n');
+										clearRowData.push('"' + tie_data.rows[i].join('" "') +
+												'"\n');
 								}
-								$scope.$apply();
 								if (splitFile)
 									return {
 										clearRowData : clearRowData,
@@ -265,7 +235,8 @@ app
 										reader.readAsText(theFile);
 										reader.onload = function(e) {
 											var vna = e.target.result;
-											var newFileData = getVNAData(vna, true);
+											var newFileData = processVNAData(TextFactory
+													.getVNAData(vna), true);
 											deferred.resolve(newFileData);
 										};
 									};
@@ -301,7 +272,7 @@ app
 									headers) {
 								ModalFactory.closeWaitModal();
 								// TODO pop error dialog
-							}
+							};
 							vnauploader.onCompleteItem = function(item, response, status,
 									headers) {
 								ModalFactory.closeWaitModal();
@@ -406,7 +377,7 @@ app.controller('AfterStaffSurveyUploadModalCtrl', [
 				type : "octet/stream"
 			});
 			$scope.save = function() {
-				saveAs(blob, "sensData.tsv");
+				saveAs(blob, "sensData.vna");
 			};
 
 			$scope.ok = function() {
