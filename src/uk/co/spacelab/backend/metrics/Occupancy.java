@@ -70,37 +70,37 @@ public class Occupancy extends HttpServlet {
 				new HashMap<String, String []>();
 		knownFunctions
 				.put("activity_in_polygon_types",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_in_polygon_types_per_type",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_interacting_in_polygon_types_per_activity",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_in_polygon_types_per_activity",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_in_poly_types_per_round",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_max_in_polygon_types_per_type",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions
 				.put("activity_min_in_polygon_types_per_type",
-						new String [] {"observation_id", "polygon_type_ids",
+						new String [] {"study_id", "polygon_type_ids",
 								"entity_states", "entity_types",
 								"entity_flag_bits"});
 		knownFunctions.put("avg_question_mark",
@@ -157,24 +157,28 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("all_team_ids", new String [] {"study_id"});
 		knownFunctions.put("get_observation_ids", new String [] {"study_id"});
 		knownFunctions.put("get_project_name", new String [] {"study_id"});
-		knownFunctions.put("gross_occupancy", new String [] {"observation_id"});
+		knownFunctions.put("gross_occupancy", new String [] {"study_id"});
 
-		knownFunctions.put("groups_of_people_in_poly_types_sum",
-				new String [] {"observation_id", "polygon_type_ids",
-						"entity_states", "entity_types", "entity_flag_bits",
-						"groups::text []"});
-		knownFunctions.put("groups_of_people_in_poly_types_avg",
-				new String [] {"observation_id", "polygon_type_ids",
-						"entity_states", "entity_types", "entity_flag_bits",
-						"groups::text []"});
-		knownFunctions.put("groups_of_people_in_poly_types_max",
-				new String [] {"observation_id", "polygon_type_ids",
-						"entity_states", "entity_types", "entity_flag_bits",
-						"groups::text []"});
-		knownFunctions.put("groups_of_people_in_poly_types_min",
-				new String [] {"observation_id", "polygon_type_ids",
-						"entity_states", "entity_types", "entity_flag_bits",
-						"groups::text []"});
+		knownFunctions
+				.put("groups_of_people_in_poly_types_sum",
+						new String [] {"study_id", "polygon_type_ids",
+								"entity_states", "entity_types",
+								"entity_flag_bits", "groups::text []"});
+		knownFunctions
+				.put("groups_of_people_in_poly_types_avg",
+						new String [] {"study_id", "polygon_type_ids",
+								"entity_states", "entity_types",
+								"entity_flag_bits", "groups::text []"});
+		knownFunctions
+				.put("groups_of_people_in_poly_types_max",
+						new String [] {"study_id", "polygon_type_ids",
+								"entity_states", "entity_types",
+								"entity_flag_bits", "groups::text []"});
+		knownFunctions
+				.put("groups_of_people_in_poly_types_min",
+						new String [] {"study_id", "polygon_type_ids",
+								"entity_states", "entity_types",
+								"entity_flag_bits", "groups::text []"});
 
 		knownFunctions.put("id_of_poly_types",
 				new String [] {"type_group", "type_alias"});
@@ -191,10 +195,8 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id", "depthmap_type"});
 		knownFunctions.put("ids_of_questions_in_group",
 				new String [] {"question_group"});
-		knownFunctions.put("max_desk_occupancy",
-				new String [] {"observation_id"});
-		knownFunctions.put("min_desk_occupancy",
-				new String [] {"observation_id"});
+		knownFunctions.put("max_desk_occupancy", new String [] {"study_id"});
+		knownFunctions.put("min_desk_occupancy", new String [] {"study_id"});
 		knownFunctions.put("nia_of_poly_type_group",
 				new String [] {"study_id", "poly_type_group"});
 		knownFunctions.put("nia_of_poly_type_group_per_building",
@@ -213,44 +215,42 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id", "question_id"});
 		knownFunctions.put("no_of_responders_with_ties_outside_team",
 				new String [] {"study_id", "question_id"});
-		knownFunctions.put("no_of_rounds", new String [] {"observation_id"});
+		knownFunctions.put("no_of_rounds", new String [] {"study_id"});
 		knownFunctions.put("no_of_buildings", new String [] {"study_id"});
-		knownFunctions.put("no_of_desks", new String [] {"observation_id"});
+		knownFunctions.put("no_of_desks", new String [] {"study_id"});
 		knownFunctions.put("no_of_desks_per_building",
-				new String [] {"observation_id"});
-		knownFunctions.put("no_of_desks_per_space",
-				new String [] {"observation_id"});
-		knownFunctions.put("no_of_desks_not_empty",
-				new String [] {"observation_id"});
+				new String [] {"study_id"});
+		knownFunctions.put("no_of_desks_per_space", new String [] {"study_id"});
+		knownFunctions.put("no_of_desks_not_empty", new String [] {"study_id"});
 		{
 			// to be removed
-			knownFunctions.put("no_of_desks_in_poly_type", new String [] {
-					"type_group", "type_alias", "observation_id"});
+			knownFunctions.put("no_of_desks_in_poly_type",
+					new String [] {"type_group", "type_alias", "study_id"});
 		}
 		knownFunctions.put("no_of_desks_in_poly_types",
-				new String [] {"type_ids", "observation_id"});
+				new String [] {"type_ids", "study_id"});
 		knownFunctions.put("no_of_desks_in_poly_types_per_building",
-				new String [] {"type_ids", "observation_id"});
+				new String [] {"type_ids", "study_id"});
 		knownFunctions.put("no_of_desks_per_polygon_type",
-				new String [] {"observation_id", "type_ids"});
-		knownFunctions.put("no_of_people_activity", new String [] {
-				"observation_id", "states", "types", "flag_bits"});
+				new String [] {"study_id", "type_ids"});
+		knownFunctions.put("no_of_people_activity",
+				new String [] {"study_id", "states", "types", "flag_bits"});
 		knownFunctions.put("no_of_people_activity_breakdown",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_per_round",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_per_building",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_per_space",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting_per_activity",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting_per_building",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_people_activity_interacting_per_space",
-				new String [] {"observation_id", "activity_ids"});
+				new String [] {"study_id", "activity_ids"});
 		knownFunctions.put("no_of_polys_in_func",
 				new String [] {"func_alias", "study_id"});
 		knownFunctions.put("no_of_polys_in_poly_types",
@@ -324,11 +324,11 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id"});
 
 		knownFunctions.put("occupancy_of_poly_types",
-				new String [] {"observation_id", "type_ids"});
+				new String [] {"study_id", "type_ids"});
 		knownFunctions.put("occupancy_of_poly_types_per_round",
-				new String [] {"observation_id", "type_ids"});
+				new String [] {"study_id", "type_ids"});
 		knownFunctions.put("occupancy_frequency_grouped",
-				new String [] {"observation_id", "groups::text []"});
+				new String [] {"study_id", "groups::text []"});
 		knownFunctions.put("poly_types_names", new String [] {"poly_type_ids"});
 		knownFunctions.put("possible_choices_in_question",
 				new String [] {"question_id"});
@@ -344,12 +344,12 @@ public class Occupancy extends HttpServlet {
 		knownFunctions.put("team_names", new String [] {"team_ids"});
 		// utilisation measures can be achieved with "activity_in_poly_types"
 		knownFunctions.put("utilisation_of_poly_types",
-				new String [] {"observation_id", "type_ids"});
+				new String [] {"study_id", "type_ids"});
 		knownFunctions.put("utilisation_activity_of_poly_types",
-				new String [] {"observation_id", "type_ids", "states"});
+				new String [] {"study_id", "type_ids", "states"});
 		knownFunctions.put("no_of_people_per_round",
-				new String [] {"observation_id", "states"});
-		knownFunctions.put("round_times", new String [] {"observation_id"});
+				new String [] {"study_id", "states"});
+		knownFunctions.put("round_times", new String [] {"study_id"});
 
 		try (Connection con = Database.getConnection();) {
 			if (type.equals("devices") || type.equals("projects")
@@ -379,8 +379,9 @@ public class Occupancy extends HttpServlet {
 							&& ((String) args[i]).startsWith("[")
 							&& ((String) args[i]).endsWith("]")) {
 						qmString += requestArgs[i] + " := ? ";
-						String ns = ((String) args[i]).split("\\[")[1]
-								.split("\\]")[0].trim();
+						String ns =
+								((String) args[i]).split("\\[")[1]
+										.split("\\]")[0].trim();
 						args[i] = getAsJDBCArray(con, ns.split(","), argType);
 
 					} else qmString += requestArgs[i] + " := ? ";

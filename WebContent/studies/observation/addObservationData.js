@@ -10,10 +10,8 @@ app.controller("addObservationDataInstance", [
 		function($scope, $modalInstance, FileUploader, study, observation,
 				MatcherFactory, HTTPFactory, ModalFactory) {
 			"use strict";
-			console.log('observid ' + observation.id);
 			var uploader = $scope.uploader = new FileUploader({
-				// url : 'studies/observation/uploadObservationData.php',
-				url : HTTPFactory.getBackend() + 'StoreObservationData',
+				url : HTTPFactory.getBackend() + 'GetObservationComparableData',
 				formData : [
 					{
 						studyid : study.id,
@@ -21,33 +19,22 @@ app.controller("addObservationDataInstance", [
 					}
 				],
 			});
-
-			// FILTERS
-
-			uploader.filters.push({
-				name : 'customFilter',
-				fn : function(item /* {File|FileLikeObject} */, options) {
-					return this.queue.length < 10;
-				}
-			});
-
 			$scope.attach = function() {
 				ModalFactory.openWaitModal('Getting Validation data...');
 				uploader.uploadAll();
-			}
+			};
 			uploader.onCompleteItem = function(fileItem, response, status, headers) {
-				// console.info('onCompleteItem', fileItem, response, status, headers);
 				ModalFactory.closeWaitModal();
-				if (status === 400) {
+				if (status >= 400) {
 					ModalFactory.openErrorModal(response);
 					return;
 				}
-				console.info(response);
 				MatcherFactory.openMatcherModal("space", "spaces", response.spaces,
 						response.spacesInDB).result.then(function(dialogResponse) {
 					console.log(dialogResponse);
 					ModalFactory.openWaitModal('Storing data...');
 					HTTPFactory.backendPost("StoreObservationData", {
+						studyid : study.id,
 						observationid : observation.id,
 						fileid : response.fileid,
 						spaces : dialogResponse
@@ -62,13 +49,10 @@ app.controller("addObservationDataInstance", [
 						ModalFactory.openErrorModal(response);
 					});
 				}, function(error) {
-					console.log(error);
+					// cancelled modal
 				});
 
 			};
-			// uploader.onCompleteAll = function() {
-			// console.info('onCompleteAll');
-			// };
 			$scope.cancel = function() {
 				$modalInstance.dismiss('cancel');
 			};

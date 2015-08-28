@@ -25,7 +25,7 @@ import uk.co.spacelab.backend.Database.COL;
 public class SQLiteToPostgreSQL {
 	private static final long serialVersionUID = 1L;
 	private static String dbDriver = "org.sqlite.JDBC";
-	public static JSONObject getSpaces(int observationID, String sqliteFile)
+	public static JSONObject getSpaces(int studyID, String sqliteFile)
 			throws ClassNotFoundException {
 
 		// load the sqlite-JDBC driver using the current class loader
@@ -41,11 +41,11 @@ public class SQLiteToPostgreSQL {
 
 			Map<Integer, Integer> spaceMapper = new HashMap<Integer, Integer>();
 			ResultSet rs = statement.executeQuery("SELECT * FROM spaces");
-			int studyID =
-					Database.customQuery(
-							"SELECT study_id FROM observations WHERE id=?",
-							String.valueOf(observationID)).getJSONObject(0)
-							.getInt("study_id");
+//			int studyID =
+//					Database.customQuery(
+//							"SELECT study_id FROM observations WHERE id=?",
+//							String.valueOf(observationID)).getJSONObject(0)
+//							.getInt("study_id");
 			// Connection psql = Database.getConnection();
 			//
 			// psql.setAutoCommit(false);
@@ -113,7 +113,7 @@ public class SQLiteToPostgreSQL {
 		}
 		return result;
 	}
-	public static void convert(int observationID, String sqliteFile)
+	public static void convert(int studyID, String sqliteFile)
 			throws ClassNotFoundException {
 
 		// load the sqlite-JDBC driver using the current class loader
@@ -140,11 +140,11 @@ public class SQLiteToPostgreSQL {
 			ResultSet rs = statement.executeQuery("SELECT * FROM spaces");
 			Connection psql = Database.getConnection();
 			psql.setAutoCommit(false);
-			int studyID =
-					Database.customQuery(psql,
-							"SELECT study_id FROM observations WHERE id=?",
-							String.valueOf(observationID)).getJSONObject(0)
-							.getInt("study_id");
+			// int studyID =
+			// Database.customQuery(psql,
+			// "SELECT study_id FROM observations WHERE id=?",
+			// String.valueOf(observationID)).getJSONObject(0)
+			// .getInt("study_id");
 
 			System.out.println("Spaces");
 			while (rs.next()) {
@@ -198,8 +198,8 @@ public class SQLiteToPostgreSQL {
 			if (!append) {
 				JSONArray rounds =
 						Database.selectAllFromTableWhere(psql,
-								Database.TABLE_OBSERVATION_ROUNDS,
-								"observation_id=?", observationID);
+								Database.TABLE_OBSERVATION_ROUNDS, "study_id=?",
+								studyID);
 				for (int j = 0; j < rounds.length(); j++) {
 					int roundid = rounds.getJSONObject(j).getInt("id");
 					JSONArray snaps =
@@ -214,13 +214,13 @@ public class SQLiteToPostgreSQL {
 							Database.TABLE_OBSERVATION_SNAPSHOTS, "round_id=?",
 							roundid);
 				}
-				Database.deleteFrom(psql, "observation_rounds",
-						"observation_id=?", observationID);
+				Database.deleteFrom(psql, Database.TABLE_OBSERVATION_ROUNDS,
+						"study_id=?", studyID);
 			}
 			columnString = "round_id,space_id";
 			valueString = "?,?";
 			String colStringRounds =
-					"observation_id,day_no,round_no,start_timestamp,end_timestamp";
+					"study_id,day_no,round_no,start_timestamp,end_timestamp";
 			String valStringRounds =
 					"?,?,?,CAST(? AS timestamp with time zone),CAST(? AS timestamp with time zone)";
 			DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -249,7 +249,7 @@ public class SQLiteToPostgreSQL {
 											* 1000));
 
 					Object [] args =
-							new Object [] {observationID, dayNumber,
+							new Object [] {studyID, dayNumber,
 									roundNumber, df.format(start),
 									df.format(end)};
 					Database.insertInto(psql, Database.TABLE_OBSERVATION_ROUNDS,
@@ -281,11 +281,11 @@ public class SQLiteToPostgreSQL {
 			// psql.commit();
 			System.out.println("Predefined");
 			if (!append) {
-				Database.deleteFrom(psql, "predefined", "observation_id=?",
-						String.valueOf(observationID));
+				Database.deleteFrom(psql, "predefined", "study_id=?",
+						studyID);
 			}
 			columnString =
-					"observation_id,original_id,space_id,type,state,interaction,angle,position,system_comment";
+					"study_id,original_id,space_id,type,state,interaction,angle,position,system_comment";
 			valueString = "?,?,?,?,?,?,?,ST_Point(?,?),?";
 			Map<Integer, Integer> idMapper = new HashMap<Integer, Integer>();
 			rs = statement.executeQuery("SELECT * FROM predefined");
@@ -299,7 +299,7 @@ public class SQLiteToPostgreSQL {
 				// }
 				// String point = "(" + xpos + "," + ypos + ")";
 				Object [] args =
-						new Object [] {observationID, rs.getInt("originalid"),
+						new Object [] {studyID, rs.getInt("originalid"),
 								spaceMapper.get(inSpaceID), rs.getInt("type"),
 								rs.getInt("state"), rs.getInt("interaction"),
 								rs.getString("angle"), xpos, ypos,
