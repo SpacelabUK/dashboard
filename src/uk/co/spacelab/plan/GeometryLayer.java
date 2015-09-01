@@ -189,6 +189,11 @@ public class GeometryLayer extends Layer {
 		if (width * ratio > height) smallest = height;
 		System.out.println(minX + " " + maxX + " " + minY + " " + maxY + " "
 				+ width + " " + height);
+		// on osx when the below method is executed a "bootstrap" application
+		// pops up in thedock probably because BufferedImage is part of AWT. To
+		// avoid this add "java.awt.headless=true" to catalina.properties (a
+		// tomcat server setting), or "-Djava.awt.headless=true" as a vm
+		// argument for eclipse
 		BufferedImage image =
 				new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = image.createGraphics();
@@ -211,34 +216,33 @@ public class GeometryLayer extends Layer {
 		g2d.setStroke(new BasicStroke());
 		for (Line line : linn)
 			g2d.drawLine( //
-					offsetX + (int) ((-minX + line.vF[0]) * iMaxMinX),//
+					offsetX + (int) ((-minX + line.vF[0]) * iMaxMinX), //
 					height - offsetY - (int) ((-minY + line.vF[1]) * iMaxMinY), //
 					offsetX + (int) ((-minX + line.vF[3]) * iMaxMinX), //
 					height - offsetY - (int) ((-minY + line.vF[4]) * iMaxMinY));
 		for (Polyline pline : plines) {
 			for (int i = 0; i < pline.vF.length - 3; i += 3) {
 				g2d.drawLine(
-				//
-						offsetX + (int) ((-minX + pline.vF[i + 0]) * iMaxMinX),//
+						//
+						offsetX + (int) ((-minX + pline.vF[i + 0]) * iMaxMinX), //
 						height - offsetY
 								- (int) ((-minY + pline.vF[i + 1]) * iMaxMinY), //
 						offsetX + (int) ((-minX + pline.vF[i + 3]) * iMaxMinX), //
 						height - offsetY
 								- (int) ((-minY + pline.vF[i + 4]) * iMaxMinY));
 			}
-			if (pline.closed)
-				g2d.drawLine(
-						//
-						offsetX
-								+ (int) ((-minX + pline.vF[pline.vF.length - 6]) * iMaxMinX),//
-						height
-								- offsetY
-								- (int) ((-minY + pline.vF[pline.vF.length - 5]) * iMaxMinY), //
-						offsetX
-								+ (int) ((-minX + pline.vF[pline.vF.length - 3]) * iMaxMinX), //
-						height
-								- offsetY
-								- (int) ((-minY + pline.vF[pline.vF.length - 2]) * iMaxMinY));
+			if (pline.closed) g2d.drawLine(
+					//
+					offsetX + (int) ((-minX + pline.vF[pline.vF.length - 6])
+							* iMaxMinX), //
+					height - offsetY
+							- (int) ((-minY + pline.vF[pline.vF.length - 5])
+									* iMaxMinY), //
+					offsetX + (int) ((-minX + pline.vF[pline.vF.length - 3])
+							* iMaxMinX), //
+					height - offsetY
+							- (int) ((-minY + pline.vF[pline.vF.length - 2])
+									* iMaxMinY));
 		}
 		for (Arc arc : arcs) {
 			g2d.drawArc(offsetX + (int) ((-minX + arc.cF[0]) * iMaxMinX),
@@ -440,8 +444,7 @@ public class GeometryLayer extends Layer {
 			if (ent[0].equalsIgnoreCase("INSERT"))
 				refList.add(new Reference(ent, transform));
 			if (ent[0].equalsIgnoreCase("ARC")) arcList.add(new Arc(ent));
-			if (ent[0].equalsIgnoreCase("MTEXT"))
-				mtextList.add(new MText(ent));
+			if (ent[0].equalsIgnoreCase("MTEXT")) mtextList.add(new MText(ent));
 		}
 		addLines(lineList);
 		addPolylines(entityList);
@@ -483,7 +486,8 @@ public class GeometryLayer extends Layer {
 	public void addReferences(List<Reference> refList) {
 		Reference [] temp = new Reference [ref.length + refList.size()];
 		System.arraycopy(ref, 0, temp, 0, ref.length);
-		System.arraycopy(refList.toArray(), 0, temp, ref.length, refList.size());
+		System.arraycopy(refList.toArray(), 0, temp, ref.length,
+				refList.size());
 		ref = temp;
 		temp = null;
 		refList = null;
@@ -545,23 +549,22 @@ public class GeometryLayer extends Layer {
 		for (int i = 0; i < arcs.length; i++)
 			arcs[i].translatedLimits(this, hierarchyTransform);
 		for (int i = 0; i < ref.length; i++)
-			ref[i].checkInternalMaxMin(this, primary, depth, hierarchyTransform);
+			ref[i].checkInternalMaxMin(this, primary, depth,
+					hierarchyTransform);
 
 		return limits;
 	}
 
-	public void
-			checkMaxMin(Double x, Double y, Double z, double [] theseLimits) {
+	public void checkMaxMin(Double x, Double y, Double z,
+			double [] theseLimits) {
 		checkLimit(new Double [] {x, y, z}, theseLimits, 1);
 		checkLimit(new Double [] {x, y, z}, theseLimits, -1);
 	}
 	public void checkLimit(Double [] vector, double [] theseLimits,
 			int modMaxMin) {
 		for (int i = 0; i < 3; i++)
-			if (vector[i] != null
-					&& modMaxMin * vector[i] > modMaxMin
-							* theseLimits[2 * i
-									+ (int) ((modMaxMin + 1) * 0.5f)])
+			if (vector[i] != null && modMaxMin * vector[i] > modMaxMin
+					* theseLimits[2 * i + (int) ((modMaxMin + 1) * 0.5f)])
 				theseLimits[2 * i + (int) ((modMaxMin + 1) * 0.5f)] = vector[i];
 	}
 	public void resetLimits(double [] oLim) {
@@ -580,7 +583,7 @@ public class GeometryLayer extends Layer {
 				limits[0], limits[2], 0f,
 				limits[1], limits[2], 0f
 				//@formatter:on
-				};
+		};
 		return vertexCoords;
 	}
 	public double [] getLimits() {
@@ -640,11 +643,9 @@ public class GeometryLayer extends Layer {
 					blockLimits[4]}, refLimits, -1);
 			checkLimit(new Double [] {blockLimits[1], blockLimits[3],
 					blockLimits[5]}, refLimits, 1);
-			checkLimit(
-					new Double [] {refLimits[0], refLimits[2], refLimits[4]},
+			checkLimit(new Double [] {refLimits[0], refLimits[2], refLimits[4]},
 					parent.limits, -1);
-			checkLimit(
-					new Double [] {refLimits[1], refLimits[3], refLimits[5]},
+			checkLimit(new Double [] {refLimits[1], refLimits[3], refLimits[5]},
 					parent.limits, 1);
 
 		}
@@ -684,7 +685,8 @@ public class GeometryLayer extends Layer {
 			vF = new double [3 * (sides + 1)];
 			for (int i = 0; i < sides + 1; ++i) {
 				float newAngle =
-						(float) (Math.toRadians(as + i * coverAngle / sides) + Math.PI * 0.5f);
+						(float) (Math.toRadians(as + i * coverAngle / sides)
+								+ Math.PI * 0.5f);
 				vF[3 * i] = cF[0] + r * (float) Math.sin(newAngle);
 				vF[3 * i + 1] = cF[1] + -r * (float) Math.cos(newAngle);
 				vF[3 * i + 2] = cF[2];
@@ -707,9 +709,8 @@ public class GeometryLayer extends Layer {
 			}
 		}
 
-		void
-				translatedLimits(GeometryLayer parent,
-						double [] hierarchyTransform) {
+		void translatedLimits(GeometryLayer parent,
+				double [] hierarchyTransform) {
 			for (int i = 0; i < vF.length; i += 3) {
 				double [] point = {vF[i], vF[i + 1], vF[i + 2], 1f};
 				point = MatrixMath.apply(hierarchyTransform, point);
@@ -774,7 +775,8 @@ public class GeometryLayer extends Layer {
 			name = prop[2];
 			if (name.equals("")) name = String.valueOf(this.hashCode());
 			if (prop[3].equals("129") || prop[3].equals("1")
-					|| prop[3].equals("32")) closed = true;
+					|| prop[3].equals("32"))
+				closed = true;
 			cF[0] = Double.parseDouble(prop[4]) * drawScale;
 			cF[1] = Double.parseDouble(prop[5]) * drawScale;
 			cF[2] = Double.parseDouble(prop[6]) * drawScale;
@@ -782,8 +784,9 @@ public class GeometryLayer extends Layer {
 			if (prop.length > 7) {
 				List<Vertex> vertices = new ArrayList<Vertex>();
 				for (int i = 7; i < prop.length; i += 3) {
-					vertices.add(new Vertex(new String [] {"", prop[i],
-							prop[1 + i], prop[2 + i]}));
+					vertices.add(new Vertex(
+							new String [] {"", prop[i], prop[1 + i],
+									prop[2 + i]}));
 				}
 				populate(vertices);
 			}
@@ -810,9 +813,8 @@ public class GeometryLayer extends Layer {
 		void updateTransform(double [] external) {
 			transform = MatrixMath.apply(external, transform);
 		}
-		void
-				translatedLimits(GeometryLayer parent,
-						double [] hierarchyTransform) {
+		void translatedLimits(GeometryLayer parent,
+				double [] hierarchyTransform) {
 			for (int i = 0; i < vF.length; i += 3) {
 				double [] point = {vF[i], vF[i + 1], vF[i + 2], 1f};
 				point = MatrixMath.apply(hierarchyTransform, point);
@@ -908,9 +910,8 @@ public class GeometryLayer extends Layer {
 			vF[4] = y2;
 			vF[5] = z2;
 		}
-		void
-				translatedLimits(GeometryLayer parent,
-						double [] hierarchyTransform) {
+		void translatedLimits(GeometryLayer parent,
+				double [] hierarchyTransform) {
 			for (int i = 0; i < vF.length; i += 3) {
 				double [] point =
 						{(float) vF[i], (float) vF[i + 1], (float) vF[i + 2],

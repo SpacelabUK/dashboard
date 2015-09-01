@@ -3,19 +3,17 @@ app.controller("addObservationDataInstance", [
 		'$modalInstance',
 		'FileUploader',
 		'study',
-		'observation',
 		'MatcherFactory',
 		'HTTPFactory',
 		'ModalFactory',
-		function($scope, $modalInstance, FileUploader, study, observation,
-				MatcherFactory, HTTPFactory, ModalFactory) {
+		function($scope, $modalInstance, FileUploader, study, MatcherFactory,
+				HTTPFactory, ModalFactory) {
 			"use strict";
 			var uploader = $scope.uploader = new FileUploader({
 				url : HTTPFactory.getBackend() + 'GetObservationComparableData',
 				formData : [
 					{
-						studyid : study.id,
-						observationid : observation.id
+						studyid : study.id
 					}
 				],
 			});
@@ -35,7 +33,6 @@ app.controller("addObservationDataInstance", [
 					ModalFactory.openWaitModal('Storing data...');
 					HTTPFactory.backendPost("StoreObservationData", {
 						studyid : study.id,
-						observationid : observation.id,
 						fileid : response.fileid,
 						spaces : dialogResponse
 					}).then(function(response) {

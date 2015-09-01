@@ -116,7 +116,7 @@ public class StorePlans extends SplabHttpServlet {
 					getBlocks(dxf.breakDXFEntities(dxf.blk),
 							MatrixMath.getIdentity(), scale);
 			for (String key : blockz.keySet()) {
-
+				if (!key.startsWith(DXFReader.generalIdentifier)) continue;
 				String alias =
 						key.substring(DXFReader.generalIdentifier.length())
 								.split("\\(")[0].trim();
@@ -152,7 +152,7 @@ public class StorePlans extends SplabHttpServlet {
 								new File(
 										PLANS_DIR + studyID + "_" + alias
 												+ ".png");
-						ImageIO.write(img, "png", outputfile);
+//						ImageIO.write(img, "png", outputfile);
 
 						Connection psql = Database.getConnection();
 						if (aliasToMatch.equals("*")) {

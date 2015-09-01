@@ -1,135 +1,26 @@
-
-<div>
-
-  <!-- Header Bar -->
-
-  <div class="row header">
-    <div class="col-xs-12">
-      <div class="meta pull-left">
-        <div class="page">Attach plans</div>
-        <div class="breadcrumb-links">Home / Attach Plans</div>
-        <br> <span>Complete all fields and press submit at
+<div class="row">
+  <div class="col-xs-12">
+    <div class="row">
+      <h4 style="padding: 12px 12px 0px;">Attach plans</h4>
+      <hr />
+      <!-- <div style="padding: 0px 12px;">Complete all fields and press submit at
           the end. A quick validation is done on-the-fly and a more
-          thorough one after submitting</span>
-      </div>
+          thorough one after submitting</div> -->
     </div>
-  </div>
-  <!-- End Header Bar -->
-
-  <div id="projectinfo" class="row">
-    <div class="col-lg-12">
-      <div class="widget">
-        <div class="widget-body">
-          <form action="upload_file.php" method="post"
-            enctype="multipart/form-data">
-            <input type="file" name="file" id="file" nv-file-select=""
-              uploader="uploader" accept=".dxf"> <br> <br>
-
-            <!-- <textarea id="foundobjects" class="faketextbox" rows="0"
-              ng-model="searchcomment" readonly></textarea> -->
-            <!-- <input id="dxfstore" type="hidden" name="dxf"> -->
-            </input>
-
-          </form>
-        </div>
-      </div>
+    <!-- <br /> -->
+    <div class="row">
+      <input class="btn" type="file" nv-file-select=""
+        uploader="uploader" accept=".dxf" />
     </div>
-  </div>
-  <!-- <div class="row">
-    <div class="col-lg-6">
-      <div class="widget">
-        <div class="widget-title">
-          <i class="fa fa-tasks"></i> Spaces <input type="text"
-            placeholder="Search"
-            class="form-control input-sm pull-right" ng-model="search" />
-        </div>
-        <div class="widget-body medium no-padding">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Building</th>
-                  <th>Space</th>
-                  <th>Seats</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-class="(space.selected) ? 'highlight' : ''"
-                  ng-click="space.selected = !space.selected"
-                  ng-repeat="space in foundspaces | orderBy:predicate:reverse | filter:search"">
-                  <td>{{space.building}}</td>
-                  <td>{{space.name}}</td>
-                  <td>{{space.seats.length}}</td>
-                  <td><span
-                    ng-class="(space.uploaded) ? 'text-success' : ''"><i
-                      class="fa"
-                      ng-class="(space.uploaded) ? 'fa-check' : ''"></i></span>
-                    
-                    <span class="text-success"><i
-                      class="fa fa-check"></i></span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="widget-footer">
-          <a class="btn pull-right" ng-click="selectAllSpaces()"
-            href="#" onclick="return false;">Select all</a>
-          <div class="clearfix"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="widget">
-        <div class="widget-title">
-          <i class="fa fa-tasks"></i>Existing Spaces <input type="text"
-            placeholder="Search"
-            class="form-control input-sm pull-right" ng-model="search" />
-        </div>
-        <div class="widget-body medium no-padding">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Building</th>
-                  <th>Space</th>
-                  <th>Seats</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-class="(space.selected) ? 'highlight' : ''"
-                  ng-click="space.selected = !space.selected"
-                  ng-repeat="space in study.existingSpaces | orderBy:predicate:reverse | filter:search"">
-                  <td>{{space.building}}</td>
-                  <td>{{space.name}}</td>
-                  <td>{{space.seats.length}}</td>
-                  <td><span
-                    ng-class="(space.uploaded) ? 'text-success' : ''"><i
-                      class="fa"
-                      ng-class="(space.uploaded) ? 'fa-check' : ''"></i></span>
-                    
-                    <span class="text-success"><i
-                      class="fa fa-check"></i></span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="widget-footer">
-          <a class="btn pull-right"
-            ng-click="deleteSelectedSpaces(study)" href="#"
-            onclick="return false;">Delete selected</a>
-          <div class="clearfix"></div>
-        </div>
-      </div>
-    </div>
-  </div> -->
-  <div class="row">
-    <div class="col-lg-12">
-      <button class="btn btn-sm btn-info pull-right" ng-click="attach()">Attach</button>
-
+    <br />
+    <div class="row" style="overflow: auto">
+      <button type="button" class="btn btn-info btn-s pull-right"
+        ng-click="attach()"
+        ng-disabled="!uploader.getNotUploadedItems().length"
+        style="margin-left: 15px">Continue</button>
+      <button type="button" class="btn btn-s pull-right"
+        ng-click="cancel()">Cancel</button>
     </div>
   </div>
 </div>
+<div>

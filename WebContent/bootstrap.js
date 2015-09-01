@@ -1,23 +1,3 @@
-/*
- * Some basic String functions used throughout
- */
-function eql(str1, str2) {
-	return str1.trim().toLowerCase() === str2.toLowerCase();
-}
-function startsWith(str, prefix) {
-	return str.indexOf(prefix) === 0;
-}
-function endsWith(str, suffix) {
-	return str.match(suffix + "$") == suffix;
-}
-function startsWithIgnoreCase(str, prefix) {
-	return str.toUpperCase().indexOf(prefix.toUpperCase()) === 0;
-}
-function endsWithIgnoreCase(str, suffix) {
-	return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
-			.toUpperCase();
-}
-
 var app = angular.module('Dashboard', [
 		'ui.bootstrap', 'ngCookies', 'ui.router', 'angularFileUpload', 'flow',
 		'gridster'
@@ -48,6 +28,25 @@ var app = angular.module('Dashboard', [
 			$httpProvider.interceptors.push('requestInterceptor');
 		}
 ]);
+/*
+ * Some basic String functions used throughout
+ */
+function eql(str1, str2) {
+	return str1.trim().toLowerCase() === str2.toLowerCase();
+}
+function startsWith(str, prefix) {
+	return str.indexOf(prefix) === 0;
+}
+function endsWith(str, suffix) {
+	return str.match(suffix + "$") == suffix;
+}
+function startsWithIgnoreCase(str, prefix) {
+	return str.toUpperCase().indexOf(prefix.toUpperCase()) === 0;
+}
+function endsWithIgnoreCase(str, suffix) {
+	return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
+			.toUpperCase();
+}
 // // hack to allow downloading js-generated blob objects
 // app
 // .config([
@@ -446,204 +445,7 @@ app.factory('fetching', [
 			return pub;
 		}
 ]);
-app.controller('opnStdCtrl', [
-		'$scope', '$modal', 'projectFactory', 'RoundModelFactory', 'fetching',
-		function($scope, $modal, projectFactory, RoundModelFactory, fetching) {
-			"use strict";
-			$scope.fetching = fetching;
-			$scope.studies = projectFactory.getOpenStudies();
-			// $scope.projects.displayStudies = false;
-			$scope.predicate = 'id';
-			projectFactory.refreshOpenStudies().then(function() {
-				// $scope.fetching.unset();
 
-				angular.forEach($scope.studies, function(study) {
-
-					fetching.set('stps', study.id);
-					projectFactory.refreshStudyParts(study).then(function() {
-						fetching.unset('stps', study.id);
-					});
-				});
-			});
-			$scope.addObservation = function(study) {
-				projectFactory.addStudyPart(study, 'observation');
-			};
-			$scope.addPlans = function(study) {
-				$modal.open({
-					templateUrl : 'studies/plans/addPlans.html',
-					controller : 'addPlansInstance',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			// $scope.fetchingObservationRounds = function(id) {
-			// return fetching.is('obs', id);
-			// }
-			$scope.setRoundModel = function(observation) {
-				fetching.set('obs', observation.id);
-				RoundModelFactory.getRoundModel(observation).then(function(response) {
-					var data = response.data[0];
-					if (data) {
-						// var startdate = new Date();
-						// startdate.parse(data['startdate']);
-						// var enddate = new Date();
-						// enddate.parse(data['enddate']);
-						if (!observation.roundModel) {
-							observation.roundModel = {
-								observationid : observation.id,
-								type : 'date_round_matrices'
-							};
-						}
-						console.log(response);
-						observation.roundModel.startdate = Date.parse(data.start_date);
-						observation.roundModel.enddate = Date.parse(data.end_date);
-						observation.roundModel.duration = 60;// data['roundduration'];
-					}
-					// console.log(observation);
-					fetching.unset('obs', observation.id);
-					$modal.open({
-						templateUrl : 'studies/observation/setRoundModel.html',
-						controller : 'setRoundModel',
-						size : 'lg',
-						resolve : {
-							observation : function() {
-								return observation;
-							}
-						}
-					});
-				}, function(error) {
-					console.log(error);
-				});
-			};
-			$scope.addObservationData = function(study, observation) {
-				$modal.open({
-					templateUrl : 'studies/observation/addObservationData.html',
-					controller : 'addObservationDataInstance',
-					resolve : {
-						study : function() {
-							return study;
-						},
-						observation : function() {
-							return observation;
-						}
-					}
-				});
-			};
-			$scope.addPolygons = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addPolygons.html',
-					controller : 'addPolygonsInstance',
-					windowClass : 'addPolys',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addDepthmap = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addDepthmap.html',
-					controller : 'addDepthmapInstance',
-					windowClass : 'addDepthmap',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addStaffSurvey = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addStaffSurvey.html',
-					controller : 'addStaffSurveyInstance',
-					windowClass : 'addStaffSurvey',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addStakeholders = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addStakeholders.html',
-					controller : 'addStakeholdersInstance',
-					windowClass : 'addStakeholders',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-		}
-]);
-
-// app.controller("addPolygonsInstance", function($scope, $modalInstance,
-// FileUploader, study) {
-// var uploader = $scope.uploader = new FileUploader({
-// url : 'studies/uploadPolygons.php',
-// formData : [ {
-// studyid : study.id
-// } ],
-// });
-//
-// // FILTERS
-//
-// uploader.filters.push({
-// name : 'customFilter',
-// fn : function(item /* {File|FileLikeObject} */, options) {
-// return this.queue.length < 10;
-// }
-// });
-//
-// // CALLBACKS
-//
-// uploader.onWhenAddingFileFailed = function(
-// item /* {File|FileLikeObject} */, filter, options) {
-// console.info('onWhenAddingFileFailed', item, filter, options);
-// };
-// uploader.onAfterAddingFile = function(fileItem) {
-// console.info('onAfterAddingFile', fileItem);
-// };
-// uploader.onAfterAddingAll = function(addedFileItems) {
-// console.info('onAfterAddingAll', addedFileItems);
-// };
-// uploader.onBeforeUploadItem = function(item) {
-// console.info('onBeforeUploadItem', item);
-// };
-// uploader.onProgressItem = function(fileItem, progress) {
-// console.info('onProgressItem', fileItem, progress);
-// };
-// uploader.onProgressAll = function(progress) {
-// console.info('onProgressAll', progress);
-// };
-// uploader.onSuccessItem = function(fileItem, response, status, headers) {
-// console.info('onSuccessItem', fileItem, response, status, headers);
-// };
-// uploader.onErrorItem = function(fileItem, response, status, headers) {
-// console.info('onErrorItem', fileItem, response, status, headers);
-// };
-// uploader.onCancelItem = function(fileItem, response, status, headers) {
-// console.info('onCancelItem', fileItem, response, status, headers);
-// };
-// uploader.onCompleteItem = function(fileItem, response, status, headers) {
-// console.info('onCompleteItem', fileItem, response, status, headers);
-// };
-// uploader.onCompleteAll = function() {
-// console.info('onCompleteAll');
-// };
-//
-// console.info('uploader', uploader);
-//
-// $scope.cancel = function() {
-// $modalInstance.dismiss('cancel');
-// };
-// });
 app.controller('StdCtrlr', [
 		'$scope', '$stateParams', '$http', function($scope, $stateParams, $http) {
 			"use strict";

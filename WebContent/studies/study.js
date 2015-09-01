@@ -1,11 +1,149 @@
-"use strict";
+app.controller('opnStdCtrl', [
+		'$scope',
+		'$modal',
+		'projectFactory',
+		'RoundModelFactory',
+		'HTTPFactory',
+		'fetching',
+		function($scope, $modal, projectFactory, RoundModelFactory, HTTPFactory,
+				fetching) {
+			"use strict";
+			$scope.fetching = fetching;
+			$scope.studies = projectFactory.getOpenStudies();
+			// $scope.projects.displayStudies = false;
+			$scope.predicate = 'id';
+			projectFactory.refreshOpenStudies().then(function() {
+				// $scope.fetching.unset();
+
+				angular.forEach($scope.studies, function(study) {
+
+					fetching.set('stps', study.id);
+					projectFactory.refreshStudyParts(study).then(function() {
+						fetching.unset('stps', study.id);
+					});
+				});
+			});
+			$scope.addObservation = function(study) {
+				projectFactory.addStudyPart(study, 'observation');
+			};
+			$scope.addPlans = function(study) {
+				$modal.open({
+					templateUrl : 'studies/plans/addPlans.html',
+					controller : 'addPlansInstance',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			// $scope.fetchingObservationRounds = function(id) {
+			// return fetching.is('obs', id);
+			// }
+			$scope.setRoundModel = function(observation) {
+				fetching.set('obs', observation.id);
+				RoundModelFactory.getRoundModel(observation).then(function(response) {
+					var data = response.data[0];
+					if (data) {
+						// var startdate = new Date();
+						// startdate.parse(data['startdate']);
+						// var enddate = new Date();
+						// enddate.parse(data['enddate']);
+						if (!observation.roundModel) {
+							observation.roundModel = {
+								observationid : observation.id,
+								type : 'date_round_matrices'
+							};
+						}
+						console.log(response);
+						observation.roundModel.startdate = Date.parse(data.start_date);
+						observation.roundModel.enddate = Date.parse(data.end_date);
+						observation.roundModel.duration = 60;// data['roundduration'];
+					}
+					// console.log(observation);
+					fetching.unset('obs', observation.id);
+					$modal.open({
+						templateUrl : 'studies/observation/setRoundModel.html',
+						controller : 'setRoundModel',
+						size : 'lg',
+						resolve : {
+							observation : function() {
+								return observation;
+							}
+						}
+					});
+				}, function(error) {
+					console.log(error);
+				});
+			};
+			$scope.addObservationData = function(study) {
+				$modal.open({
+					templateUrl : 'studies/observation/addObservationData.html',
+					controller : 'addObservationDataInstance',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addPolygons = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addPolygons.html',
+					controller : 'addPolygonsInstance',
+					windowClass : 'addPolys',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addDepthmap = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addDepthmap.html',
+					controller : 'addDepthmapInstance',
+					windowClass : 'addDepthmap',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addStaffSurvey = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addStaffSurvey.html',
+					controller : 'addStaffSurveyInstance',
+					windowClass : 'addStaffSurvey',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+			$scope.addStakeholders = function(study) {
+				$modal.open({
+					templateUrl : 'studies/addStakeholders.html',
+					controller : 'addStakeholdersInstance',
+					windowClass : 'addStakeholders',
+					resolve : {
+						study : function() {
+							return study;
+						}
+					}
+				});
+			};
+		}
+]);
 app.controller('MainStudyCtrl', [
 		'$scope',
 		'$stateParams',
 		'StudyFactory',
 		'HTTPFactory',
 		function($scope, $stateParams, StudyFactory, HTTPFactory) {
-
+			"use strict";
 			// fetch(backend + 'Get?t=study&studyid=' +
 			// study.id).then(
 			// function(response) {
@@ -29,7 +167,8 @@ app.controller('MainStudyCtrl', [
 			});
 			HTTPFactory.backendGet('GetAll?t=study_parts&studyid=' + $scope.id).then(
 					function(response) {
-						$scope.observation_id = response.data[0]['id'];
+						// $scope.observation_id = response.data[0]['id'];
+						$scope.observation_id = response.data[0].id;
 						HTTPFactory.backendGet(
 								'Occupancy?t=project_name&obsid=' + $scope.observation_id)
 								.then(function(response) {
@@ -85,6 +224,7 @@ app.controller('MainStudyCtrl', [
 						HTTPFactory.backendGet('Occupancy?t=get_quotes&obsid=' + $scope.id)
 								.then(
 										function(response) {
+											var i;
 											// if($scope.wordleData)
 											// {
 											// for (var
@@ -98,14 +238,14 @@ app.controller('MainStudyCtrl', [
 											$scope.wordleData = [];
 											// }
 											var max = 0;
-											for (var i = 0; i < response.data.length; i++) {
+											for (i = 0; i < response.data.length; i++) {
 												if (response.data[i].size > max) {
 													max = response.data[i].size;
 												}
 											}
-											for (var i = 0; i < response.data.length; i++) {
-												response.data[i].size = response.data[i].size * 100.0
-														/ max;
+											for (i = 0; i < response.data.length; i++) {
+												response.data[i].size = response.data[i].size * 100.0 /
+														max;
 												// $scope.wordleData.push(response.data[i]);
 											}
 											$scope.wordleData = response.data;
@@ -114,20 +254,21 @@ app.controller('MainStudyCtrl', [
 										}, function(error) {
 										});
 						HTTPFactory.backendGet(
-								'Occupancy?t=total_occ_per_round&obsid='
-										+ $scope.observation_id).then(function(response) {
+								'Occupancy?t=total_occ_per_round&obsid=' +
+										$scope.observation_id).then(function(response) {
+							var i;
 							var data = response.data;
 							// console.log(data);
 							var collated = {};
 							var sortable = [];
-							for (var i = 0; i < data.length; i++) {
+							for (i = 0; i < data.length; i++) {
 								var id = data[i].day_id * 100 + data[i].round_id;
 								sortable.push(id);
 								collated[id] = data[i].count;
 							}
 							sortable.sort();
 							$scope.occPerRound = [];
-							for (var i = 0; i < sortable.length; i++) {
+							for (i = 0; i < sortable.length; i++) {
 								$scope.occPerRound.push(collated[sortable[i]]);
 							}
 							// console.log($scope.occ_per_round);
@@ -135,8 +276,8 @@ app.controller('MainStudyCtrl', [
 						});
 						HTTPFactory
 								.backendGet(
-										'Occupancy?t=desk_occ_frequency&obsid='
-												+ $scope.observation_id).then(function(response) {
+										'Occupancy?t=desk_occ_frequency&obsid=' +
+												$scope.observation_id).then(function(response) {
 									var data = response.data;
 									// //
 									// console.log(data);
@@ -224,7 +365,7 @@ app.controller('MainStudyCtrl', [
 				$scope.avgOccupancyValues = [
 						$scope.occupancy / ($scope.desks * $scope.rounds),
 						1 - $scope.occupancy / ($scope.desks * $scope.rounds)
-				]
+				];
 				$scope.avgOccupancyLabels = [
 						(($scope.avgOccupancyValues[0] * 100) | 0) + '%',
 						(($scope.avgOccupancyValues[1] * 100) | 0) + '%'
@@ -233,7 +374,7 @@ app.controller('MainStudyCtrl', [
 				$scope.minOccupancyValues = [
 						$scope.minoccupancy / $scope.desks,
 						1 - $scope.minoccupancy / $scope.desks
-				]
+				];
 				$scope.minOccupancyLabels = [
 						(($scope.minOccupancyValues[0] * 100) | 0) + '%',
 						(($scope.minOccupancyValues[1] * 100) | 0) + '%'
@@ -242,7 +383,7 @@ app.controller('MainStudyCtrl', [
 				$scope.maxOccupancyValues = [
 						$scope.maxoccupancy / $scope.desks,
 						1 - $scope.maxoccupancy / $scope.desks
-				]
+				];
 				$scope.maxOccupancyLabels = [
 						(($scope.maxOccupancyValues[0] * 100) | 0) + '%',
 						(($scope.maxOccupancyValues[1] * 100) | 0) + '%'
@@ -251,142 +392,144 @@ app.controller('MainStudyCtrl', [
 			}
 		}
 ]);
-app
-		.controller(
-				'StudyIssuesCtrl',
-				[
-						'$scope',
-						'$stateParams',
-						'$modal',
-						'StudyFactory',
-						'HTTPFactory',
-						function($scope, $stateParams, $modal, StudyFactory, HTTPFactory) {
-							$scope.id = $stateParams.studyid;
-							$scope.viewAlias = $stateParams.viewAlias;
-							$scope.activityValues = [];
-							$scope.activityLabels = [
-									'walking', 'standing', 'sitting'
-							];
-							StudyFactory
-									.fetchStudy(
-											$scope.id,
-											[
-													'project_name', 'avg_moving_total',
-													'movement_density_total', 'avg_moving_spaces',
-													'movement_density_spaces', 'activities_split',
-													'study_accessibility_mean',
-													'printer_accessibility_mean_depth'
-											])
-									.then(
-											function(response) {
-												$scope.study = response;
-												console.log($scope.study.activities_split);
-												for (var i = 0; i < $scope.activityLabels.length; i++) {
-													$scope.activityValues
-															.push($scope.study.activities_split[$scope.activityLabels[i]]);
-												}
-												HTTPFactory
-														.backendGet(
-																'Occupancy?t=occ_per_space_and_round_prc&obsid='
-																		+ $scope.study.first_observation_id.content)
-														.then(
-																function(response) {
-																	$scope.spaces = response.data;
-																	var spaceMap = {};
-																	for (var i = 0; i < $scope.spaces.length; i++) {
-																		spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
-																	}
-																	if ($scope.study.movement_density_spaces) {
-																		for (var i = 0; i < $scope.study.movement_density_spaces.length; i++) {
-																			var spaceID = parseInt($scope.study.movement_density_spaces[i].content.space_id);
-																			spaceMap[spaceID].sqm_per_walker = {
-																				content : parseFloat($scope.study.movement_density_spaces[i].content.sqm_per_walker)
-																			}
-																		}
-																	}
-																}, function(error) {
-																	console.log(error);
-																});
-
-												// console.log(response);
-											}, function(error) {
-												console.log(error);
-											});
-							$scope.getSQM = function(number) {
-								return number.toFixed(1) + 'm' + '\xB2';
-							}
-							$scope.getDepthmapMeasure = function(space, analysis_type) {
-								HTTPFactory.backendGet(
-										"GetDepthmapData?spaceid=" + space.id + "&measure=" + 9
-												+ "&analysis_type=" + analysis_type).then(
-										function(response) {
-											// console.log(response.data);
-											var promise = $modal.open({
-												templateUrl : 'studies/dpmView.html',
-												controller : 'dpmViewController',
-												windowClass : 'planView',
-												resolve : {
-													img : function() {
-														return space.img;
-													},
-													dpmData : function() {
-														return response.data;
-													}
-												}
-											});
-										}, function(error) {
-											console.log(error);
-										});
-							}
-							HTTPFactory.backendGet(
-									'GetAll?t=study_parts&studyid=' + $scope.id).then(
-									function(response) {
-										$scope.observation_id = response.data[0]['id'];
-										// HTTPFactory.backendGet(
-										// Occupancy?t=avg_moving_total&obsid=' +
-										// $scope.observation_id)
-										// .then(function(response) {
-										// $scope.avg_moving_total = response.data;
-										// }, function(error) {
-										// console.log(error);
-										// });
-										// HTTPFactory.backendGet(
-										// 'Occupancy?t=avg_moving_building&obsid='
-										// + $scope.observation_id).then(function(response) {
-										// $scope.avg_moving_building = response.data;
-										// }, function(error) {
-										// console.log(error);
-										// });
-										// HTTPFactory.backendGet(
-										// 'Occupancy?t=avg_moving_floor&obsid=' +
-										// $scope.observation_id)
-										// .then(function(response) {
-										// $scope.avg_moving_floor = response.data;
-										// }, function(error) {
-										// console.log(error);
-										// });
-										// HTTPFactory.backendGet(
-										// 'Occupancy?t=movement_density_total&obsid='
-										// + $scope.observation_id).then(function(response) {
-										// $scope.movement_density_total = response.data;
-										// }, function(error) {
-										// });
-										// HTTPFactory.backendGet(
-										// 'Occupancy?t=movement_density_building&obsid='
-										// + $scope.observation_id).then(function(response) {
-										// $scope.movement_density_building = response.data;
-										// }, function(error) {
-										// });
-										// HTTPFactory.backendGet(
-										// 'Occupancy?t=movement_density_floor&obsid='
-										// + $scope.observation_id).then(function(response) {
-										// $scope.movement_density_floor = response.data;
-										// }, function(error) {
-										// });
-									}, function(error) {
-									});
-						}
-				]);
+// app
+// .controller(
+// 'StudyIssuesCtrl',
+// [
+// '$scope',
+// '$stateParams',
+// '$modal',
+// 'StudyFactory',
+// 'HTTPFactory',
+// function($scope, $stateParams, $modal, StudyFactory, HTTPFactory) {
+// $scope.id = $stateParams.studyid;
+// $scope.viewAlias = $stateParams.viewAlias;
+// $scope.activityValues = [];
+// $scope.activityLabels = [
+// 'walking', 'standing', 'sitting'
+// ];
+// StudyFactory
+// .fetchStudy(
+// $scope.id,
+// [
+// 'project_name', 'avg_moving_total',
+// 'movement_density_total', 'avg_moving_spaces',
+// 'movement_density_spaces', 'activities_split',
+// 'study_accessibility_mean',
+// 'printer_accessibility_mean_depth'
+// ])
+// .then(
+// function(response) {
+// $scope.study = response;
+// console.log($scope.study.activities_split);
+// for (var i = 0; i < $scope.activityLabels.length; i++) {
+// $scope.activityValues
+// .push($scope.study.activities_split[$scope.activityLabels[i]]);
+// }
+// HTTPFactory
+// .backendGet(
+// 'Occupancy?t=occ_per_space_and_round_prc&obsid=' +
+// $scope.study.first_observation_id.content)
+// .then(
+// function(response) {
+// $scope.spaces = response.data;
+// var spaceMap = {};
+// for (var i = 0; i < $scope.spaces.length; i++) {
+// spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
+// }
+// if ($scope.study.movement_density_spaces) {
+// for (var i = 0; i < $scope.study.movement_density_spaces.length; i++) {
+// var spaceID =
+// parseInt($scope.study.movement_density_spaces[i].content.space_id);
+// spaceMap[spaceID].sqm_per_walker = {
+// content :
+// parseFloat($scope.study.movement_density_spaces[i].content.sqm_per_walker)
+// }
+// }
+// }
+// }, function(error) {
+// console.log(error);
+// });
+//
+// // console.log(response);
+// }, function(error) {
+// console.log(error);
+// });
+// $scope.getSQM = function(number) {
+// return number.toFixed(1) + 'm' + '\xB2';
+// }
+// $scope.getDepthmapMeasure = function(space, analysis_type) {
+// HTTPFactory.backendGet(
+// "GetDepthmapData?spaceid=" + space.id + "&measure=" + 9 +
+// "&analysis_type=" + analysis_type).then(
+// function(response) {
+// // console.log(response.data);
+// var promise = $modal.open({
+// templateUrl : 'studies/dpmView.html',
+// controller : 'dpmViewController',
+// windowClass : 'planView',
+// resolve : {
+// img : function() {
+// return space.img;
+// },
+// dpmData : function() {
+// return response.data;
+// }
+// }
+// });
+// }, function(error) {
+// console.log(error);
+// });
+// }
+// HTTPFactory.backendGet(
+// 'GetAll?t=study_parts&studyid=' + $scope.id).then(
+// function(response) {
+// $scope.observation_id = response.data[0]['id'];
+// // HTTPFactory.backendGet(
+// // Occupancy?t=avg_moving_total&obsid=' +
+// // $scope.observation_id)
+// // .then(function(response) {
+// // $scope.avg_moving_total = response.data;
+// // }, function(error) {
+// // console.log(error);
+// // });
+// // HTTPFactory.backendGet(
+// // 'Occupancy?t=avg_moving_building&obsid='
+// // + $scope.observation_id).then(function(response) {
+// // $scope.avg_moving_building = response.data;
+// // }, function(error) {
+// // console.log(error);
+// // });
+// // HTTPFactory.backendGet(
+// // 'Occupancy?t=avg_moving_floor&obsid=' +
+// // $scope.observation_id)
+// // .then(function(response) {
+// // $scope.avg_moving_floor = response.data;
+// // }, function(error) {
+// // console.log(error);
+// // });
+// // HTTPFactory.backendGet(
+// // 'Occupancy?t=movement_density_total&obsid='
+// // + $scope.observation_id).then(function(response) {
+// // $scope.movement_density_total = response.data;
+// // }, function(error) {
+// // });
+// // HTTPFactory.backendGet(
+// // 'Occupancy?t=movement_density_building&obsid='
+// // + $scope.observation_id).then(function(response) {
+// // $scope.movement_density_building = response.data;
+// // }, function(error) {
+// // });
+// // HTTPFactory.backendGet(
+// // 'Occupancy?t=movement_density_floor&obsid='
+// // + $scope.observation_id).then(function(response) {
+// // $scope.movement_density_floor = response.data;
+// // }, function(error) {
+// // });
+// }, function(error) {
+// });
+// }
+// ]);
 
 app
 		.controller(
@@ -401,6 +544,7 @@ app
 						'$http',
 						function($scope, $stateParams, $modal, $timeout, StudyFactory,
 								HTTPFactory, $http) {
+							"use strict";
 							$scope.id = $stateParams.studyid;
 							// $scope.viewAlias = $stateParams.viewAlias;
 							$scope.issue = $stateParams.issue;
@@ -409,17 +553,17 @@ app
 									'walking', 'standing', 'sitting'
 							];
 							$scope.isNumber = function(metric) {
-								return !metric.measure || !metric.measure.type
-										|| metric.measure.type == 'number';
-							}
+								return !metric.measure || !metric.measure.type ||
+										metric.measure.type == 'number';
+							};
 							$scope.isTable = function(metric) {
-								return metric.measure && metric.measure.type
-										&& metric.measure.type == 'table';
-							}
+								return metric.measure && metric.measure.type &&
+										metric.measure.type == 'table';
+							};
 							$scope.isList = function(metric) {
-								return metric.measure && metric.measure.type
-										&& metric.measure.type == 'list';
-							}
+								return metric.measure && metric.measure.type &&
+										metric.measure.type == 'list';
+							};
 							var requiredStyles = [
 									'background-color', 'border-left-color',
 									'border-right-color', 'border-top-color',
@@ -434,7 +578,7 @@ app
 										return '_' + s.toLowerCase();
 									return '__' + ('000' + c.toString(16)).slice(-4);
 								});
-							}
+							};
 							$scope.hoverIn = function(metric) {
 								$scope.hovered = metric;
 							};
@@ -446,15 +590,15 @@ app
 								return $scope.hovered && $scope.hovered === metric;
 							};
 							$scope.toggle_no_of_decimals = function(metric) {
-								if (metric.no_of_decimals
-										&& typeof metric.no_of_decimals === 'string'
-										&& metric.no_of_decimals.slice(0, 1) === 'i') {
+								if (metric.no_of_decimals &&
+										typeof metric.no_of_decimals === 'string' &&
+										metric.no_of_decimals.slice(0, 1) === 'i') {
 									metric.no_of_decimals = metric.no_of_decimals.slice(1);
 									return;
 								}
 								if (metric.no_of_decimals || metric.no_of_decimals === 0)
 									metric.no_of_decimals = 'i' + metric.no_of_decimals;
-							}
+							};
 							$scope.downloadSVG = function(id) {
 								var nid = $scope.toAliasString(id);
 								var svgpar = document.getElementById(nid);
@@ -462,14 +606,15 @@ app
 								var svg = svgpar.getElementsByTagName("svg")[0];
 
 								svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-								var image_data = '<?xml version="1.0" encoding="utf-8" standalone="no"?>'
-										+ '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
-										+ '"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
+								var image_data = '<?xml version="1.0" encoding="utf-8" ' + //
+								'standalone="no"?>' + //
+								'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" ' + //
+								'"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
 								image_data += svg.outerHTML;
 
 								window.open('data:image/svg+xml;utf8,' + image_data, '_blank');
 
-							}
+							};
 							$scope.downloadEMF = function(id) {
 								var nid = $scope.toAliasString(id);
 								var svgpar = document.getElementById(nid);
@@ -477,13 +622,14 @@ app
 								var svg = svgpar.getElementsByTagName("svg")[0];
 
 								svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-								var image_data = '<?xml version="1.0" encoding="utf-8" standalone="no"?>'
-										+ '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" '
-										+ '"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
+								var image_data = '<?xml version="1.0" encoding="utf-8" ' + //
+								'standalone="no"?>' + //
+								'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" ' + //
+								'"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
 								image_data += svg.outerHTML;
 								var transform = function(data) {
 									return $.param(data);
-								}
+								};
 								$http
 										.post(
 												HTTPFactory.getBackend() + "ConvertSVGToEMF",
@@ -518,8 +664,9 @@ app
 								// console.log(response);
 								// });
 
-							}
+							};
 							$scope.copyToClipboard = function(metric, id) {
+								var i;
 								$scope.toggle_no_of_decimals(metric);
 								$timeout(function() {
 									var nid = $scope.toAliasString(id);
@@ -529,15 +676,15 @@ app
 										if (element.nodeType !== 1)
 											return;
 										var style = window.getComputedStyle(element);
-										for (var i = 0; i < requiredStyles.length; i++) {
+										for (i = 0; i < requiredStyles.length; i++) {
 											element.style[requiredStyles[i]] = style
 													.getPropertyValue(requiredStyles[i]);
 										}
 										var children = element.childNodes;
-										for (var i = 0; i < children.length; i++) {
+										for (i = 0; i < children.length; i++) {
 											inliner(children[i]);
 										}
-									}
+									};
 									inliner(el);
 									window.prompt("Copy to clipboard: Ctrl+C, Enter",
 											el.outerHTML);
@@ -545,7 +692,7 @@ app
 								}, 200);
 
 								// return defer.promise;
-							}
+							};
 							$scope.getNameOrAlias = function(e) {
 								if (e.name)
 									return e.name;
@@ -553,7 +700,7 @@ app
 									// return e.name + '(' + e.alias + ')';
 									return e.title;
 								return e.alias;
-							}
+							};
 							$scope.getSorterOrNameOrAlias = function(e) {
 								if (e.sortby || e.sortby === 0)
 									// return e.name + '(' + e.alias + ')';
@@ -564,10 +711,10 @@ app
 									// return e.name + '(' + e.alias + ')';
 									return e.title;
 								return e.alias;
-							}
+							};
 							$scope.getCellContent = function(e, key, property) {
 								if (e.measure.content.data[key.alias][property.alias]) {
-									if (!(e.no_of_decimals == null) && !isNaN(e.no_of_decimals))
+									if (e.no_of_decimals !== null && !isNaN(e.no_of_decimals))
 										return e.measure.content.data[key.alias][property.alias]
 												.toFixed(e.no_of_decimals);
 									// .toFixed(2);
@@ -575,18 +722,23 @@ app
 										return e.measure.content.data[key.alias][property.alias];
 								}
 								return '';
-							}
+							};
 							$scope.getContent = function(e) {
-								if (e && e.measure && e.measure.content != null) {
-									if (e.measure.content != 'no data'
-											&& e.no_of_decimals != null && e.no_of_decimals != 'all')
-										return e.measure.content.toFixed(e.no_of_decimals);
+								if (e && e.measure && e.measure.content !== null &&
+										e.measure.content !== undefined) {
+									if (e.measure.content !== 'no data' &&
+											e.no_of_decimals !== null && e.no_of_decimals != 'all') {
+										if (e.measure.content.toFixed)
+											return e.measure.content.toFixed(e.no_of_decimals);
+										else
+											return e.measure.content;
+									}
 									// .toFixed(2);
 									else
 										return e.measure.content;
 								}
 								return 'fetching...';
-							}
+							};
 							$scope.issueNames = [];
 							// read issues from json file
 							// $http
@@ -599,16 +751,17 @@ app
 									.backendGet("Issues")
 									.then(
 											function(response) {
+												var i, j, newMetrics;
 												$scope.wantedMetrics = response.data;
 												var allMetrics = [
 														'project_name', 'activities_split'
 												];
 
-												for (var j = 0; j < $scope.wantedMetrics.length; j++) {
+												for (j = 0; j < $scope.wantedMetrics.length; j++) {
 													var met = {
 														id : $scope.wantedMetrics[j].id,
 														title : $scope.wantedMetrics[j].title
-													}
+													};
 													$scope.issueNames.push(met);
 												}
 												$scope.pageTitle = 'Issues';
@@ -617,20 +770,19 @@ app
 												if ($scope.issue && $scope.issue !== 'all') {
 													var issues = $scope.issue.split(',');
 													var all = false;
-													for (var j = 0; j < issues.length; j++) {
+													for (j = 0; j < issues.length; j++) {
 														if ($scope.issue === 'all') {
 															all = true;
 															break;
 														}
 													}
 													if (!all) {
-														var newMetrics = [];
-														for (var j = 0; j < issues.length; j++) {
-															for (var i = 0; i < $scope.wantedMetrics.length; i++) {
+														newMetrics = [];
+														for (j = 0; j < issues.length; j++) {
+															for (i = 0; i < $scope.wantedMetrics.length; i++) {
 																if ($scope.wantedMetrics[i].id.slice(0,
-																		issues[j].length) === issues[j]
-																		&& newMetrics
-																				.indexOf($scope.wantedMetrics[i]) === -1) {
+																		issues[j].length) === issues[j] &&
+																		newMetrics.indexOf($scope.wantedMetrics[i]) === -1) {
 																	newMetrics.push($scope.wantedMetrics[i]);
 																}
 															}
@@ -639,89 +791,18 @@ app
 													}
 												}
 												if (newMetrics && newMetrics.length == 1)
-													$scope.pageTitle = 'Issue ' + newMetrics[0].id + ": "
-															+ newMetrics[0].title;
+													$scope.pageTitle = 'Issue ' + newMetrics[0].id +
+															": " + newMetrics[0].title;
 
-												for (var i = 0; i < $scope.wantedMetrics.length; i++)
+												for (i = 0; i < $scope.wantedMetrics.length; i++)
 													allMetrics = allMetrics
 															.concat($scope.wantedMetrics[i].metrics);
 												$scope.study = StudyFactory.fetchStudy($scope.id,
 														allMetrics);
 											});
-
-							// console.log($scope.study);
-							// .then(
-							// function(response) {
-							// $scope.study = response;
-							// // console.log($scope.study.activities_split);
-							// // for (var i = 0; i < $scope.activityLabels.length; i++) {
-							// // $scope.activityValues
-							// //
-							// .push($scope.study.activities_split[$scope.activityLabels[i]]);
-							// // }
-							// // HTTPFactory
-							// // .backendGet(
-							// // 'Occupancy?t=occ_per_space_and_round_prc&obsid='
-							// // + $scope.study.first_observation_id.content)
-							// // .then(
-							// // function(response) {
-							// // $scope.spaces = response.data;
-							// // var spaceMap = {};
-							// // for (var i = 0; i < $scope.spaces.length; i++) {
-							// // spaceMap[$scope.spaces[i].id] = $scope.spaces[i];
-							// // }
-							// // if ($scope.study.movement_density_spaces) {
-							// // for (var i = 0; i <
-							// $scope.study.movement_density_spaces.content.length; i++) {
-							// // var spaceID =
-							// parseInt($scope.study.movement_density_spaces.content[i].space_id);
-							// // spaceMap[spaceID].sqm_per_walker = {
-							// // content :
-							// parseFloat($scope.study.movement_density_spaces.content[i].sqm_per_walker)
-							// // };
-							// // }
-							// // }
-							// // }, function(error) {
-							// // console.log(error);
-							// // });
-							//
-							// // console.log(response);
-							// }, function(error) {
-							// console.log(error);
-							// })
-							;
 							$scope.getSQM = function(number) {
 								return number.toFixed(1) + 'm' + '\xB2';
-							}
-							// $scope.getDepthmapMeasure = function(space, analysis_type) {
-							// HTTPFactory.backendGet(
-							// "GetDepthmapData?spaceid=" + space.id + "&measure=" + 9
-							// + "&analysis_type=" + analysis_type).then(
-							// function(response) {
-							// // console.log(response.data);
-							// var promise = $modal.open({
-							// templateUrl : 'studies/dpmView.html',
-							// controller : 'dpmViewController',
-							// windowClass : 'planView',
-							// resolve : {
-							// img : function() {
-							// return space.img;
-							// },
-							// dpmData : function() {
-							// return response.data;
-							// }
-							// }
-							// });
-							// }, function(error) {
-							// console.log(error);
-							// });
-							// }
-							// HTTPFactory.backendGet(
-							// 'GetAll?t=study_parts&studyid=' + $scope.id).then(
-							// function(response) {
-							// $scope.observation_id = response.data[0]['id'];
-							// }, function(error) {
-							// });
+							};
 						}
 				]);
 app
@@ -732,6 +813,7 @@ app
 						'$q',
 						'$http',
 						function(HTTPFactory, $q, $http) {
+							"use strict";
 							var loadedStudies = {};
 							var getProperValue = function(value, type) {
 								if (type) {
@@ -751,7 +833,7 @@ app
 								} else {
 									return value;
 								}
-							}
+							};
 							var knownFunctions = function(externalFuncs) {
 								var that = this;
 								var infuncs = {
@@ -776,18 +858,18 @@ app
 											}
 										};
 									},
-									'first_observation_id' : function(data) {
-										var all = this['observation_ids'](data);
-										all.title = 'First Observation';
-										var allCallBack = all['callback'];
-										all.callback = function(response) {
-											var result = allCallBack(response);
-											result.title = 'First Observation';
-											result.content = result.content[0];
-											return result;
-										}
-										return all;
-									},
+									// 'first_observation_id' : function(data) {
+									// var all = this['observation_ids'](data);
+									// all.title = 'First Observation';
+									// var allCallBack = all['callback'];
+									// all.callback = function(response) {
+									// var result = allCallBack(response);
+									// result.title = 'First Observation';
+									// result.content = result.content[0];
+									// return result;
+									// }
+									// return all;
+									// },
 									'construct_ranges' : function(data) {
 										var cats = data[0].content;
 										return {
@@ -801,24 +883,25 @@ app
 															var catname = d.split(':');
 															var startend;
 															if (catname[0]) {
-																if (catname[0].indexOf('+') != -1)
+																if (catname[0].indexOf('+') !== -1)
 																	startend = [
 																		parseFloat(catname[0].split('+')[0])
 																	];
-																else if (catname[0].indexOf('-') != -1)
+																else if (catname[0].indexOf('-') !== -1)
 																	startend = catname[0].split("-").map(
 																			function(d) {
-																				return parseFloat(d)
+																				return parseFloat(d);
 																			});
 																else
 																	startend = [
 																			parseFloat(catname[0]),
 																			parseFloat(catname[0])
 																	];
+
 															}
 															var rr = {
 																start : 0
-															}
+															};
 															if (startend[0])
 																rr.start = startend[0];
 															if (startend[1])
@@ -831,7 +914,7 @@ app
 														});
 														var response = {
 															data : result
-														}
+														};
 														success(response);
 													}
 												};
@@ -864,7 +947,7 @@ app
 														});
 														var response = {
 															data : result
-														}
+														};
 														success(response);
 													}
 												};
@@ -889,7 +972,7 @@ app
 														});
 														var response = {
 															data : result
-														}
+														};
 														success(response);
 													}
 												};
@@ -911,19 +994,19 @@ app
 													then : function(success, error) {
 														var result = '';
 														for (var i = 0; i < cats.length; i++) {
-															if (cats[i] && cats[i].end && cats[i].name
-																	&& din >= cats[i].start && din <= cats[i].end) {
+															if (cats[i] && cats[i].end && cats[i].name &&
+																	din >= cats[i].start && din <= cats[i].end) {
 																result = cats[i].name;
 																break;
-															} else if (cats[i] && !cats[i].end
-																	&& cats[i].name && din >= cats[i].start) {
+															} else if (cats[i] && !cats[i].end &&
+																	cats[i].name && din >= cats[i].start) {
 																result = cats[i].name;
 																break;
 															}
 														}
 														var response = {
 															data : result
-														}
+														};
 														success(response);
 													}
 												};
@@ -945,22 +1028,23 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j, nobj;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {};
-														if ((!numType || numType === "d" || numType === "int")
-																&& (!denomType || denomType === "d" || denomType === "int")) {
+														if ((!numType || numType === "d" || numType === "int") &&
+																(!denomType || denomType === "d" || denomType === "int")) {
 															if (denom === 0) {
 																response.type = 'error';
 																response.status = 201;
-																response.data = "Division by zero (" + num
-																		+ " / " + denom + ")";
+																response.data = "Division by zero (" + num +
+																		" / " + denom + ")";
 															} else
 																response.data = num / denom;
-														} else if (numType == 'table'
-																&& denomType != 'table') {
+														} else if (numType == 'table' &&
+																denomType != 'table') {
 															response.type = 'table';
 															response.data = {};
 															response.data.keyType = num.keyType;
@@ -969,19 +1053,18 @@ app
 																	.map(function(d) {
 																		return {
 																			alias : d.alias + "_div_" + denom
-																		}
+																		};
 																	});
-
 															response.data.data = {};
-															for (var i = 0; i < num.keys.length; i++) {
-																var nobj = {};
-																for (var j = 0; j < num.properties.length; j++)
-																	nobj[response.data.properties[j].alias] = num.data[num.keys[i].alias][num.properties[j].alias]
-																			/ denom;
+															for (i = 0; i < num.keys.length; i++) {
+																nobj = {};
+																for (j = 0; j < num.properties.length; j++)
+																	nobj[response.data.properties[j].alias] = num.data[num.keys[i].alias][num.properties[j].alias] /
+																			denom;
 																response.data.data[num.keys[i].alias] = nobj;
 															}
-														} else if (numType != 'table'
-																&& denomType == 'table') {
+														} else if (numType != 'table' &&
+																denomType == 'table') {
 															response.type = 'table';
 															response.data = {};
 															response.data.keyType = denom.keyType;
@@ -992,38 +1075,36 @@ app
 																			alias : num + "_div_" + d.alias
 																		};
 																	});
-
 															response.data.data = {};
-															for (var i = 0; i < denom.keys.length; i++) {
-																var nobj = {};
-																// nobj[num.type] = num.keys[i];
-																for (var j = 0; j < denom.properties.length; j++)
-																	nobj[response.data.properties[j].alias] = num
-																			/ denom.data[denom.keys[i].alias][denom.properties[j].alias];
+															for (i = 0; i < denom.keys.length; i++) {
+																nobj = {};
+																for (j = 0; j < denom.properties.length; j++)
+																	nobj[response.data.properties[j].alias] = num /
+																			denom.data[denom.keys[i].alias][denom.properties[j].alias];
 																response.data.data[denom.keys[i].alias] = nobj;
 															}
-														} else if (numType == 'table'
-																&& denomType == 'table'
-																&& denom.keyType == num.keyType) {
-															if (num.properties.length == 1
-																	&& denom.properties.length == 1) {
+														} else if (numType == 'table' &&
+																denomType == 'table' &&
+																denom.keyType == num.keyType) {
+															if (num.properties.length == 1 &&
+																	denom.properties.length == 1) {
 																response.type = 'table';
 																response.data = {};
 																response.data.keyType = denom.keyType;
 																response.data.properties = [
 																	{
-																		alias : num.properties[0].alias + "_div_"
-																				+ denom.properties[0].alias
+																		alias : num.properties[0].alias + "_div_" +
+																				denom.properties[0].alias
 																	}
 																];
 																response.data.keys = [];
 																response.data.data = {};
-																for (var i = 0; i < denom.keys.length; i++) {
+																for (i = 0; i < denom.keys.length; i++) {
 																	var key = denom.keys[i];
 																	var found = false;
 																	// if (num.keys.indexOf(key) == -1)
 
-																	for (var j = 0; j < num.keys.length; j++) {
+																	for (j = 0; j < num.keys.length; j++) {
 																		if (num.keys[j].alias == key.alias) {
 																			found = true;
 																			break;
@@ -1032,27 +1113,11 @@ app
 																	if (!found)
 																		continue;
 																	response.data.keys.push(key);
-																	var nobj = {};
-																	// nobj[num.type] = num.keys[i];
-																	// for (var j = 0; j <
-																	// denom.properties.length; j++)
-																	nobj[response.data.properties[0].alias] = num.data[key.alias][num.properties[0].alias]
-																			/ denom.data[key.alias][denom.properties[0].alias];
+																	nobj = {};
+																	nobj[response.data.properties[0].alias] = num.data[key.alias][num.properties[0].alias] /
+																			denom.data[key.alias][denom.properties[0].alias];
 																	response.data.data[key.alias] = nobj;
 																}
-																// response.data.data = [];
-																// for (var i = 0; i < denom.data.length; i++) {
-																// var nobj = {};
-																// nobj[denom.type] = denom.data[i][denom.type];
-																// // for (var j = 0; j <
-																// // denom.properties.length; j++)
-																// nobj[response.data.properties[0]] =
-																// num.data[i][num.properties[0]]
-																// / denom.data[i][denom.properties[0]];
-																// response.data.data.push(nobj);
-																// }
-																// console.log(num);
-																// console.log(denom);
 															}
 														}
 														success(response);
@@ -1072,20 +1137,19 @@ app
 										};
 									},
 									'mult' : function(data) {
+										var i, j, k, key, nobj;
 										var responseType = 'int';
 										var properties = [];
-										for (var k = 0; k < data.length; k++) {
+										for (k = 0; k < data.length; k++) {
 											if (data[k].type) {
 												if (responseType !== 'table' && data[k].type === 'd') {
 													responseType = 'd';
 												} else if (data[k].type === 'table') {
-
 													responseType = 'table';
-
-													for (var i = 0; i < data[k].content.properties.length; i++) {
+													for (i = 0; i < data[k].content.properties.length; i++) {
 														var prop = data[k].content.properties[i];
 														var found = false;
-														for (var j = 0; j < properties.length; j++) {
+														for (j = 0; j < properties.length; j++) {
 															if (properties[j].alias === prop.alias) {
 																found = true;
 																break;
@@ -1100,7 +1164,7 @@ app
 										}
 										var rangeIndex = -1;
 										if (responseType !== 'table')
-											for (var k = 0; k < data.length; k++) {
+											for (k = 0; k < data.length; k++) {
 												if (data[k].type === 'ranges') {
 													responseType = 'ranges';
 													rangeIndex = k;
@@ -1112,17 +1176,18 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j, k, key, nobj;
 														var response = {};
-														if (responseType === 'table'
-																&& properties.length === 1) {
+														if (responseType === 'table' &&
+																properties.length === 1) {
 															response.data = {};
 															response.type = responseType;
 															response.data.data = {};
 															response.data.keys = [];
 															response.data.properties = properties;
-															for (var k = 0; k < data.length; k++) {
-																if (!('keyType' in response.data)
-																		&& data[k].content.keyType) {
+															for (k = 0; k < data.length; k++) {
+																if (!('keyType' in response.data) &&
+																		data[k].content.keyType) {
 																	response.data.keyType = data[k].content.keyType;
 																} else if (!('keyType' in data[k])) {
 																	continue;
@@ -1131,16 +1196,16 @@ app
 																	// different
 																	// types, throw exception
 																	console
-																			.error("can't multiply different types of data ("
-																					+ response.data.keyType
-																					+ " and "
-																					+ data[k].keyType + ")");
+																			.error("can't multiply different types of data (" +
+																					response.data.keyType +
+																					" and " +
+																					data[k].keyType + ")");
 																	break;
 																}
-																for (var i = 0; i < data[k].content.keys.length; i++) {
-																	var key = data[k].content.keys[i];
+																for (i = 0; i < data[k].content.keys.length; i++) {
+																	key = data[k].content.keys[i];
 																	var found = false;
-																	for (var j = 0; j < response.data.keys.length; j++) {
+																	for (j = 0; j < response.data.keys.length; j++) {
 																		if (response.data.keys[j].alias === key.alias) {
 																			found = true;
 																			break;
@@ -1151,12 +1216,12 @@ app
 																	response.data.keys.push(key);
 																}
 															}
-															for (var i = 0; i < response.data.keys.length; i++) {
-																var key = response.data.keys[i];
-																var nobj = 1;
-																for (var k = 0; k < data.length; k++) {
-																	if (data[k].type === 'table'
-																			&& key.alias in data[k].content.data) {
+															for (i = 0; i < response.data.keys.length; i++) {
+																key = response.data.keys[i];
+																nobj = 1;
+																for (k = 0; k < data.length; k++) {
+																	if (data[k].type === 'table' &&
+																			key.alias in data[k].content.data) {
 																		var prop = data[k].content.properties[0];
 																		nobj *= data[k].content.data[key.alias][prop.alias];
 																	} else
@@ -1169,12 +1234,12 @@ app
 															response.type = responseType;
 															response.data = angular
 																	.copy(data[rangeIndex].content);
-															for (var i = 0; i < data.length; i++) {
+															for (i = 0; i < data.length; i++) {
 																if (i === rangeIndex)
 																	continue;
-																if (!data[i].type || data[i].type === "int"
-																		|| data[i].type === "d")
-																	for (var j = 0; j < response.data.length; j++) {
+																if (!data[i].type || data[i].type === "int" ||
+																		data[i].type === "d")
+																	for (j = 0; j < response.data.length; j++) {
 																		response.data[j].start *= data[i].content;
 																		if (response.data[j].end)
 																			response.data[j].end *= data[i].content;
@@ -1182,7 +1247,7 @@ app
 															}
 														} else {
 															response.data = 1;
-															for (var i = 0; i < data.length; i++) {
+															for (i = 0; i < data.length; i++) {
 																response.data *= data[i].content;
 															}
 														}
@@ -1232,27 +1297,27 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
-														var response = {};
-														if (responseType === 'table'
-																&& properties.length === 1) {
+														var i, j, k, key, response = {};
+														if (responseType === 'table' &&
+																properties.length === 1) {
 															response.data = {};
 															response.type = responseType;
 															response.data.data = {};
 															response.data.keys = [];
 															response.data.properties = properties;
-															for (var k = 0; k < data.length; k++) {
-																if (!('keyType' in response.data)
-																		&& 'keyType' in data[k].content) {
+															for (k = 0; k < data.length; k++) {
+																if (!('keyType' in response.data) &&
+																		'keyType' in data[k].content) {
 																	response.data.keyType = data[k].content.keyType;
 																} else if (response.data.keyType !== data[k].content.keyType) {
 																	// TODO: dont allow adding data of different
 																	// types, throw exception
 																	break;
 																}
-																for (var i = 0; i < data[k].content.keys.length; i++) {
-																	var key = data[k].content.keys[i];
+																for (i = 0; i < data[k].content.keys.length; i++) {
+																	key = data[k].content.keys[i];
 																	var found = false;
-																	for (var j = 0; j < response.data.keys.length; j++) {
+																	for (j = 0; j < response.data.keys.length; j++) {
 																		if (response.data.keys[j].alias === key.alias) {
 																			found = true;
 																			break;
@@ -1263,12 +1328,12 @@ app
 																	response.data.keys.push(key);
 																}
 															}
-															for (var i = 0; i < response.data.keys.length; i++) {
-																var key = response.data.keys[i];
+															for (i = 0; i < response.data.keys.length; i++) {
+																key = response.data.keys[i];
 																var nobj = 0;
-																for (var k = 0; k < data.length; k++) {
-																	if (data[k].type === 'table'
-																			&& key.alias in data[k].content.data) {
+																for (k = 0; k < data.length; k++) {
+																	if (data[k].type === 'table' &&
+																			key.alias in data[k].content.data) {
 																		var prop = data[k].content.properties[0];
 																		nobj += data[k].content.data[key.alias][prop.alias];
 																	} else if (data[k].type !== 'table')
@@ -1279,7 +1344,7 @@ app
 															}
 														} else {
 															response.data = 0;
-															for (var i = 0; i < data.length; i++) {
+															for (i = 0; i < data.length; i++) {
 																response.data += data[i].content;
 															}
 														}
@@ -1297,7 +1362,6 @@ app
 											}
 										};
 									},
-
 									'sub' : function(data) {
 										var responseType = 'int';
 										var properties = [];
@@ -1330,15 +1394,16 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j, k, key, nobj;
 														var response = {};
-														if (responseType === 'table'
-																&& properties.length === 1) {
+														if (responseType === 'table' &&
+																properties.length === 1) {
 															response.data = {};
 															response.type = responseType;
 															response.data.data = {};
 															response.data.keys = [];
 															response.data.properties = properties;
-															for (var k = 0; k < data.length; k++) {
+															for (k = 0; k < data.length; k++) {
 																if (!('keyType' in response.data)) {
 																	response.data.keyType = data[k].content.keyType;
 																} else if (response.data.keyType !== data[k].keyType) {
@@ -1346,10 +1411,10 @@ app
 																	// types, throw exception
 																	break;
 																}
-																for (var i = 0; i < data[k].content.keys.length; i++) {
-																	var key = data[k].content.keys[i];
-																	var found = false;
-																	for (var j = 0; j < response.data.keys.length; j++) {
+																for (i = 0; i < data[k].content.keys.length; i++) {
+																	key = data[k].content.keys[i];
+																	found = false;
+																	for (j = 0; j < response.data.keys.length; j++) {
 																		if (response.data.keys[j].alias === key.alias) {
 																			found = true;
 																			break;
@@ -1360,19 +1425,19 @@ app
 																	response.data.keys.push(key);
 																}
 															}
-															for (var i = 0; i < response.data.keys.length; i++) {
-																var key = response.data.keys[i];
-																var nobj = 0;
-																for (var k = 0; k < data.length; k++) {
-																	if (data[k].type === 'table'
-																			&& key.alias in data[k].content.data) {
+															for (i = 0; i < response.data.keys.length; i++) {
+																key = response.data.keys[i];
+																nobj = 0;
+																for (k = 0; k < data.length; k++) {
+																	if (data[k].type === 'table' &&
+																			key.alias in data[k].content.data) {
 																		var prop = data[k].content.properties[0];
-																		if (k == 0)
+																		if (k === 0)
 																			nobj = data[k].content.data[key.alias][prop.alias];
 																		else
 																			nobj -= data[k].content.data[key.alias][prop.alias];
 																	} else {
-																		if (k == 0)
+																		if (k === 0)
 																			nobj = data[k].content;
 																		else
 																			nobj -= data[k].content;
@@ -1383,7 +1448,7 @@ app
 															}
 														} else {
 															response.data = data[0].content;
-															for (var i = 1; i < data.length; i++) {
+															for (i = 1; i < data.length; i++) {
 																response.data -= data[i].content;
 															}
 															response.type = responseType;
@@ -1411,7 +1476,7 @@ app
 													then : function(success, error) {
 														var response = {
 															data : param1 * 100
-														}
+														};
 														success(response);
 													}
 												};
@@ -1432,6 +1497,7 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j, k;
 														if (status === 201) {
 															success(data[0]);
 															return;
@@ -1439,19 +1505,19 @@ app
 														var keys = param1.keys;
 														var prop = param1.properties;
 														var propTotals = {};
-														for (var k = 0; k < prop.length; k++) {
+														for (k = 0; k < prop.length; k++) {
 															propTotals[prop[k].alias] = 0;
 														}
-														for (var j = 0; j < keys.length; j++) {
-															for (var k = 0; k < prop.length; k++) {
+														for (j = 0; j < keys.length; j++) {
+															for (k = 0; k < prop.length; k++) {
 																if (param1.data[keys[j].alias][prop[k].alias])
 																	propTotals[prop[k].alias] += param1.data[keys[j].alias][prop[k].alias];
 															}
 														}
 														var newData = {};
-														for (var j = 0; j < keys.length; j++) {
+														for (j = 0; j < keys.length; j++) {
 															var dt = {};
-															for (var k = 0; k < prop.length; k++) {
+															for (k = 0; k < prop.length; k++) {
 																if (param1.data[keys[j].alias][prop[k].alias])
 																	dt[prop[k].alias + "_prc"] = (100 * param1.data[keys[j].alias][prop[k].alias] / propTotals[prop[k].alias]);// .toFixed(2);
 															}
@@ -1471,11 +1537,11 @@ app
 
 															}),
 															data : newData
-														}
+														};
 														// console.log(result);
 														var response = {
 															data : result
-														}
+														};
 														success(response);
 													}
 												};
@@ -1503,7 +1569,7 @@ app
 														}
 														var response = {
 															data : array1.concat(array2)
-														}
+														};
 														success(response);
 													}
 												};
@@ -1531,12 +1597,12 @@ app
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.data.properties = table.keys;
 														response.data.keys = table.properties;
 														response.data.keyType = table.keyType;
 														response.type = 'table';
-														response.data.data = {}
+														response.data.data = {};
 														for (var i = 0; i < table.properties.length; i++) {
 															var prop = table.properties[i].alias;
 															response.data.data[prop] = {};
@@ -1570,24 +1636,26 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j, prop, key, nkeyAlias, dataVal, kfound, newKey;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.type = 'table';
 														response.data.keyType = table1.keyType;
 														response.data.properties = [];
-														for (var i = 0; i < table1.properties.length; i++) {
-															for (var j = 0; j < table2.properties.length; j++) {
+														var setPropFunc = function(val, key) {
+															prop[key] = val;
+														};
+														for (i = 0; i < table1.properties.length; i++) {
+															for (j = 0; j < table2.properties.length; j++) {
 																if (table1.properties[i].alias === table2.properties[j].alias) {
-																	var prop = {};
+																	prop = {};
 																	angular.forEach(table1.properties[i],
-																			function(val, key) {
-																				prop[key] = val;
-																			});
+																			setPropFunc);
 																	response.data.properties.push(prop);
 																	break;
 																}
@@ -1595,26 +1663,25 @@ app
 														}
 														if (response.data.properties.length > 0) {
 															response.data.keys = [];
-															response.data.data = {}
-															for (var i = 0; i < table1.keys.length; i++) {
-																var key = table1.keys[i].alias;
-																var nkeyAlias = t1info.alias
-																		+ table1.keys[i].alias;
-																var dataVal = table1.data[key];
-																var kfound = false;
-																for (var i = 0; i < response.data.properties.length; i++) {
-																	var prop = response.data.properties[i].alias;
+															response.data.data = {};
+															for (i = 0; i < table1.keys.length; i++) {
+																key = table1.keys[i].alias;
+																nkeyAlias = t1info.alias + table1.keys[i].alias;
+																dataVal = table1.data[key];
+																kfound = false;
+																for (i = 0; i < response.data.properties.length; i++) {
+																	prop = response.data.properties[i].alias;
 																	if (prop in dataVal) {
 																		if (!kfound) {
-																			var newKey = angular.copy(table1.keys[i]);
+																			newKey = angular.copy(table1.keys[i]);
 																			newKey.alias = nkeyAlias;
 																			if (t1info.rename)
 																				newKey.name = (t1info.name ? t1info.name
-																						: t1info.alias)
+																						: t1info.alias);
 																			else
-																				newKey.name = newKey.name
-																						+ " ("
-																						+ (t1info.name ? t1info.name
+																				newKey.name = newKey.name +
+																						" (" +
+																						(t1info.name ? t1info.name
 																								: t1info.alias) + ")";
 																			response.data.keys.push(newKey);
 																			response.data.data[nkeyAlias] = {};
@@ -1624,25 +1691,24 @@ app
 																	}
 																}
 															}
-															for (var i = 0; i < table2.keys.length; i++) {
-																var key = table2.keys[i].alias;
-																var nkeyAlias = t2info.alias
-																		+ table2.keys[i].alias;
-																var dataVal = table2.data[key];
-																var kfound = false;
-																for (var i = 0; i < response.data.properties.length; i++) {
-																	var prop = response.data.properties[i].alias;
+															for (i = 0; i < table2.keys.length; i++) {
+																key = table2.keys[i].alias;
+																nkeyAlias = t2info.alias + table2.keys[i].alias;
+																dataVal = table2.data[key];
+																kfound = false;
+																for (i = 0; i < response.data.properties.length; i++) {
+																	prop = response.data.properties[i].alias;
 																	if (prop in dataVal) {
 																		if (!kfound) {
-																			var newKey = angular.copy(table2.keys[i]);
+																			newKey = angular.copy(table2.keys[i]);
 																			newKey.alias = nkeyAlias;
 																			if (t2info.rename)
 																				newKey.name = (t2info.name ? t2info.name
-																						: t2info.alias)
+																						: t2info.alias);
 																			else
-																				newKey.name = newKey.name
-																						+ " ("
-																						+ (t2info.name ? t2info.name
+																				newKey.name = newKey.name +
+																						" (" +
+																						(t2info.name ? t2info.name
 																								: t2info.alias) + ")";
 																			response.data.keys.push(newKey);
 																			response.data.data[nkeyAlias] = {};
@@ -1682,18 +1748,19 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.data.properties = [];
 														response.data.keyType = table.keyType;
 														var comparePropIndices = [];
 														if (property) {
-															for (var i = 0; i < table.properties.length; i++) {
+															for (i = 0; i < table.properties.length; i++) {
 																if (table.properties[i].alias === property) {
 																	comparePropIndices.push(i);
 																	response.data.properties.push(property);
@@ -1701,7 +1768,7 @@ app
 																}
 															}
 														} else
-															for (var i = 0; i < table.properties.length; i++) {
+															for (i = 0; i < table.properties.length; i++) {
 																response.data.properties
 																		.push(table.properties[i]);
 																comparePropIndices.push(i);
@@ -1718,12 +1785,12 @@ app
 														};
 														var w = {};
 														if (weights)
-															for (var i = 0; i < weights.length; i++) {
+															for (i = 0; i < weights.length; i++) {
 																w[weights[i].alias] = weights[i].mark;
 															}
-														for (var j = 0; j < comparePropIndices.length; j++) {
+														for (j = 0; j < comparePropIndices.length; j++) {
 															var sumVal = 0;
-															for (var i = 0; i < table.keys.length; i++) {
+															for (i = 0; i < table.keys.length; i++) {
 																var dt = table.data[table.keys[i].alias][table.properties[comparePropIndices[j]].alias];
 																if (dt) {
 																	if (w[table.keys[i].alias])
@@ -1732,7 +1799,8 @@ app
 																	sumVal += dt;
 																}
 															}
-															response.data.data['sum'][table.properties[comparePropIndices[j]].alias] = sumVal;
+															var sumKey = 'sum';
+															response.data.data[sumKey][table.properties[comparePropIndices[j]].alias] = sumVal;
 														}
 														success(response);
 													}
@@ -1840,26 +1908,27 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.data.properties = angular
 																.copy(table.properties);
 														response.data.keyType = table.keyType;
 														var comparePropIndex = 0;
 														if (property)
-															for (var i = 0; i < table.properties.length; i++) {
+															for (i = 0; i < table.properties.length; i++) {
 																if (table.properties[i].alias === property) {
 																	comparePropIndex = i;
 																	break;
 																}
 															}
 														var avgVal = 0;
-														for (var i = 0; i < table.keys.length; i++) {
+														for (i = 0; i < table.keys.length; i++) {
 															avgVal += table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
 
 														}
@@ -1874,7 +1943,8 @@ app
 														response.data.data = {
 															'avg' : {}
 														};
-														response.data.data['avg'][table.properties[comparePropIndex].alias] = avgVal;
+														var avgKey = 'avg';
+														response.data.data[avgKey][table.properties[comparePropIndex].alias] = avgVal;
 														var propTotals = {};
 														success(response);
 													}
@@ -1900,19 +1970,20 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.data.properties = angular
 																.copy(table.properties);
 														response.data.keyType = table.keyType;
 														var comparePropIndex = 0;
 														if (property)
-															for (var i = 0; i < table.properties.length; i++) {
+															for (i = 0; i < table.properties.length; i++) {
 																if (table.properties[i].alias === property) {
 																	comparePropIndex = i;
 																	break;
@@ -1922,7 +1993,7 @@ app
 															table.keys[0]
 														];
 														var maxVal = table.data[table.keys[0].alias][table.properties[comparePropIndex].alias];
-														for (var i = 0; i < table.keys.length; i++) {
+														for (i = 0; i < table.keys.length; i++) {
 															var newVal = table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
 															if (newVal > maxVal) {
 																maxVal = newVal;
@@ -1932,7 +2003,7 @@ app
 																continue;
 															}
 															var found = false;
-															for (var j = 0; j < maxKeys.length; j++)
+															for (j = 0; j < maxKeys.length; j++)
 																if (maxKeys[j].alias === table.keys[i].alias) {
 																	found = true;
 																	break;
@@ -1943,7 +2014,7 @@ app
 														}
 														response.data.keys = maxKeys;
 														response.data.data = {};
-														for (var i = 0; i < maxKeys.length; i++)
+														for (i = 0; i < maxKeys.length; i++)
 															response.data.data[maxKeys[i].alias] = table.data[maxKeys[i].alias];
 														var propTotals = {};
 														success(response);
@@ -1968,19 +2039,20 @@ app
 											get : function() {
 												return {
 													then : function(success, error) {
+														var i, j;
 														if (status === 201) {
 															success(data[0]);
 															return;
 														}
 														var response = {
 															data : {}
-														}
+														};
 														response.data.properties = angular
 																.copy(table.properties);
 														response.data.keyType = table.keyType;
 														var comparePropIndex = 0;
 														if (property)
-															for (var i = 0; i < table.properties.length; i++) {
+															for (i = 0; i < table.properties.length; i++) {
 																if (table.properties[i].alias === property) {
 																	comparePropIndex = i;
 																	break;
@@ -1990,7 +2062,7 @@ app
 															table.keys[0]
 														];
 														var minVal = table.data[table.keys[0].alias][table.properties[comparePropIndex].alias];
-														for (var i = 0; i < table.keys.length; i++) {
+														for (i = 0; i < table.keys.length; i++) {
 															var newVal = table.data[table.keys[i].alias][table.properties[comparePropIndex].alias];
 															if (newVal < minVal) {
 																minVal = newVal;
@@ -2000,7 +2072,7 @@ app
 																continue;
 															}
 															var found = false;
-															for (var j = 0; j < minKeys.length; j++)
+															for (j = 0; j < minKeys.length; j++)
 																if (minKeys[j].alias === table.keys[i].alias) {
 																	found = true;
 																	break;
@@ -2011,7 +2083,7 @@ app
 														}
 														response.data.keys = minKeys;
 														response.data.data = {};
-														for (var i = 0; i < minKeys.length; i++)
+														for (i = 0; i < minKeys.length; i++)
 															response.data.data[minKeys[i].alias] = table.data[minKeys[i].alias];
 														var propTotals = {};
 														success(response);
@@ -2029,6 +2101,7 @@ app
 								};
 								return {
 									fetchFunction : function(wantedFunc, inputs) {
+										var f;
 										var extf = externalFuncs[wantedFunc];
 										if (extf) {
 											var procInputs = [];
@@ -2038,16 +2111,16 @@ app
 												for (var i = 0; i < extf.inputs.length; i++) {
 													if (extf.inputs[i].proc)
 														procInputs.push(extf.inputs[i].alias);
-													if (extf.key_data
-															&& extf.key_data === extf.inputs[i].alias)
+													if (extf.key_data &&
+															extf.key_data === extf.inputs[i].alias)
 														keyIndex = i;
-													if (extf.property_data
-															&& extf.property_data === extf.inputs[i].alias)
+													if (extf.property_data &&
+															extf.property_data === extf.inputs[i].alias)
 														propertyIndex = i;
 												}
 											if (procInputs.length > inputs.length)
 												console.error("wrong number of inputs");
-											var f = {};
+											f = {};
 											if (extf.title)
 												f.title = extf.title;
 											if (extf.units)
@@ -2061,17 +2134,17 @@ app
 													for (var i = 0; i < procInputs.length; i++)
 														prm[procInputs[i]] = inputs[i];
 													return prm;
-												}
+												};
 												f.callback = function(response) {
 													var result = {};
-													if (extf.datum_type === "unpack"
-															|| extf.datum_type === "unpack_mega") {
+													if (extf.datum_type === "unpack" ||
+															extf.datum_type === "unpack_mega") {
 														if (!response.data || !response.data[0])
 															return {
 																status : 201,
 																type : 'error',
 																content : 'no data'
-															}
+															};
 														result.content = unpack(JSON
 																.parse(response.data[0]),
 																extf.datum_type === "unpack_mega");
@@ -2084,8 +2157,8 @@ app
 															}
 														}
 														if (propertyIndex != -1) {
-															if (inputs[propertyIndex]
-																	&& inputs[propertyIndex].content) {
+															if (inputs[propertyIndex] &&
+																	inputs[propertyIndex].content) {
 																setPropertyData(result.content,
 																		inputs[propertyIndex].content,
 																		extf.property_data_match);
@@ -2098,11 +2171,11 @@ app
 																status : 201,
 																type : 'error',
 																content : 'no data'
-															}
+															};
 														result.content = response.data.map(function(d) {
 															return {
 																name : d
-															}
+															};
 														});
 													} else if (extf.datum_type === "json") {
 														if (!response.data)
@@ -2110,11 +2183,11 @@ app
 																status : 201,
 																type : 'error',
 																content : 'no data'
-															}
-															// TODO: exception here needs to be made as the
-															// above (essentially wrap the replies with an
-															// array) and remove this condition and let
-															// getProperValue handle it
+															};
+														// TODO: exception here needs to be made as the
+														// above (essentially wrap the replies with an
+														// array) and remove this condition and let
+														// getProperValue handle it
 														result.content = JSON.parse(response.data);
 													} else if (extf.datum_type === "mapint") {
 														// TODO same as above
@@ -2123,29 +2196,29 @@ app
 																status : 201,
 																type : 'error',
 																content : 'no data'
-															}
+															};
 														result.content = response.data.map(function(d) {
 															return parseInt(d);
 														});
 													} else
 														result.content = getProperValue(response.data[0],
 																extf.datum_type);
-													if (extf.datum_type === "unpack"
-															|| extf.datum_type === "unpack_mega")
-														result.type = "table"
+													if (extf.datum_type === "unpack" ||
+															extf.datum_type === "unpack_mega")
+														result.type = "table";
 													else
 														result.type = extf.datum_type;
 													return result;
-												}
+												};
 											}
 											return f;
 										}
-										var f = infuncs[wantedFunc](inputs);
+										f = infuncs[wantedFunc](inputs);
 										// console.log(f);
 										return f;
 									}
 								};
-							}
+							};
 							// TODO end of funcs
 
 							var setPropertyData = function(unpacked, data, dataMatchKey) {
@@ -2154,8 +2227,8 @@ app
 									if (!dataMatchKey)
 										dataMatchKey = matchKey;
 									for (var j = 0; j < data.length; j++) {
-										if (dataMatchKey in data[j]
-												&& unpacked.properties[i][matchKey] == data[j][dataMatchKey]) {
+										if (dataMatchKey in data[j] &&
+												unpacked.properties[i][matchKey] == data[j][dataMatchKey]) {
 											var keys = Object.keys(data[j]);
 											for (var k = 0; k < keys.length; k++) {
 												if (keys[k] != dataMatchKey)
@@ -2165,15 +2238,15 @@ app
 										}
 									}
 								}
-							}
+							};
 							var setKeyData = function(unpacked, data, dataMatchKey) {
 								for (var i = 0; i < unpacked.keys.length; i++) {
 									var matchKey = unpacked.keys[i].matchKey;
 									if (!dataMatchKey)
 										dataMatchKey = matchKey;
 									for (var j = 0; j < data.length; j++) {
-										if (dataMatchKey in data[j]
-												&& unpacked.keys[i][matchKey] == data[j][dataMatchKey]) {
+										if (dataMatchKey in data[j] &&
+												unpacked.keys[i][matchKey] == data[j][dataMatchKey]) {
 											var keys = Object.keys(data[j]);
 											for (var k = 0; k < keys.length; k++) {
 												if (keys[k] != dataMatchKey)
@@ -2183,13 +2256,14 @@ app
 										}
 									}
 								}
-							}
+							};
 							var unpack = function(packed, mega) {
+								var i, j, k, o;
 								var result = {};
 								var keys = Object.keys(packed[0]);
 								if (mega) {
 									var unpacked = [];
-									for (var i = 0; i < packed.length; i++) {
+									for (i = 0; i < packed.length; i++) {
 										var pKeys = Object.keys(packed[i]);
 										var out = unpack(packed[i].data);
 										out.matchKey = pKeys[0];
@@ -2201,15 +2275,15 @@ app
 									result.properties = [];
 									var uniqueProperties = [];
 									result.data = {};
-									for (var i = 0; i < unpacked.length; i++) {
-										var o = unpacked[i];
-										for (var j = 0; j < o.keys.length; j++) {
+									for (i = 0; i < unpacked.length; i++) {
+										o = unpacked[i];
+										for (j = 0; j < o.keys.length; j++) {
 											// if (result.keys.indexOf(o.keys[j]) == -1)
 
 											var found = false;
 											// if (num.keys.indexOf(key) == -1)
 
-											for (var k = 0; k < result.keys.length; k++) {
+											for (k = 0; k < result.keys.length; k++) {
 												if (result.keys[k].alias == o.keys[j].alias) {
 													found = true;
 													break;
@@ -2219,26 +2293,26 @@ app
 												continue;
 											result.keys.push(o.keys[j]);
 										}
-										for (var j = 0; j < o.properties.length; j++)
+										for (j = 0; j < o.properties.length; j++)
 											if (uniqueProperties.indexOf(o.properties[j].alias) == -1)
 												uniqueProperties.push(o.properties[j].alias);
 									}
 									if (uniqueProperties.length == 1) {
 										result.keyType = uniqueProperties[0];
 									}
-									for (var i = 0; i < unpacked.length; i++) {
-										var o = unpacked[i];
+									for (i = 0; i < unpacked.length; i++) {
+										o = unpacked[i];
 										// console.log(o);
-										for (var j = 0; j < o.properties.length; j++) {
-											var newProp = o.properties[j].alias + "_" + o.matchKey
-													+ "_" + o[o.matchKey];
+										for (j = 0; j < o.properties.length; j++) {
+											var newProp = o.properties[j].alias + "_" + o.matchKey +
+													"_" + o[o.matchKey];
 											var np = {
 												alias : newProp
 											};
 											np.matchKey = o.matchKey;
 											np[o.matchKey] = o[o.matchKey];
 											result.properties.push(np);
-											for (var k = 0; k < o.keys.length; k++) {
+											for (k = 0; k < o.keys.length; k++) {
 												if (!(o.keys[k].alias in result.data))
 													result.data[o.keys[k].alias] = {};
 												result.data[o.keys[k].alias][newProp] = o.data[o.keys[k].alias][o.properties[j].alias];
@@ -2258,7 +2332,12 @@ app
 									});
 									result.keys = [];
 									result.data = {};
-									for (var i = 0; i < packed.length; i++) {
+									var unpackFunc = function(val, key) {
+										// if (p != d[result.keyType])
+										if (key !== result.keyType && key !== 'sortby')
+											unpackedVal[key] = val;
+									};
+									for (i = 0; i < packed.length; i++) {
 										var packelm = packed[i];
 										var unpackedVal = {};
 
@@ -2267,22 +2346,18 @@ app
 											alias : packelm[result.keyType]
 										};
 										resultKey[result.keyType] = packelm[result.keyType];
-										if (!(packelm.sortby == null))
+										if (packelm.sortby !== null)
 											resultKey.sortby = packelm.sortby;
 										result.keys.push(resultKey);
 
-										angular.forEach(packelm, function(val, key) {
-											// if (p != d[result.keyType])
-											if (key !== result.keyType && key !== 'sortby')
-												unpackedVal[key] = val;
-										});
+										angular.forEach(packelm, unpackFunc);
 										var res = {};
 										result.data[packelm[result.keyType]] = unpackedVal;
 									}
 								}
 
 								return result;
-							}
+							};
 
 							var fetchA = function(measure) {
 								var deferred = $q.defer();
@@ -2302,8 +2377,8 @@ app
 												paramString += key + "=" + value.content;
 										});
 									}
-									getter = HTTPFactory.backendGet('Occupancy?t=' + measure.proc
-											+ paramString);
+									getter = HTTPFactory.backendGet('Occupancy?t=' +
+											measure.proc + paramString);
 								} else
 									getter = measure.get();
 								getter.then(function(response) {
@@ -2322,7 +2397,7 @@ app
 									// console.log(error);
 								});
 								return deferred.promise;
-							}
+							};
 							var createMetric = function(knownMeasures, args, measure) {
 								if (measure.funcName)
 									return measure;
@@ -2333,20 +2408,20 @@ app
 									// if (input.promise)
 									// promises.push(input.promise);
 									// else
-									if (input.ilk == "c") {
-										var content
+									if (input.ilk === "c") {
+										var content;
 										nobj = {
 											content : getProperValue(input.datum, input.datum_type)
-										}
+										};
 
 										promises.push($q.when(nobj));
 									} else if (input.ilk == "i") {
 										nobj = {
 											content : getProperValue(args[input.datum],
 													input.datum_type)
-										}
+										};
 										promises.push($q.when(nobj));
-									} else if (input.ilk == "m") {
+									} else if (input.ilk === "m") {
 										// console.log(input.datum);
 										var m = knownMeasures[input.datum].measure;
 										// if (m.funcName) {
@@ -2367,9 +2442,9 @@ app
 								var result = {
 									funcName : measure.datum,
 									promises : promises
-								}
+								};
 								return result;
-							}
+							};
 							var resolveMeasure = function(measure, knownFunctions) {
 								if (measure.solveObj)
 									return measure.solveObj;
@@ -2388,8 +2463,8 @@ app
 									$q.all(internalPromises).then(
 											function(solvedMeasures) {
 												for (var i = 0; i < solvedMeasures.length; i++) {
-													if (solvedMeasures[i].status
-															&& solvedMeasures[i].status === 201) {
+													if (solvedMeasures[i].status &&
+															solvedMeasures[i].status === 201) {
 														var result = angular.copy(solvedMeasures[i]);
 														result.request = measure;
 														promiseOut.resolve(result);
@@ -2405,7 +2480,7 @@ app
 											});
 								});
 								return promiseOut.promise;
-							}
+							};
 							var out = {
 								storeOriginalMetrics : function() {
 									var promises = [];
@@ -2430,8 +2505,8 @@ app
 											var store = function(metric) {
 												return HTTPFactory.backendPost("StoreMetric", {
 													metric : metric
-												})
-											}
+												});
+											};
 											var keyz = Object.keys(knownMetrics);
 											keyz = [
 											// "avg_moving_total",
@@ -2475,17 +2550,16 @@ app
 													} else
 														console.log(response);
 												});
-											}
-
+											};
 											lel(lel, 0);
-										}
+										};
 										storeMetrics();
 										var storeIssues = function() {
 											var store = function(issue) {
 												return HTTPFactory.backendPost("StoreIssue", {
 													issue : issue
-												})
-											}
+												});
+											};
 											var breakPoint = 1000;
 											var lel = function(lel, i) {
 												var m = {};
@@ -2502,16 +2576,16 @@ app
 													else
 														console.log(response);
 												});
-											}
+											};
 											lel(lel, 0);
-										}
+										};
 										// storeIssues();
 										var storeFunctions = function() {
 											var store = function(func) {
 												return HTTPFactory.backendPost("StoreFunction", {
 													func : func
-												})
-											}
+												});
+											};
 											var keyz = Object.keys(knownExtFunctions);
 											// keyz = [
 											// "avg_ties_outside_team",
@@ -2556,10 +2630,9 @@ app
 													} else
 														console.log(response);
 												});
-											}
-
+											};
 											lel(lel, 0);
-										}
+										};
 										storeFunctions();
 									});
 								},
@@ -2574,7 +2647,7 @@ app
 									}
 									var args = {
 										study_id : study.id
-									}
+									};
 									var promises = [];
 									// promises.push($http.get("studies/originalMetrics.json"));
 									promises.push(HTTPFactory.backendPost("Metrics", {
@@ -2589,7 +2662,9 @@ app
 												var knownExtFunctions = response[0].data.functions;
 												// var knownExtFunctions = response[1].data;
 												var kf = knownFunctions(knownExtFunctions);
-
+												var resolvedFunction = function(solvedMeasure) {
+													angular.copy(solvedMeasure, solvedMeasure.request);
+												};
 												for (var i = 0; i < wantedMetrics.length; i++) {
 													if (knownMetrics[wantedMetrics[i]]) {
 														var result = knownMetrics[wantedMetrics[i]];
@@ -2599,11 +2674,7 @@ app
 
 														// console.log(result.measure);
 														resolveMeasure(result.measure, kf).then(
-																function(solvedMeasure) {
-																	// result.measure.solveObj;
-																	angular.copy(solvedMeasure,
-																			solvedMeasure.request);
-																});
+																resolvedFunction);
 														// console.log(wantedMetrics[i], result);
 														study[wantedMetrics[i]] = result;
 													} else {
@@ -2612,14 +2683,14 @@ app
 															measure : {
 																content : "Unknown measure"
 															}
-														}
+														};
 													}
 												}
 											});
 
 									return study;
 								}
-							}
+							};
 							return out;
 						}
 				]);
