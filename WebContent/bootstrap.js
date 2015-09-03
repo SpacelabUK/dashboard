@@ -47,6 +47,13 @@ function endsWithIgnoreCase(str, suffix) {
 	return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
 			.toUpperCase();
 }
+app.filter('capitalize', function() {
+	return function(input, all) {
+		return (!!input) ? input.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+		}) : '';
+	}
+});
 // // hack to allow downloading js-generated blob objects
 // app
 // .config([
@@ -93,7 +100,7 @@ app.factory('projectFactory',
 					var functions = [];
 					var openStudies = [];
 
-					fetch = function(url) {
+					var fetch = function(url) {
 						var deferred = $q.defer(), httpPromise = $http.get(url);
 
 						httpPromise.then(function(response) {
@@ -165,6 +172,9 @@ app.factory('projectFactory',
 						return deferred.promise;
 					};
 					var pub = {
+						fetchProjects : function() {
+							return fetch(HTTPFactory.getBackend() + 'GetAll?t=projects');
+						},
 						refreshProjects : function() {
 							fetch(HTTPFactory.getBackend() + 'GetAll?t=projects').then(
 									function(response) {
@@ -382,6 +392,74 @@ app.controller('prjCtrl', [
 				projectFactory.addStudy(project);
 			};
 
+		}
+]);
+app.controller('metricsCtrl', [
+		'$scope',
+		'$modal',
+		'HTTPFactory',
+		function($scope, $modal, HTTPFactory) {
+			"use strict";
+			HTTPFactory.backendGet('Metrics').then(function(response) {
+				console.log(response.data);
+				$scope.metrics = response.data;
+				for (var i = 0; i < $scope.metrics.length; i++) {
+					$scope.metrics[i].indx = i;
+				}
+			});
+			$scope.setSearch = function(data) {
+				$scope.search = data;
+			}
+			$scope.predicate = 'id';
+			$scope.editMetric = function(metric) {
+				$modal.open({
+					templateUrl : 'editMetric.html',
+					controller : [
+							'$scope', '$modalInstance', 'metric',
+							function($scope, $modalInstance, metric) {
+								$scope.metric = metric;
+								$scope.cancel = function() {
+									$modalInstance.dismiss('cancel');
+								}
+								$scope.ok = function() {
+									$modalInstance.close(metric);
+								}
+								$scope.addCharacter = function(char) {
+									if (!$scope.metric[$scope.currentModel])
+										$scope.metric[$scope.currentModel] = char;
+									$scope.metric[$scope.currentModel] += char;
+								}
+								$scope.currentModel;
+								$scope.setCurrentModel = function(model) {
+									$scope.currentModel = model;
+									return true;
+								}
+							}
+					],
+					resolve : {
+						metric : function() {
+							return angular.copy(metric);
+						}
+					}
+				}).result.then(function(response) {
+					var keys = Object.keys(response);
+					for (var i = 0; i < keys.length; i++)
+						if (response[keys[i]] === null || response[keys[i]] === undefined)
+							delete response[keys[i]];
+					HTTPFactory.backendPost('StoreMetric', {
+						metric : response
+					}).then(function(response) {
+						$scope.metrics[metric.indx] = response.data;
+						// var keys = Object.keys(response.data);
+						// console.log(response.data);
+						// for (var i = 0; i < keys.length; i++)
+						// metric[keys[i]] = response.data[keys[i]];
+					}, function(error) {
+						console.log(error);
+					});
+					console.log(response);
+				});
+			}
 		}
 ]);
 app.controller('devCtrl', [
@@ -670,6 +748,11 @@ app.config([
 				templateUrl : "devices.html",
 				// for urls like this: /state1/:partyID/:partyLocation
 				controller : 'devCtrl'
+			}).state('metrics', {
+				url : "/metrics",
+				templateUrl : "metrics.html",
+				// for urls like this: /state1/:partyID/:partyLocation
+				controller : 'metricsCtrl'
 			}).state('spatialfunctions', {
 				url : "/spatialfunctions",
 				templateUrl : "spatialfunctions.html",

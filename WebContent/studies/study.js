@@ -10,19 +10,13 @@ app.controller('opnStdCtrl', [
 			"use strict";
 			$scope.fetching = fetching;
 			$scope.studies = projectFactory.getOpenStudies();
-			// $scope.projects.displayStudies = false;
 			$scope.predicate = 'id';
-			projectFactory.refreshOpenStudies().then(function() {
-				// $scope.fetching.unset();
-
-				angular.forEach($scope.studies, function(study) {
-
-					fetching.set('stps', study.id);
-					projectFactory.refreshStudyParts(study).then(function() {
-						fetching.unset('stps', study.id);
-					});
-				});
+			HTTPFactory.backendGet('GetAll?t=allstudies').then(function(response) {
+				$scope.studies = response.data;
+			}, function(error) {
+				console.log(error);
 			});
+
 			$scope.addObservation = function(study) {
 				projectFactory.addStudyPart(study, 'observation');
 			};
@@ -666,30 +660,62 @@ app
 
 							};
 							$scope.copyToClipboard = function(metric, id) {
-								var i;
 								$scope.toggle_no_of_decimals(metric);
-								$timeout(function() {
-									var nid = $scope.toAliasString(id);
-									var tbl = document.getElementById(nid);
-									var el = tbl.getElementsByTagName('table')[0];
-									var inliner = function(element) {
-										if (element.nodeType !== 1)
-											return;
-										var style = window.getComputedStyle(element);
-										for (i = 0; i < requiredStyles.length; i++) {
-											element.style[requiredStyles[i]] = style
-													.getPropertyValue(requiredStyles[i]);
-										}
-										var children = element.childNodes;
-										for (i = 0; i < children.length; i++) {
-											inliner(children[i]);
-										}
-									};
-									inliner(el);
-									window.prompt("Copy to clipboard: Ctrl+C, Enter",
-											el.outerHTML);
-									$scope.toggle_no_of_decimals(metric);
-								}, 200);
+								$timeout(
+										function() {
+											var nid = $scope.toAliasString(id);
+											var tbl = document.getElementById(nid);
+											var el = tbl.getElementsByTagName('table')[0];
+											var inliner = function(element, depth) {
+												var i;
+												if (element.nodeType !== 1 || depth > 100)
+													return;
+												var style = window.getComputedStyle(element);
+												for (i = 0; i < requiredStyles.length; i++) {
+													element.style[requiredStyles[i]] = style
+															.getPropertyValue(requiredStyles[i]);
+												}
+												var children = element.childNodes;
+												for (i = 0; i < children.length; i++) {
+													inliner(children[i], depth + 1);
+												}
+											};
+											inliner(el, 0);
+											var data = el.outerHTML.replace(/\n/g, '').replace(
+													/\s\s+/g, ' ');
+											var template = "<div ng-init=\"func()\" style=\"padding:15px;\" class=\"text-center\">" +
+													"<span class=\"text-center\">" +
+													"Copy to clipboard: Ctrl+C, Enter" +
+													"</span><br /><br />" +
+													"<textarea onclick=\"this.focus();this.select()\" id=\"toCopy\" ng-keypress=\"ok();\">" +
+													data +
+													"</textarea><br /><br />" +
+													"<button id=\"toCopyOK\" class=\"btn btn-primary\" ng-click=\"ok()\">OK</button>" +
+													"</div>";
+											var $modalInstance = $modal.open({
+												template : template,
+												controller : [
+														'$scope', '$modalInstance',
+														function($scope, $modalInstance) {
+															$scope.func = function() {
+																var txar = document.getElementById('toCopy');
+																angular.element(txar).ready(function() {
+																	txar.focus();
+																	txar.select();
+																});
+															}
+															$scope.ok = function() {
+																$modalInstance.dismiss();
+															}
+														}
+												],
+												size : 'sm'
+											});
+											// can't use prompt because chromium has 2000 char limit
+											// window.prompt("Copy to clipboard: Ctrl+C, Enter",
+											// data);
+											$scope.toggle_no_of_decimals(metric);
+										}, 200);
 
 								// return defer.promise;
 							};
@@ -727,14 +753,11 @@ app
 								if (e && e.measure && e.measure.content !== null &&
 										e.measure.content !== undefined) {
 									if (e.measure.content !== 'no data' &&
-											e.no_of_decimals !== null && e.no_of_decimals != 'all') {
-										if (e.measure.content.toFixed)
-											return e.measure.content.toFixed(e.no_of_decimals);
-										else
-											return e.measure.content;
-									}
-									// .toFixed(2);
-									else
+											e.no_of_decimals !== null &&
+											e.no_of_decimals != undefined &&
+											e.no_of_decimals != 'all' && e.measure.content.toFixed) {
+										return e.measure.content.toFixed(e.no_of_decimals);
+									} else
 										return e.measure.content;
 								}
 								return 'fetching...';
@@ -2653,8 +2676,10 @@ app
 									promises.push(HTTPFactory.backendPost("Metrics", {
 										wanted_metrics : wantedMetrics
 									}));
+									var mKeepProperties = [
+											"alias", "units", "units_full", "no_of_decimals"
+									]
 									// promises.push($http.get("studies/originalFunctions.json"));
-
 									$q.all(promises).then(
 											function(response) {
 												var knownMetrics = response[0].data.metrics;
@@ -2668,10 +2693,13 @@ app
 												for (var i = 0; i < wantedMetrics.length; i++) {
 													if (knownMetrics[wantedMetrics[i]]) {
 														var result = knownMetrics[wantedMetrics[i]];
-
+														for (var j = 0; j < mKeepProperties.length; j++) {
+															var k = mKeepProperties[j];
+															if (result.measure[k] || result.measure[k] === 0)
+																result[k] = result.measure[k];
+														}
 														result.measure = createMetric(knownMetrics, args,
 																result.measure);
-
 														// console.log(result.measure);
 														resolveMeasure(result.measure, kf).then(
 																resolvedFunction);

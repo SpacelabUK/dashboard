@@ -25,12 +25,13 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.JSONHelper;
+import uk.co.spacelab.backend.SplabHttpServlet;
 
 /**
  * Servlet implementation class Metrics
  */
 @WebServlet("/Metrics")
-public class Metrics extends HttpServlet {
+public class Metrics extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
 	private final String [] removeKeys = {"depth", "id", "parent_id"};
 	/**
@@ -46,7 +47,26 @@ public class Metrics extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		response.getWriter().append("ohai!");
+		PrintWriter out = response.getWriter();
+		// do not remove the below line as it helps keep the unicode characters
+		// in the transfer
+		response.setContentType("application/json; charset=UTF-8");
+		try (Connection psql = Database.getConnection()) {
+			JSONArray result =
+					Database.customQuery(psql,
+							"SELECT * FROM splab_get_external_metrics()");
+			psql.close();
+			if (result.length() < 1) {
+				sendInterfaceError(response, "No metrics found");
+				return;
+			}
+			String data =
+					result.getJSONObject(0)
+							.getString("splab_get_external_metrics");
+			out.print(data);
+		} catch (SQLException | ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -68,8 +88,10 @@ public class Metrics extends HttpServlet {
 			for (int i = 0; i < wantedMetrics.length(); i++) {
 
 				String metricAlias = wantedMetrics.getString(i);
-				JSONArray data = Database.selectWhatFromTableWhere(psql,
-						Database.TABLE_METRICS, "id", "alias=?", metricAlias);
+				JSONArray data =
+						Database.selectWhatFromTableWhere(psql,
+								Database.TABLE_METRICS, "id", "alias=?",
+								metricAlias);
 				if (data.length() == 0) continue;
 				int id = data.getJSONObject(0).getInt("id");
 				metricsToFetch.add(id);
@@ -124,14 +146,17 @@ public class Metrics extends HttpServlet {
 				// break;
 			}
 			JSONObject fetchedFunctions = new JSONObject();
-			String [] funcs = requiredFunctions
-					.toArray(new String [requiredFunctions.size()]);
-			JSONArray data = Database.customQuery(psql,
-					"SELECT * FROM splabin_get_metric_functions(?)",
-					psql.createArrayOf("text", funcs));
+			String [] funcs =
+					requiredFunctions
+							.toArray(new String [requiredFunctions.size()]);
+			JSONArray data =
+					Database.customQuery(psql,
+							"SELECT * FROM splabin_get_metric_functions(?)",
+							psql.createArrayOf("text", funcs));
 			if (data.length() == 1) {
-				String f = removeJSONNulls(data.getJSONObject(0)
-						.getString("splabin_get_metric_functions"));
+				String f =
+						removeJSONNulls(data.getJSONObject(0)
+								.getString("splabin_get_metric_functions"));
 				JSONArray dt = new JSONArray(f);
 				for (int i = 0; i < dt.length(); i++) {
 					JSONObject o = dt.getJSONObject(i);
@@ -162,14 +187,14 @@ public class Metrics extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
-			/**
-			 * Rebuilding the inputs as the db can not reliably give us
-			 * hierarchical json
-			 * 
-			 * @param metricDescription
-			 * @return
-			 */
-			JSONObject buildMetric(JSONArray metricDescription) {
+	/**
+	 * Rebuilding the inputs as the db can not reliably give us hierarchical
+	 * json
+	 * 
+	 * @param metricDescription
+	 * @return
+	 */
+	JSONObject buildMetric(JSONArray metricDescription) {
 		Map<Integer, JSONObject> through = new HashMap<Integer, JSONObject>();
 		// metric is sorted by depth
 		JSONObject metric = metricDescription.getJSONObject(0);
@@ -204,10 +229,11 @@ public class Metrics extends HttpServlet {
 		// // System.out.println(metricData);
 		// }
 	}
-			JSONObject fetchMetric(Connection psql, int id)
-					throws SQLException, ParseException {
-		JSONArray data = Database.customQuery(psql,
-				"SELECT * FROM splabin_get_metric(?)", id);
+	JSONObject fetchMetric(Connection psql, int id)
+			throws SQLException, ParseException {
+		JSONArray data =
+				Database.customQuery(psql,
+						"SELECT * FROM splabin_get_metric(?)", id);
 		if (data.length() == 0) return null;
 		String metricData =
 				data.getJSONObject(0).getString("splabin_get_metric");
@@ -217,7 +243,7 @@ public class Metrics extends HttpServlet {
 
 		return new JSONObject(metricData);
 	}
-			String removeJSONNulls(String in) {
+	String removeJSONNulls(String in) {
 
 		// removes null valued properties followed with a comma i.e.
 		// "parent_id":null,

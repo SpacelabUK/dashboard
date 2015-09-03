@@ -14,12 +14,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.SecurityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Servlet implementation class getDevices
  */
 @WebServlet("/GetAll")
-public class GetAll extends HttpServlet {
+public class GetAll extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public GetAll() {
@@ -44,6 +46,17 @@ public class GetAll extends HttpServlet {
 			} else if (type.equals("spatial_functions")) {
 				out.println(Database.selectAllFromTableWhere("polygon_types",
 						"type_group='func'"));
+			} else if (type.equals("allstudies")) {
+				JSONArray result =
+						Database.customQuery(
+								"SELECT * FROM splab_get_studies()");
+				if (result.length() < 1) {
+					sendInterfaceError(response, "Not found");
+					return;
+				}
+				String data =
+						result.getJSONObject(0).getString("splab_get_studies");
+				out.println(new JSONArray(data));
 			} else if (type.equals("openstudies")) {
 				out.println(Database.selectAllFromTableWhere("studies",
 						"status='open'"));
