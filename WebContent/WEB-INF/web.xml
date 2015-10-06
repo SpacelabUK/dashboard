@@ -8,9 +8,6 @@
     <res-auth>Container</res-auth>
   </resource-ref>
   <listener>
-    <listener-class>net.sf.ehcache.constructs.web.ShutdownListener</listener-class>
-  </listener>
-  <listener>
     <listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
   </listener>
   <filter>
