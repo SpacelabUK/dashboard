@@ -482,6 +482,7 @@ app.directive("snapshotViewer", [
 				entitydata : '='
 			},
 			link : function(scope, element, attrs) {
+				"use strict";
 				/*
 				 * implementation heavily influenced by http://bl.ocks.org/1166403
 				 */
@@ -503,13 +504,36 @@ app.directive("snapshotViewer", [
 				// do this AFTER the axes above so that the line is
 				// above the
 				// tick-lines
-
+				var lineFunction = d3.svg.line().x(function(d) {
+					return d.x;
+				}).y(function(d) {
+					return d.y;
+				}).interpolate("linear");
 				scope.$watchCollection('[image,entitydata]',
 						function(newValues, oldValues) {
+							var i;
 							// console.log(newParts);
 							var newImage = newValues[0];
 							var entityData = newValues[1];
 							var newEntities = entityData.entities;
+							var interactionHulls = entityData.interactionHulls;
+							for (i = 0; i < interactionHulls.length; i++) {
+								interactionHulls[i].points = JSON
+										.parse(interactionHulls[i].points);
+							}
+							var interactions = {};
+							for (var e = 0; e < newEntities.length; e++) {
+								i = newEntities[e].interaction;
+								if (i == -1)
+									continue;
+								if (!interactions[i])
+									interactions[i] = {
+										id : i,
+										entities : []
+									};
+								interactions[i].entities.push(newEntities[e]);
+							}
+							var interactionsArray = d3.values(interactions);
 							var limits = entityData.spaceLimits;
 							var rangeX = limits.max_x - limits.min_x;
 							var rangeY = limits.max_y - limits.min_y;
@@ -521,6 +545,15 @@ app.directive("snapshotViewer", [
 							img.onload = function() {
 								var width = this.width;
 								var height = this.height;
+
+								var x = function(x) {
+									return (-limits.min_x + parseFloat(x)) * iRangeX * width;
+								}
+								var y = function(y) {
+									return height - (-limits.min_y + parseFloat(y)) * iRangeY *
+											height;
+								}
+
 								svg.attr("preserveAspectRatio", "xMidYMid meet").attr(
 										"viewBox", "0 0 " + (width) + " " + (height));
 								svg.selectAll("image").remove();
@@ -548,6 +581,43 @@ app.directive("snapshotViewer", [
 									// return 'comment';
 									return '';
 								}
+
+								svg.selectAll('g.interaction_hull').data(interactionHulls)
+										.enter().append('g').attr('class', 'interaction_hull')
+										.attr('id', function(d) {
+											return 'ihull-' + d.interaction_id;
+										}).append("path").attr("d", function(d) {
+											var data = d.points.map(function(p) {
+												return {
+													x : x(p.x),
+													y : y(p.y)
+												}
+											});
+											return lineFunction(data);
+										}).attr("stroke", "black").attr("stroke-width", 2).attr(
+												"fill", "rgba(200,200,200,0.3)").on(
+												"mouseover",
+												function(d) {
+													var ents = d3.selectAll('.itr-' + d.interaction_id);
+													ents.transition().duration(50).style('stroke',
+															'rgba(255,255,0,1)').style('stroke-width', 2);
+													// var ents = interactions[d.interaction_id].entities;
+													// console.log(ents);
+													// for (var i = 0; i < ents.length; i++) {
+													// ents[i].selected = true;
+													// }
+												}).on(
+												"mouseout",
+												function(d) {
+													var ents = d3.selectAll('.itr-' + d.interaction_id);
+													ents.transition().duration(200).style('stroke',
+															'rgba(0,0,0,0)').style('stroke-width', 0);
+													// var ents = interactions[d.interaction_id].entities;
+													// console.log(ents);
+													// for (var i = 0; i < ents.length; i++) {
+													// ents[i].selected = true;
+													// }
+												});
 								var ents = svg.selectAll("g").data(newEntities).enter().append(
 										"g");
 								ents.append("circle").on(
@@ -555,26 +625,30 @@ app.directive("snapshotViewer", [
 										function(d) {
 											if (d.state == 0 || d.state == -1)
 												return;
+											d3.select(this).transition().duration(50).style('stroke',
+													'rgba(255,255,0,1)').style('stroke-width', 2);
+
 											div.transition().duration(200).style("opacity", .9);
 											div.html(
-													'ID:' + d.entity_id + getStateText(d)
-															+ getCommentText(d)).style("left",
-													(d3.event.pageX) + "px").style("top",
+													'ID:' + d.entity_id + getStateText(d) +
+															getCommentText(d)).style("left",
+													(d3.event.pageX + 10) + "px").style("top",
 													(d3.event.pageY - 28) + "px");
 											// "left", (d3.select(this).attr("cx")) +
 											// "px").style("top",
 											// (d3.select(this).attr("cy")) + "px");
-										}).on("mouseout", function(d) {
-									div.transition().duration(500).style("opacity", 0);
-								}).attr("cx", function(d) {
-									return (rangeX * 0.5 + parseFloat(d.cx)) * iRangeX * width;
-								}).attr(
-										"cy",
+										}).on(
+										"mouseout",
 										function(d) {
-											return height - (rangeY * 0.5 + parseFloat(d.cy))
-													* iRangeY * height;
-										}).attr("r", function(d) {
-									return width * .35 * iRangeX;
+											d3.select(this).transition().duration(200).style(
+													'stroke', 'rgba(0,0,0,0)').style('stroke-width', 0);
+											div.transition().duration(500).style("opacity", 0);
+										}).attr("cx", function(d) {
+									return x(d.cx);
+								}).attr("cy", function(d) {
+									return y(d.cy);
+								}).attr("r", function(d) {
+									return width * .30 * iRangeX;
 								}).style("fill", function(d) {
 									if (d.state == 1)
 										return 'rgb(0,255,0)';
@@ -585,19 +659,43 @@ app.directive("snapshotViewer", [
 									if (d.state == -3)
 										return 'magenta';
 									return 'none';
-								}).style("stroke", '');
+								}).style("stroke", '').attr('class', function(d) {
+									if (d.interaction === -1)
+										return '';
+									return 'itr-' + d.interaction;
+								});
 
 								ents.append("text").attr("x", function(d) {
-									return (rangeX * 0.5 + parseFloat(d.cx)) * iRangeX * width;
-								}).attr(
-										"y",
-										function(d) {
-											return height - (rangeY * 0.5 + parseFloat(d.cy))
-													* iRangeY * height;
-										}).attr("dy", ".35em").attr('pointer-events', 'none').text(
+									return x(d.cx);
+								}).attr("y", function(d) {
+									return y(d.cy);
+								}).attr("dy", ".35em").attr('pointer-events', 'none').text(
 										function(d) {
 											return d.user_comment ? '?' : '';
 										});
+								/**
+								 * leave the below for editing mode as it's more accurate
+								 * (produces all lines between interacting entities)
+								 */
+								// svg.selectAll('g.interaction').data(interactionsArray).enter()
+								// .append('g').attr('class', 'interaction').append("path")
+								// .attr("d", function(d) {
+								// var data = [];
+								// for (var i = 0; i < d.entities.length; i++) {
+								// for (var j = i + 1; j < d.entities.length; j++) {
+								// data.push({
+								// x : x(d.entities[i].cx),
+								// y : y(d.entities[i].cy)
+								// });
+								// data.push({
+								// x : x(d.entities[j].cx),
+								// y : y(d.entities[j].cy)
+								// });
+								// }
+								// }
+								// return lineFunction(data);
+								// }).attr("stroke", "rgba(0,0,255,0.5)").attr("stroke-width",
+								// 2).attr("fill", "none");
 							}
 						}, true);
 			}
@@ -605,7 +703,289 @@ app.directive("snapshotViewer", [
 		return directiveDefinitionObject;
 	}
 ]);
+app.directive('circleDiagram',
+		[
+			function() {
+				var directiveDefinitionObject = {
+					restrict : 'E',
+					scope : {
+						disks : '=',
+						edges : '=',
+						nodes : '=',
+						options : '='
+					},
+					link : function(scope, element, attrs) {
+						"use strict";
+						var width = 600;
+						var height = 600;
+						var sizeMult = scope.options.sizeMult;
+						var gravMult = scope.options.gravMult;
+						var restLength = scope.options.restLength;
+						var nodes = scope.nodes;
+						var edges = scope.edges;
+						var markerLength = 10;
+						var centreNode = {
+							name : "Centre",
+							x : width * 0.5,
+							y : height * 0.5,
+							size : 2,
+							fixed : true,
+							invisible : true,
+							type : 'centre'
+						};
+						nodes.push(centreNode);
+						var maxSize = 1;
+						var force = d3.layout.force().nodes(nodes).links(edges).size([
+								600, 600
+						])
+								.linkDistance(
+										function(d) {
+											if (d.source.type === 'centre')
+												return (50 + 200 - 200 * (d.target.size) /
+														(1.0 * maxSize)) /
+														Math.sqrt(gravMult);
+											if (d.type === 'push')
+												return 400 / Math.sqrt(gravMult);
+											return restLength / Math.sqrt(gravMult);
+										}).linkStrength(function(d) {
+									if (d.source.type === 'centre')
+										// return maxSize / (1.0 * d.target.size);
+										return 1;
+									if (d.type === 'push')
+										return d.source.fixed || d.target.fixed ? 0 : 0.025;
+									return 0.2;
+								}).gravity(0).charge(function(d) {
+									// if (d === centreNode)
+									return -30;
+									// return -d.size * 0.01;
+								}).on("tick", tick).start();
+						var svg = d3.select(element[0]).append("svg:svg").attr('width',
+								'100%').attr('height', '100%').attr('viewBox', '0 0 600 600');
+						svg.append("defs").append("marker").attr("id", "marker").attr(
+								"viewBox", "0 -5 10 10").attr("refX", 5).attr("refY", 0).attr(
+								"markerWidth", 10).attr("markerHeight", 10).attr("orient",
+								"auto").append("path").attr("d", "M0,-3L10,0L0,3").attr('fill',
+								'#828282');
 
+						var oc, ed, nd, ci, tx;
+
+						var disks = scope.disks.sort(function(d1, d2) {
+							return d2.size - d1.size;
+						});
+						oc = svg.selectAll('.disk').data(disks).enter().append('circle')
+								.attr('class', 'disk').attr('r', function(d) {
+									return d.size;
+								}).attr('cx', 300).attr('cy', 300).style('fill', function(d) {
+									return d.fill;
+								});
+						function updateNodes() {
+							if (scope.options.sizeMult)
+								sizeMult = scope.options.sizeMult;
+							if (scope.options.gravMult)
+								gravMult = scope.options.gravMult;
+
+							ed = svg.selectAll(".link").data(edges);
+
+							var edE = ed.enter().append('path').attr('class', function(d) {
+								var cl = 'link';
+								cl += ' type-' + d.type;
+								cl += ' src-' + nodes.indexOf(d.source);
+								cl += ' tar-' + nodes.indexOf(d.target);
+								return cl;
+							});
+
+							edE.attr("marker-end", "url(#marker)").attr('stroke', '#828282');
+
+							ed.exit().remove();
+							// DATA JOIN
+							// Join new data with old elements, if any.
+							nd = svg.selectAll('.node').data(nodes, function(n) {
+								return n.id
+							});
+
+							// UPDATE
+							// Update old elements as needed.
+
+							nd.selectAll('circle').attr('r', function(n) {
+								return n.size * sizeMult;
+							});
+							nd.selectAll('text').text(function(n) {
+								return n.name;
+							});
+
+							// ENTER
+							// Create new elements as needed.
+							var ndE = nd.enter().append('g').attr('class', 'node').style(
+									'fill', '#242064').call(force.drag)
+							ndE.each(function(d) {
+								if (d.size > maxSize)
+									maxSize = d.size;
+								edges.push({
+									source : centreNode,
+									target : d,
+									invisible : true
+								});
+							});
+							// ENTER + UPDATE
+							// Appending to the enter selection expands the update
+							// selection to include
+							// entering elements; so, operations on the update selection
+							// after appending to
+							// the enter selection will apply to both entering and
+							// updating nodes.
+							ndE.attr('display', function(d) {
+								if (d.invisible)
+									return 'none';
+							}).on(
+									'mouseover',
+									/*
+									 * although d3 uses the "fixed" parameter it is activated on
+									 * mouseover automatically. Therefore we introduce a new one
+									 * here "pinned"
+									 */
+									function(d) {
+										d3.select(this).selectAll('circle').style('stroke',
+												function(d) {
+													if (d.pinned)
+														return '#21FF00';
+													return 'red';
+												}).style('stroke-width', 2);
+										var cl = '.src-';
+										if (d.drawTo)
+											cl = '.tar-';
+										d3.selectAll(cl + nodes.indexOf(d)).style('stroke',
+												function(e) {
+													if (d.pinned)
+														return '#21FF00';
+													return 'red';
+												}).style('stroke-width', 2);
+									}).on(
+									'mouseout',
+									function(d) {
+										d3.event.stopPropagation();
+										d3.select(this).selectAll('circle').style('stroke', 'none')
+												.style('stroke-width', 1);
+										var cl = '.src-';
+										if (d.drawTo)
+											cl = '.tar-';
+										d3.selectAll(cl + nodes.indexOf(d)).style('stroke',
+												'#828282').style('stroke-width', 1);
+									}).on(
+									'dblclick',
+									function(d) {
+										d3.event.stopPropagation();
+										d.fixed = !d.fixed;
+										d.pinned = !d.pinned;
+										d3.select(this).selectAll('circle').style('stroke',
+												function(c) {
+													if (d.pinned)
+														return '#21FF00';
+													return 'red';
+												});
+										var cl = '.src-';
+										if (d.drawTo)
+											cl = '.tar-';
+										d3.selectAll(cl + nodes.indexOf(d)).style('stroke',
+												function(e) {
+													if (d.pinned)
+														return '#21FF00';
+													return 'red';
+												});
+										return true;
+									}).on(
+									'contextmenu',
+									function(d) {
+										d3.event.preventDefault();
+										if (!d.drawTo)
+											d.drawTo = true;
+										else
+											d.drawTo = false;
+
+										var cl = '.src-';
+										if (d.drawTo)
+											cl = '.tar-';
+										console.log(d.fixed === 3);
+										d3.selectAll(cl + nodes.indexOf(d)).style('stroke',
+												function(e) {
+													if (d.pinned)
+														return '#21FF00';
+													return 'red';
+												}).style('stroke-width', 3);
+										cl = '.tar-';
+										if (d.drawTo)
+											cl = '.src-';
+										d3.selectAll(cl + nodes.indexOf(d)).style('stroke',
+												'#828282').style('stroke-width', 1);
+									});
+
+							ci = ndE.append('circle').attr('r', function(n) {
+								return n.size * sizeMult;
+							})
+							tx = ndE.append('text').text(function(n) {
+								return n.name;
+							}).attr('x', function(n) {
+								return n.size * sizeMult + 5;
+							}).attr('y', function(n) {
+								return 0;
+							}).attr('dy', '.35em').attr("font-family", "sans-serif");
+
+							// EXIT
+							// Remove old elements as needed.
+							nd.exit().remove();
+							force.start();
+						}
+						updateNodes();
+
+						var drawPaths = function() {
+							d3.selectAll('.link').attr(
+									"d",
+									function(e) {
+										if (e.invisible || e.type === 'push')
+											return;
+										var path = "M";
+										var n1 = e.source;
+										var n2 = e.target;
+										var len = Math.sqrt(Math.pow(n2.x - n1.x, 2) +
+												Math.pow(n2.y - n1.y, 2));
+										var prc1 = (n1.size * sizeMult + //
+										markerLength * 0.25) / (1.0 * len) + 0.01;
+										var x1 = n1.x + (n2.x - n1.x) * prc1;
+										var y1 = n1.y + (n2.y - n1.y) * prc1;
+										var prc2 = (n2.size * sizeMult + //
+										markerLength * 0.5) / (1.0 * len) + 0.01;
+										var x2 = n2.x - (n2.x - n1.x) * prc2;
+										var y2 = n2.y - (n2.y - n1.y) * prc2;
+										path += (x1 | 0) + "," + (y1 | 0);
+										path += "L";
+										path += (x2 | 0) + "," + (y2 | 0);
+										return path;
+									});
+						}
+						function tick() {
+							drawPaths();
+							nd.attr("transform", function(d) {
+								return "translate(" + d.x + "," + d.y + ")";
+							});
+						}
+						// scope.$watch('nodes.length', function(newLength, oldLength) {
+						// updateNodes();
+						// }, true);
+						scope.$watch('options', function(newOptions, oldOptions) {
+							if (scope.options.sizeMult)
+								sizeMult = scope.options.sizeMult;
+							if (scope.options.gravMult)
+								gravMult = scope.options.gravMult;
+							if (scope.options.restLength)
+								restLength = scope.options.restLength;
+							updateNodes();
+							drawPaths();
+						}, true);
+
+					}
+				}
+				return directiveDefinitionObject;
+			}
+		]);
 app
 		.directive(
 				"polygonViewer",
@@ -646,13 +1026,12 @@ app
 										var height = this.height;
 
 										function scaleX(x) {
-											return ((rangeX * 0.5 + parseFloat(x) - centre.x)
-													* iRangeX * width);
+											return ((rangeX * 0.5 + parseFloat(x) - centre.x) *
+													iRangeX * width);
 										}
 										function scaleY(y) {
-											return height
-													- ((rangeY * 0.5 + parseFloat(y) - centre.y)
-															* iRangeY * height);
+											return height -
+													((rangeY * 0.5 + parseFloat(y) - centre.y) * iRangeY * height);
 										}
 										svg.attr("preserveAspectRatio", "xMidYMid meet").attr(
 												"viewBox", "0 0 " + (width) + " " + (height));
@@ -719,91 +1098,81 @@ app
 						return directiveDefinitionObject;
 					}
 				]);
-app
-		.directive(
-				"dpmViewer",
-				[
-					function() {
-						var directiveDefinitionObject = {
-							restrict : 'E',
-							scope : {
-								image : '=',
-								dpmdata : '='
-							},
-							link : function(scope, element, attrs) {
-								var svg = d3.select(element[0]).append("svg:svg");
-								function update(newValues) {
-									var newImage = newValues[0];
-									var dpmData = newValues[1];
-									var tiles = dpmData.tiles;
-									var metadata = dpmData.metadata;
-									var wN = metadata.width;
-									var pixelW = parseFloat(metadata.scalex);
-									var pixelH = parseFloat(metadata.scaley);
-									var band = dpmData.band;
-									var limits = dpmData.spaceLimits;
-									var rangeX = limits.max_x - limits.min_x;
-									var rangeY = limits.max_y - limits.min_y;
-									var iRangeX = 1.0 / rangeX;
-									var iRangeY = 1.0 / rangeY;
-									var minV = parseFloat(metadata.minv);
-									var iValueRange = 1.0 / (parseFloat(metadata.maxv) - minV);
-									var img = new Image();
-									img.src = newImage;
-									img.onload = function() {
-										var width = this.width;
-										var height = this.height;
-										var diff = {
-											x : width
-													* iRangeX
-													* (parseFloat(metadata.upperleftx) - parseFloat(limits.min_x)),
-											y : height
-													* iRangeY
-													* (parseFloat(metadata.upperlefty) - parseFloat(limits.min_y))
-										}
-										pixelW = width * iRangeX * pixelW;
-										pixelH = -height * pixelH * iRangeY;
-										svg.attr("preserveAspectRatio", "xMidYMid meet").attr(
-												"viewBox", "0 0 " + (width) + " " + (height));
-										svg.selectAll("image").remove();
-										svg.append("svg:image").attr('x', 0).attr('y', 0).attr(
-												'height', height).attr('width', width).attr(
-												'xlink:href', newImage);
+app.directive("dpmViewer", [
+	function() {
+		var directiveDefinitionObject = {
+			restrict : 'E',
+			scope : {
+				image : '=',
+				dpmdata : '='
+			},
+			link : function(scope, element, attrs) {
+				var svg = d3.select(element[0]).append("svg:svg");
+				function update(newValues) {
+					var newImage = newValues[0];
+					var dpmData = newValues[1];
+					var tiles = dpmData.tiles;
+					var metadata = dpmData.metadata;
+					var wN = metadata.width;
+					var pixelW = parseFloat(metadata.scalex);
+					var pixelH = parseFloat(metadata.scaley);
+					var band = dpmData.band;
+					var limits = dpmData.spaceLimits;
+					var rangeX = limits.max_x - limits.min_x;
+					var rangeY = limits.max_y - limits.min_y;
+					var iRangeX = 1.0 / rangeX;
+					var iRangeY = 1.0 / rangeY;
+					var minV = parseFloat(metadata.minv);
+					var iValueRange = 1.0 / (parseFloat(metadata.maxv) - minV);
+					var img = new Image();
+					img.src = newImage;
+					img.onload = function() {
+						var width = this.width;
+						var height = this.height;
+						var diff = {
+							x : width * iRangeX *
+									(parseFloat(metadata.upperleftx) - parseFloat(limits.min_x)),
+							y : height * iRangeY *
+									(parseFloat(metadata.upperlefty) - parseFloat(limits.min_y))
+						}
+						pixelW = width * iRangeX * pixelW;
+						pixelH = -height * pixelH * iRangeY;
+						svg.attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox",
+								"0 0 " + (width) + " " + (height));
+						svg.selectAll("image").remove();
+						svg.append("svg:image").attr('x', 0).attr('y', 0).attr('height',
+								height).attr('width', width).attr('xlink:href', newImage);
 
-										svg.selectAll("rect").remove();
-										var div = d3.select("body").append("div").attr("class",
-												"d3tooltip").style("opacity", 0);
-										svg.selectAll("rect").data(tiles).enter().append("rect")
-												.attr("x", function(d) {
-													return diff.x + (d.i % wN) * pixelW;
-												}).attr(
-														"y",
-														function(d) {
-															return -diff.y + (height)
-																	+ (((d.i / wN) | 0) * pixelH);
-														}).attr("width", function(d) {
-													return pixelW;
-												}).attr("height", function(d) {
-													return pixelH;
-												}).attr(
-														"fill",
-														function(d) {
-															return d3.hsl(
-																	240 - 240.0 * ((d.v - minV) * iValueRange),
-																	1, 0.5);
-														});
+						svg.selectAll("rect").remove();
+						var div = d3.select("body").append("div")
+								.attr("class", "d3tooltip").style("opacity", 0);
+						svg.selectAll("rect").data(tiles).enter().append("rect").attr("x",
+								function(d) {
+									return diff.x + (d.i % wN) * pixelW;
+								}).attr("y", function(d) {
+							return -diff.y + (height) + (((d.i / wN) | 0) * pixelH);
+						}).attr("width", function(d) {
+							return pixelW;
+						}).attr("height", function(d) {
+							return pixelH;
+						}).attr(
+								"fill",
+								function(d) {
+									return d3.hsl(240 - 240.0 * ((d.v - minV) * iValueRange), 1,
+											0.5);
+								});
 
-									}
-								}
-								scope.$watchCollection('[image,dpmdata]', function(newValues,
-										oldValues) {
-									update(newValues);
-								}, true);
-							}
-						};
-						return directiveDefinitionObject;
 					}
-				]);
+				}
+				scope.$watchCollection('[image,dpmdata]',
+						function(newValues, oldValues) {
+							update(newValues);
+						}, true);
+			}
+		};
+		return directiveDefinitionObject;
+	}
+]);
 // app.directive("wordle", [
 //
 // function() {
