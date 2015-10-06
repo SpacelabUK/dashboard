@@ -61,6 +61,7 @@
   <div class="row">
     <div class="col-lg-12">
       <div class="widget">
+        <div class="widget-title">Observation</div>
         <div class="widget-body no-padding">
           <div class="table-responsive">
             <table class="table">
@@ -91,6 +92,52 @@
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="widget">
+        <div class="widget-title">
+          <i class="fa fa-users"></i> Teams <input type="text"
+            placeholder="Filter..."
+            class="form-control input-sm pull-right" ng-model="search" />
+        </div>
+        <div class="widget-body medium no-padding" style="height: 100%">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th><a href=""
+                      ng-click="predicate = 'title'; reverse=false">Name</a>
+                    <a href=""
+                      ng-click="predicate = '-title'; reverse=false">^</a></th>
+                  <th class="text-center">Description</th>
+                  <th class="text-center">Size</th>
+                  <th class="text-center">Edit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  ng-repeat="team in teams | orderBy:predicate:reverse | anyWordFilter: {title:search, in_groups:search, alias:search, units:search,units_full:search}">
+                  <td style="width: 20%;">{{team.title}}<br
+                    ng-if="team.title")> <span style="color: gray"><small>({{team.alias}})</small></span>
+                  </td>
+                  <td style="width: 20%;">{{team.description}}</td>
+                  <td class="text-center">{{team.size}}</td>
+                  <td><a href="" ng-click="editTeam(team,$index)">
+                      <i class="fa fa-pencil la-lg" tooltip="Edit"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- <div style="padding: 5px 15px;">
+          <a ng-click="addMetric()" href="#" onclick="return false;"
+            class="pull-right">Create new Metric</a>
+          <div class="clearfix"></div>
+        </div> -->
       </div>
     </div>
   </div>

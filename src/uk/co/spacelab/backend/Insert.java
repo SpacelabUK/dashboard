@@ -60,21 +60,20 @@ public class Insert extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		try {
 			if (type.equals("device")) {
-				out.println(postForTable(request, response, "devices",
-						paramsJSON));
+				out.println(
+						postForTable(request, response, "devices", paramsJSON));
 			} else if (type.equals("project")) {
 				out.println(postForTable(request, response, "projects",
 						paramsJSON));
 			} else if (type.equals("study")) {
-				out.println(postForTable(request, response, "studies",
-						paramsJSON));
+				out.println(
+						postForTable(request, response, "studies", paramsJSON));
 			} else if (type.equals("study_part")) {
-				out.println(postForTable(
-						request,
-						response,
-						"observations",
-						new JSONObject("{study_id : \""
-								+ paramsJSON.getInt("study_id") + "\"}")));
+				out.println(
+						postForTable(request, response, "observations",
+								new JSONObject("{study_id : \""
+										+ paramsJSON.getInt("study_id")
+										+ "\"}")));
 			} else if (type.equals("spatial_function")) {
 				out.println(postForTable(request, response, "polygon_types",
 						paramsJSON));
@@ -96,8 +95,8 @@ public class Insert extends HttpServlet {
 	}
 	private JSONArray postForTable(HttpServletRequest request,
 			HttpServletResponse response, String table, JSONObject params)
-			throws IOException, ClassNotFoundException, SQLException,
-			ParseException {
+					throws IOException, ClassNotFoundException, SQLException,
+					ParseException {
 
 		String columnString = "";
 		Set<String> keys = params.keySet();
@@ -106,7 +105,7 @@ public class Insert extends HttpServlet {
 		for (Object o : keys) {
 			String key = (String) o;
 			columnString += (counter == 0 ? "" : ",") + key;
-			values[counter] = params.getString(key);
+			values[counter] = params.get(key).toString();
 			counter++;
 		}
 		Database.insertInto(table, columnString, values);

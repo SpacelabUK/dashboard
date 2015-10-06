@@ -1,52 +1,6 @@
 
 <div class="main-container" style="font-family: Apercu">
 
-  <!-- Header Bar -->
-
-  <div class="row header">
-    <div class="col-xs-12">
-      <div class="meta pull-left">
-        <div class="page">{{study.project_name.content}}</div>
-        <div class="breadcrumb-links">Home / Studies /
-          {{study.project_name.content}}</div>
-      </div>
-      <div class="user pull-right">
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle"> </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Joe Bloggs</li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Profile </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Logout </a>
-            </li>
-          </ul>
-        </div>
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle">
-            <i class="fa fa-bell-o"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Notifications</li>
-            <li class="divider"></li>
-            <li>
-              <a href="#">Server Down!</a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="row">
     <div class="col-lg-12 text-center">
       <h3>{{pageTitle}}</h3>
@@ -77,11 +31,12 @@
 
               <tbody ng-repeat="metric in issue.metrics">
                 <tr>
-                  <td colspan="2" ng-mouseover="hoverIn(study[metric])"
-                    ng-mouseleave="hoverOut(study[metric])"><span
-                    tooltip="{{study[metric].description}}">{{study[metric].title}}
+                  <td colspan="2"
+                    ng-mouseover="hoverIn(study[metric.alias])"
+                    ng-mouseleave="hoverOut(study[metric.alias])"><span
+                    tooltip="{{study[metric.alias].description}}">{{study[metric.alias].title}}
                       <span class="dropdown"
-                      ng-show="isHovered(study[metric])"> <a
+                      ng-show="isHovered(study[metric.alias])"> <a
                           href="#">
                           <i class="fa fa-cog dropdown-toggle"
                             data-toggle="dropdown" aria-haspopup="true"
@@ -92,98 +47,101 @@
                           aria-labelledby="dropdownMenu1">
                           <li>
                             <a href=""
-                              ng-click="toggle_no_of_decimals(study[metric])">Show
+                              ng-click="toggle_no_of_decimals(study[metric.alias])">Show
                               all decimals</a>
                           </li>
                         </ul>
                     </span>
                   </span></td>
-                  <td><any ng-switch="study[metric].measure.type">
+                  <td><any
+                      ng-switch="study[metric.alias].solution.type">
                     <!--  --> <any ng-switch-when="table"> <any
-                      ng-switch="study[metric].view"> <any
+                      ng-switch="study[metric.alias].view"> <any
                       ng-switch-when="chart"> <doughnut-chart-er
-                      id="{{toAliasString(metric)}}"
-                      data="study[metric].measure.content"
+                      id="{{toAliasString(metric.alias)}}"
+                      data="study[metric.alias].solution.content"
                       show-text="true" show-legend="true"
-                      title="study[metric].title"
-                      no-of-decimals="study[metric].no_of_decimals"
-                      units="study[metric].units ? study[metric].units :
-                    study[metric].measure.units"></doughnut-chart-er>
+                      title="study[metric.alias].title"
+                      no-of-decimals="study[metric.alias].no_of_decimals"
+                      units="study[metric.alias].units ? study[metric.alias].units :
+                    study[metric.alias].solution.units"></doughnut-chart-er>
                     <div style="width: 100%">
 
                       <div class="btn btn-default pull-right"
-                        ng-click="study[metric].view = 'table'">Table</div>
+                        ng-click="study[metric.alias].view = 'table'">Table</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadSVG(metric)">Download
+                        ng-click="downloadSVG(metric.alias)">Download
                         SVG</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadEMF(metric)">Download
+                        ng-click="downloadEMF(metric.alias)">Download
                         EMF</div>
                     </div>
                     </any> <any ng-switch-default>
-                    <div id="{{toAliasString(metric)}}">
+                    <div id="{{toAliasString(metric.alias)}}">
                       <table class="table-internal">
                         <thead>
                           <tr>
-                            <th>{{study[metric].measure.content.keyType}}</th>
+                            <th>{{study[metric.alias].solution.content.keyType}}</th>
                             <th
-                              ng-repeat="property in study[metric].measure.content.properties | orderBy:getSorterOrNameOrAlias">
+                              ng-repeat="property in study[metric.alias].solution.content.properties | orderBy:getSorterOrNameOrAlias">
                               {{getNameOrAlias(property)}}</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr
-                            ng-repeat="key in study[metric].measure.content.keys | orderBy:getSorterOrNameOrAlias"
+                            ng-repeat="key in study[metric.alias].solution.content.keys | orderBy:getSorterOrNameOrAlias"
                             ng-class="{'even':$even,'odd':$odd}">
                             <td>{{getNameOrAlias(key)}}</td>
                             <td
-                              ng-repeat="property in study[metric].measure.content.properties | orderBy:getSorterOrNameOrAlias">
-                              {{getCellContent(study[metric],key,property)}}</td>
+                              ng-repeat="property in study[metric.alias].solution.content.properties | orderBy:getSorterOrNameOrAlias">
+                              {{getCellContent(study[metric.alias],key,property)}}</td>
                           </tr>
                         </tbody>
                       </table>
                       <div style="width: 100%">
                         <div class="btn btn-default pull-right"
-                          ng-click="study[metric].view = 'chart'">Chart</div>
+                          ng-click="study[metric.alias].view = 'chart'">Chart</div>
                         <div class="btn btn-default pull-right"
-                          ng-click="copyToClipboard(study[metric],metric)">Copy
+                          ng-click="copyToClipboard(study[metric.alias],metric)">Copy
                           to clipboard</div>
                       </div>
                     </div>
                     </any></any> </any> <any ng-switch-when="list"> <!-- <span
-                      ng-hide="study[metric].measure.content">fetching...</span> -->
-                    <!-- <div id="{{toAliasString(metric)}}"
-                      ng-show="study[metric].measure.content"> -->
-                    <div id="{{toAliasString(metric)}}">
+                      ng-hide="study[metric.alias].solution.content">fetching...</span> -->
+                    <!-- <div id="{{toAliasString(metric.alias)}}"
+                      ng-show="study[metric.alias].solution.content"> -->
+                    <div id="{{toAliasString(metric.alias)}}">
                       <table class="table-internal">
                         <thead>
                           <tr>
-                            <th>{{study[metric].title}}</th>
+                            <th>{{study[metric.alias].title}}</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr
-                            ng-repeat="element in study[metric].measure.content | orderBy:getNameOrAlias"
+                            ng-repeat="element in study[metric.alias].solution.content | orderBy:getNameOrAlias"
                             ng-class="{'even':$even,'odd':$odd}">
-                            <td>{{element.name}}</td>
+                            <td>{{getNameOrAlias(element)}}</td>
                           </tr>
 
                         </tbody>
                       </table>
                       <div style="width: 100%">
                         <div class="btn btn-default pull-right"
-                          ng-click="copyToClipboard(study[metric],metric)">Copy
+                          ng-click="copyToClipboard(study[metric.alias],metric)">Copy
                           to clipboard</div>
                       </div>
                     </div>
                     </any> <any ng-switch-default> <span
-                      ng-class="study[metric].measure.type == 'error' ? 'text-danger':''"
-                      tooltip="{{study[metric].name}}">{{getContent(study[metric])}}</span></any>
+                      ng-class="study[metric.alias].solution.type == 'error' ? 'text-danger':''"
+                      tooltip="{{study[metric.alias].name}}">{{getContent(study[metric.alias])}}</span></any>
                     </any></td>
-                  <td>{{study[metric].units ? study[metric].units :
-                    study[metric].measure.units}}</td>
-                  <td>{{study[metric].other ? study[metric].other :
-                    study[metric].measure.other}}</td>
+                  <td>{{study[metric.alias].units ?
+                    study[metric.alias].units :
+                    study[metric.alias].solution.units}}</td>
+                  <td>{{study[metric.alias].other ?
+                    study[metric.alias].other :
+                    study[metric.alias].solution.other}}</td>
                 </tr>
               </tbody>
             </table>
@@ -193,45 +151,4 @@
       <br />
     </div>
   </div>
-</div>
-<!-- <div class="row">
-                      <div class="col-lg-12">
-                        <div class="widget">
-                          <div class="widget-body no-padding">
-                            <div class="table-responsive">
-                              <table class="table">
-                                <thead>
-                                  <tr>
-                                    <th>Name</th>
-                                    <th>Value</th>
-                                    <th>Units</th>
-                                    <th>Other info</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr
-                                    ng-repeat="space in spaces | orderBy:spacePredicate:reverse | filter:searchTeamsInFile">
-                                    <td>{{space.alias}} (<a
-                                        ng-click="getDepthmapMeasure(space,'Visibility')">Visibility</a>,
-                                      <a
-                                        ng-click="getDepthmapMeasure(space,'Accessibility')">Accessibility</a>,
-                                      <a
-                                        ng-click="getDepthmapMeasure(space,'Essence')">Essence</a>)
-                                    </td>
-                                    <td>{{space.sqm_per_walker.content.toFixed(2)}}</td>
-                                    <td></td>
-                                    <td></td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      </div>
-                      -->
-
-
-<!-- End Main Content -->
-
 </div>

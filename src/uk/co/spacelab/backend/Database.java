@@ -34,7 +34,7 @@ import org.json.JSONObject;
 
 public class Database {
 
-	private static String dbName = "jdbc:postgresql://localhost/postgres";
+	private static String dbName = "jdbc:postgresql://localhost/spacelab";
 	private static String dbDriver = "org.postgresql.Driver";
 	private static String dbDataSource =
 			"org.postgresql.ds.PGPoolingDataSource";
@@ -532,6 +532,13 @@ public class Database {
 		JSONArray result = getSequenceCurrVal(con, seq);
 		con.close();
 		return result;
+	}
+	public static void customQueryNoResult(String sql, Object... args)
+			throws SQLException, ParseException {
+		try (Connection psql = getConnection()) {
+			execPreparedNoResults(psql, sql, args);
+			psql.close();
+		}
 	}
 	public static JSONArray customQuery(String sql, Object... args)
 			throws SQLException, ParseException {

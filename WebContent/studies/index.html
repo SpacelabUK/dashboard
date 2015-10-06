@@ -60,14 +60,29 @@
       <div class="list-group">
         <div class="list-group-item" style="background-color: #F6F6F6;">
 
-          <input ng-model="search" placeholder="Filter..." />
-          <a class="pull-right" tooltip="Create a new project">
+          <input ng-model="search" placeholder="Filter..." auto-focus />
+          <a class="pull-right" ng-click="addProject()" href=""
+            tooltip="Create a new project">
             <i class="fa fa-plus"></i> New Project
           </a>
         </div>
         <div class="project-info list-group-item"
           ng-repeat="project in studies | filter:search">
-          <h4>{{project.name}}</h4>
+          <div>
+            <h4>{{project.name}}
+            <span dropdown on-toggle="toggled(open)"> <a href=""
+                style="display: inline-block; padding: 6px 0"
+                id="simple-dropdown" dropdown-toggle>
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu"
+                aria-labelledby="simple-dropdown">
+                <li>
+                  <a ng-click="addStudy(project)" href="">New study</a>
+                </li>
+              </ul>
+            </span></h4>
+          </div>
           <span
             style="color: #ccc; position: absolute; top: 15px; right: 15px;">{{project.id}}</span>
           <div class="study-info row"
@@ -87,7 +102,10 @@
                 <li ng-if="study.status==='closed'">
                   <a href="">Open study</a>
                 </li>
-
+                <li>
+                  <a ui-sref="observation({studyid:study.id})">View
+                    observation</a>
+                </li>
               </ul>
             </span>
             <div ng-if="study.status==='open'"
@@ -100,22 +118,22 @@
               <ul class="dropdown-menu" role="menu"
                 aria-labelledby="single-button">
                 <li role="menuitem" style="text-align: right;">
-                  <a href="#" ng-click="addObservationData(study)">Observation</a>
+                  <a href="" ng-click="addObservationData(study)">Observation</a>
                 </li>
                 <li role="menuitem" style="text-align: right;">
-                  <a href="#" ng-click="addPlans(study)">Plans /
+                  <a href="" ng-click="addPlans(study)">Plans /
                     Polygons</a>
                 </li>
                 <li role="menuitem" style="text-align: right;">
-                  <a href="#" ng-click="addDepthmap(study)">Depthmap</a>
+                  <a href="" ng-click="addDepthmap(study)">Depthmap</a>
                 </li>
                 <!-- <li class="divider"></li> -->
                 <li role="menuitem" style="text-align: right;">
-                  <a href="#" ng-click="addStaffSurvey(study)">Staff
+                  <a href="" ng-click="addStaffSurvey(study)">Staff
                     survey</a>
                 </li>
                 <li role="menuitem" style="text-align: right;">
-                  <a href="#" ng-click="addStakeholders(study)">Stakeholder
+                  <a href="" ng-click="addStakeholders(study)">Stakeholder
                     Interviews</a>
                 </li>
               </ul>

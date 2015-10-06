@@ -13,8 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shiro.session.Session;
@@ -23,8 +22,6 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.MalformedDataException;
-import uk.co.spacelab.backend.in.StakeholderReader.Question;
-import uk.co.spacelab.fileio.FileIO;
 
 public class StaffSurveyReader {
 	// private enum QuestionType {
@@ -161,6 +158,14 @@ public class StaffSurveyReader {
 			this.alias = alias;
 		}
 	}
+	/**
+	 * 
+	 * @author petros
+	 * @param choiceScale
+	 *            a map of choices where the key is the id(alias) of the choice
+	 *            and the value a numberical value if the questions are part of
+	 *            a scale
+	 */
 	class ChoiceQuestion extends Question {
 		// Set<String> choices;
 		Map<String, Float> choiceScale;
@@ -194,7 +199,7 @@ public class StaffSurveyReader {
 		Map<Integer, String> tieProps;
 		Map<String, List<String>> answers;
 		Map<String, Question> questions;
-		private Dataset expand(File file) {
+		Dataset expand(File file) {
 
 			ties = new ArrayList<Tie>();
 			List<String> tiesIn = new ArrayList<String>();
@@ -256,7 +261,10 @@ public class StaffSurveyReader {
 				// }
 				if (node.length != head.length)
 					throw new RuntimeException(
-							"Error parsing! Check for double quotes(\") in the answers and convert them to single(') ones. Error on line: "
+							"Error parsing (line: " + (nodes.indexOf(line) + 3)
+									+ " - " + line
+									+ ")! Check for double quotes(\") in the answers "
+									+ "and convert them to single(') ones. Error on line: "
 									+ line.substring(1, line.length() - 1)
 									+ " (" + node[node.length - 1] + ")");
 				for (int i = 0; i < node.length; i++)
@@ -680,7 +688,8 @@ public class StaffSurveyReader {
 			Question qst = dst.questions.get(q);
 			JSONArray r =
 					Database.selectWhatFromTableWhere(psql, TABLE_QUESTIONS,
-							QUESTION_ID, "alias=?", q);
+							QUESTION_ID, "alias=? AND question_group=?", q,
+							qst.group);
 			int quid = -1;
 			if (r.length() == 0) {
 				String columnString = QUESTION_ALIAS + "," + QUESTION_TYPE_ID;
@@ -810,8 +819,10 @@ public class StaffSurveyReader {
 			counter++;
 			progress.put("progress", counter / (float) dst.people.size());
 			// Skipping *dummy people
-			if (null != dst.people.get(i).name
-					&& dst.people.get(i).name.startsWith("*"))
+			// if (null != dst.people.get(i).name
+			// && dst.people.get(i).name.startsWith("*"))
+			if (null != dst.people.get(i).location
+					&& dst.people.get(i).location.startsWith("*"))
 				continue;
 			JSONArray r =
 					Database.selectWhatFromTableWhere(psql, TABLE_STAFF,
@@ -1115,6 +1126,11 @@ public class StaffSurveyReader {
 			this.alias = alias;
 		}
 	}
+	public void removeNullJSONKeys(JSONObject o) {
+		String [] keys = JSONObject.getNames(o);
+		for (int i = 0; i < keys.length; i++)
+			if (o.isNull(keys[i])) o.remove(keys[i]);
+	}
 	public JSONObject getStaticData(File file, int studyID)
 			throws SQLException, ParseException {
 
@@ -1138,13 +1154,35 @@ public class StaffSurveyReader {
 			floors.put(p.location, f);
 		}
 		staticData.put("FLOOR_LIST", new ArrayList<String>(floors.keySet()));
+		staticData.put("QUESTION_LIST", null);
 		JSONArray databaseTeams =
 				Database.selectAllFromTableWhere("teams", "study_id=?",
 						studyID);
 		JSONArray databaseFloors =
 				Database.selectAllFromTableWhere("spaces", "study_id=?",
 						studyID);
-		JSONArray databaseQuestions = new JSONArray();
+		// JSONArray databaseQuestions = new JSONArray();
+		JSONArray databaseQuestions =
+				Database.customQuery(
+						"SELECT * FROM splab_get_staff_survey_questions()");
+		if (databaseQuestions.length() > 0) {
+			databaseQuestions =
+					new JSONArray(
+							databaseQuestions.getJSONObject(0).getString(
+									"splab_get_staff_survey_questions"));
+			for (int i = 0; i < databaseQuestions.length(); i++) {
+				JSONObject q = databaseQuestions.getJSONObject(i);
+				q.put("alias", q.getString("group_alias"));
+				removeNullJSONKeys(q);
+				if (q.has("choices")) {
+					// System.out.println(q.get("choices"));
+					JSONArray choices = q.getJSONArray("choices");
+					for (int j = 0; j < choices.length(); j++) {
+						removeNullJSONKeys(choices.getJSONObject(j));
+					}
+				}
+			}
+		}
 		// Database.customQuery("SELECT
 		// interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
 		// + "(SELECT alias FROM interview_questions "
@@ -1160,73 +1198,64 @@ public class StaffSurveyReader {
 			JSONArray arr;
 			arr = new JSONArray();
 			if (key.equalsIgnoreCase("QUESTION_LIST")) {
-				// for (String alias : questions.keySet()) {
-				// Question q = questions.get(alias);
-				// JSONObject o = new JSONObject();
-				// String [] theAlias = clearQuestionAlias(alias);
-				// String clearAlias = theAlias[0];
-				// // String clearID = theAlias[1];
-				//
-				// o.put("alias", alias);
-				// // o.put("alias", clearAlias);
-				// // o.put("id", clearID);
-				// o.put("title", q.title);
-				// if (q.parent != null) {
-				// // String [] parentAlias =
-				// // clearQuestionAlias(q.parent.alias);
-				// o.put("parent", q.parent.alias);
-				// // o.put("parent", parentAlias[0]);
-				// // o.put("parent_id", parentAlias[1]);
-				// }
-				// if (q.choices != null) {
-				// o.put("choicesReference", new JSONArray(
-				// q.choicesReference));
-				// o.put("choices", new JSONArray(q.choices));
-				// }
-				// outerloop : for (int i = 0; i < databaseQuestions.length();
-				// i++) {
-				// JSONObject dbQ = databaseQuestions.getJSONObject(i);
-				// String dbAlias = dbQ.getString("alias");
-				// int dbID = dbQ.getInt("id");
-				// if (clearAlias.equalsIgnoreCase(dbAlias)) {
-				// Question currentQ = q;
-				// JSONObject currentDBQ = dbQ;
-				// int breakcounter = 100;
-				// while (breakcounter > 1) {
-				// for (int j = 0; j < 100 - breakcounter; j++)
-				// System.out.print(" ");
-				// if (currentQ.parent != null
-				// && !currentDBQ.has("parent"))
-				// continue outerloop;
-				// if (currentQ.parent == null
-				// && currentDBQ.has("parent"))
-				// continue outerloop;
-				// if (currentQ.parent == null
-				// && !currentDBQ.has("parent")) {
-				// if (currentDBQ
-				// .getString("alias")
-				// .equalsIgnoreCase(
-				// clearQuestionAlias(currentQ.alias)[0]))
-				// break;
-				// }
-				// if (!currentDBQ
-				// .getString("parent")
-				// .equalsIgnoreCase(
-				// clearQuestionAlias(currentQ.parent.alias)[0]))
-				// continue outerloop;
-				// currentQ = currentQ.parent;
-				// currentDBQ =
-				// findDBQ(databaseQuestions,
-				// currentDBQ.getInt("parent_id"));
-				// breakcounter--;
-				// }
-				// o.put("prematchproperty", "id");
-				// o.put("prematch", dbID);
-				// break;
-				// }
-				// }
-				// arr.put(o);
-				// }
+				for (String alias : dst.questions.keySet()) {
+					Question q = dst.questions.get(alias);
+					JSONObject o = new JSONObject();
+					String groupAlias =
+							q.group == null ? q.alias : q.group + "-" + q.alias;
+					o.put("alias", groupAlias);
+					JSONObject dbMatch = null;
+					for (int i = 0; i < databaseQuestions.length(); i++) {
+						JSONObject qDB = databaseQuestions.getJSONObject(i);
+						String qDBalias = qDB.getString("group_alias");
+						if (qDBalias.equalsIgnoreCase(groupAlias)) {
+							String qDBtype = qDB.getString("type_id");
+							if (qDBtype.equals("CHOICE")
+									&& q instanceof ChoiceQuestion)
+								dbMatch = databaseQuestions.getJSONObject(i);
+							else if (qDBtype.equals("TIESCORE") //
+									&& q instanceof TieQuestion) {
+								o.put("prematchproperty", "alias");
+								o.put("prematch", databaseQuestions
+										.getJSONObject(i).getString("alias"));
+							} else if (qDBtype.equals("TEXT") //
+									&& q instanceof TextQuestion) {
+								o.put("prematchproperty", "alias");
+								o.put("prematch", databaseQuestions
+										.getJSONObject(i).getString("alias"));
+							}
+							break;
+						}
+					}
+					// if(null != dbMatch)
+					// System.out.println();
+					if (q instanceof ChoiceQuestion) {
+						JSONArray choices = new JSONArray();
+						ChoiceQuestion cq = (ChoiceQuestion) q;
+						List<String> choiceIDs = null;
+						if (dbMatch != null) {
+							JSONArray dbChoices =
+									dbMatch.getJSONArray("choices");
+							choiceIDs = new CopyOnWriteArrayList<String>();
+							for (int i = 0; i < dbChoices.length(); i++)
+								choiceIDs.add(dbChoices.getJSONObject(i)
+										.getString("id").toUpperCase());
+						}
+						for (String choiceID : cq.choiceScale.keySet()) {
+							JSONObject c = new JSONObject();
+							c.put("id", choiceID);
+							c.put("mark", cq.choiceScale.get(choiceID));
+							choices.put(c);
+							if (dbMatch != null)
+								choiceIDs.remove(choiceID.toUpperCase());
+						}
+						if (dbMatch != null && choiceIDs.size() == 0) {
+							o.put("prematchproperty", "alias");
+							o.put("prematch", dbMatch.getString("alias"));
+						}
+					}
+					arr.put(o);
+				}
 			} else if (key.equalsIgnoreCase("DEPARTMENT_LIST")) {
 				for (String alias : staticData.get(key)) {
 					alias = alias.trim();

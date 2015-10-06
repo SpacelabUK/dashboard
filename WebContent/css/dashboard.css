@@ -372,6 +372,24 @@ ul.sidebar .sidebar-list a:hover .menu-icon {
 	width: 25%;
 }
 
+.widget .ui-select-container input {
+	width: 100%;
+}
+
+.ui-select-container .ui-select-toggle {
+	overflow: hidden;
+}
+
+.ui-select-bootstrap .ui-select-choices-row>a {
+	white-space: normal;
+}
+/* .widget .ui-select-bootstrap>.ui-select-choices {
+	min-width: 300px;
+	width: auto;
+	right: 0;
+	left: auto;
+	width: auto;
+} */
 .widget .widget-body {
 	padding: 20px;
 }

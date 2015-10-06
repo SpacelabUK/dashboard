@@ -75,23 +75,24 @@ app
 								$scope.questions = [];
 								var clearHeaders = [];
 								var sensHeaders = [];
+								console.log(headers);
 								for (i = 0; i < headers.length; i++) {
-									if (headers[i].toUpperCase() == 'NAME') {
+									if (headers[i].toUpperCase() === 'NAME') {
 										nameColumn = i;
 										sensHeaders.push(i);
-									} else if (headers[i].toUpperCase() == 'COMPLETED') {
+									} else if (headers[i].toUpperCase() === 'COMPLETED') {
 										completedColumn = i;
 										clearHeaders.push(i);
-									} else if (headers[i].toUpperCase() == 'DEPARTMENT') {
+									} else if (headers[i].toUpperCase() === 'DEPARTMENT') {
 										departmentColumn = i;
 										clearHeaders.push(i);
-									} else if (headers[i].toUpperCase() == 'POSITION') {
+									} else if (headers[i].toUpperCase() === 'POSITION') {
 										positionColumn = i;
 										clearHeaders.push(i);
-									} else if (headers[i].toUpperCase() == 'EMAIL') {
+									} else if (headers[i].toUpperCase() === 'EMAIL') {
 										emailColumn = i;
 										sensHeaders.push(i);
-									} else if (headers[i].toUpperCase() == 'ID') {
+									} else if (headers[i].toUpperCase() === 'ID') {
 										idColumn = i;
 										clearHeaders.push(i);
 										sensHeaders.push(i);
@@ -175,9 +176,10 @@ app
 								if (splitFile) {
 									clearRowData.push('*tie data\n');
 									clearRowData.push(tie_data.headers.join(' ') + '\n');
-									for (i = 0; i < tie_data.rows.length; i++)
+									for (i = 0; i < tie_data.rows.length; i++) {
 										clearRowData.push('"' + tie_data.rows[i].join('" "') +
 												'"\n');
+									}
 								}
 								if (splitFile)
 									return {
@@ -275,94 +277,106 @@ app
 							};
 							vnauploader.onCompleteItem = function(item, response, status,
 									headers) {
+								console.log(response);
 								ModalFactory.closeWaitModal();
-								var newData = "DEPARTMENT_LIST";
-								var dbData = "DATABASE_TEAMS";
+								var newData = "QUESTION_LIST";
+								var dbData = "DATABASE_QUESTIONS";
 								if (!(newData in response) || !(dbData in response))
 									return;
-								MatcherFactory.openMatcherModal("team", "teams",
+								MatcherFactory.openMatcherModal("question", "questions",
 										response[newData], response[dbData]).result.then(function(
-										teams_message) {
+										question_message) {
 									var newData = "DEPARTMENT_LIST";
 									var dbData = "DATABASE_TEAMS";
 									if (!(newData in response) || !(dbData in response))
 										return;
-									MatcherFactory.openMatcherModal("floor", "floors",
-											response[newData], response[dbData]
-									// , {
-									// // preCompare : true,
-									// fromProperties : [
-									// 'parent'
-									// ],
-									// toProperties : [
-									// 'parent'
-									// ]
-									// }
-									).result.then(function(floors_message) {
-										ModalFactory.openWaitModal("Storing to database...");
-										var data = {
-											studyid : study.id,
-											fileid : response.fileid,
-											datain : {
-												teams : teams_message,
-												floors : floors_message,
-											// questions : questions_message,
-											// issues : response["ISSUE_LIST"],
-											// client_issues :
-											// response["CLIENT_ISSUE_LIST"]
-											}
-										};
-										// console.log(data);
-										var promise = HTTPFactory.backendPost('StoreStaffSurvey',
-												data);
+									MatcherFactory.openMatcherModal("team", "teams",
+											response[newData], response[dbData]).result.then(
+											function(teams_message) {
+												var newData = "FLOOR_LIST";
+												var dbData = "DATABASE_FLOORS";
+												if (!(newData in response) || !(dbData in response))
+													return;
+												MatcherFactory.openMatcherModal("floor", "floors",
+														response[newData], response[dbData]
+												// , {
+												// // preCompare : true,
+												// fromProperties : [
+												// 'parent'
+												// ],
+												// toProperties : [
+												// 'parent'
+												// ]
+												// }
+												).result.then(function(floors_message) {
+													ModalFactory.openWaitModal("Storing to database...");
+													var data = {
+														studyid : study.id,
+														fileid : response.fileid,
+														datain : {
+															teams : teams_message,
+															floors : floors_message,
+														// questions : questions_message,
+														// issues : response["ISSUE_LIST"],
+														// client_issues :
+														// response["CLIENT_ISSUE_LIST"]
+														}
+													};
+													// console.log(data);
+													var promise = HTTPFactory.backendPost(
+															'StoreStaffSurvey', data);
 
-										var breakPoint = 100;
-										var updateInterval = 500; // milliseconds
-										var update = function(depth) {
-											$http.get(HTTPFactory.getBackend() + "StoreStaffSurvey")
-													.then(
-															function(response) {
-																if (response.status === 202 &&
-																		depth < breakPoint && response.data) {
-																	ModalFactory.modifyWaitMessage(
-																			response.data.text,
-																			response.data.progress);
-																	sleep(updateInterval);
-																	update(depth + 1);
+													var breakPoint = 100;
+													var updateInterval = 500; // milliseconds
+													var update = function(depth) {
+														$http.get(
+																HTTPFactory.getBackend() + "StoreStaffSurvey")
+																.then(
+																		function(response) {
+																			if (response.status === 202 &&
+																					depth < breakPoint && response.data) {
+																				ModalFactory.modifyWaitMessage(
+																						response.data.text,
+																						response.data.progress);
+																				sleep(updateInterval);
+																				update(depth + 1);
+																			}
+																		}, function(error) {
+																			// exit the recursion
+																		});
+													};
+													setTimeout(function() {
+														update(0);
+													}, updateInterval * 0.5);
+													promise.then(function(response) {
+														console.log(response);
+														ModalFactory.closeWaitModal();
+														var modalInstance = $modal.open({
+															templateUrl : //
+															'studies/afterStaffSurveyUpload.html',
+															backdrop : 'static',
+															keyboard : 'false',
+															size : 'sm',
+															controller : 'AfterStaffSurveyUploadModalCtrl',
+															resolve : {
+																"sensData" : function() {
+																	return $scope.sensData;
 																}
-															}, function(error) {
-																// exit the recursion
-															});
-										};
-										setTimeout(function() {
-											update(0);
-										}, updateInterval * 0.5);
-										promise.then(function(response) {
-											console.log(response);
-											ModalFactory.closeWaitModal();
-											var modalInstance = $modal.open({
-												templateUrl : //
-												'studies/afterStaffSurveyUpload.html',
-												backdrop : 'static',
-												keyboard : 'false',
-												size : 'sm',
-												controller : 'AfterStaffSurveyUploadModalCtrl',
-												resolve : {
-													"sensData" : function() {
-														return $scope.sensData;
-													}
-												}
-											});
-											modalInstance.result.then(function() {
-												$modalInstance.close('done');
-											});
+															}
+														});
+														modalInstance.result.then(function() {
+															$modalInstance.close('done');
+														});
 
-										}, function(error) {
-											console.log(response);
-										});
-									}, function(error) {
-										console.log(error);
-									});
+													}, function(error) {
+														console.log(response);
+													});
+												}, function(error) {
+													console.log(error);
+												});
+											}, function(error) {
+												console.log(error);
+											});
 								}, function(error) {
 									console.log(error);
 								});
