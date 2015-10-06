@@ -40,25 +40,46 @@ public class GetObservationData extends HttpServlet {
 		int snapshotID = Integer.parseInt(request.getParameter("snapshotid"));
 		try {
 			JSONArray entities =
-					Database.selectWhatFromTableWhere(
-							"occupancy",
+					Database.selectWhatFromTableWhere("occupancy",
 							"entity_id,type,state,flag_bit,interaction,"
 									+ "ST_X(position) AS cx,ST_Y(position) AS cy,angle,user_comment",
-							"snapshot_id=?", String.valueOf(snapshotID));
+							"snapshot_id=?", snapshotID);
+			JSONArray interactionHulls =
+					Database.customQuery(" SELECT interaction AS interaction_id" //
+							+ " , to_json(array_agg(row_to_json((SELECT d"
+							+ "                  FROM (SELECT order_by,ST_X(buffered_hull_geom) AS x"
+							+ "                     , ST_Y(buffered_hull_geom) AS y) AS d)))) AS points"
+							+ " FROM (SELECT interaction"
+							+ "       , (buffered_hull).path[2] AS order_by"
+							+ "       , (buffered_hull).geom AS buffered_hull_geom"
+							+ " FROM (SELECT interaction"
+							+ "         , (ST_DumpPoints(ST_Buffer(ST_ConvexHull(ST_Collect(position)),?))) AS buffered_hull"
+							+ "      FROM occupancy"
+							// +" JOIN observation_snapshots"
+							// +" ON occupancy.snapshot_id =
+							// observation_snapshots.id"
+							// +" JOIN spaces"
+							// +" ON observation_snapshots.space_id = spaces.id"
+							// +" WHERE study_id=64 AND interaction != -1"
+							+ "    WHERE snapshot_id=? AND interaction != -1"
+							+ "  GROUP BY interaction) AS c"
+							+ "  ORDER BY interaction,order_by) AS f"
+							+ " GROUP BY interaction"
+							+ " ORDER BY interaction;", 0.5, snapshotID);
 			int spaceID =
 					Database.selectWhatFromTableWhere(
 							Database.TABLE_OBSERVATION_SNAPSHOTS, "space_id",
-							"id=?", String.valueOf(snapshotID))
-							.getJSONObject(0).getInt("space_id");
+							"id=?", snapshotID).getJSONObject(0)
+							.getInt("space_id");
 			JSONObject spaceLimits =
-					Database.selectWhatFromTableWhere(
-							"spaces",
+					Database.selectWhatFromTableWhere("spaces",
 							"plan_min[0] AS min_x,plan_min[1] AS min_y,"
 									+ "plan_max[0] AS max_x,plan_max[1] AS max_y",
 							"id=?", String.valueOf(spaceID)).getJSONObject(0);
 			JSONObject result = new JSONObject();
 			result.put("spaceLimits", spaceLimits);
 			result.put("entities", entities);
+			result.put("interactionHulls", interactionHulls);
 			response.setContentType("application/json; charset=UTF-8");
 			PrintWriter out = response.getWriter();
 			out.print(result);
