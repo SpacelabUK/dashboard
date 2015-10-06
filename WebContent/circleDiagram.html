@@ -1,0 +1,74 @@
+<div class="main-container" style="font-family: Apercu">
+
+  <div class="row">
+    <div class="col-lg-12 text-center">
+      <h3>{{pageTitle}}</h3>
+    </div>
+  </div>
+  <div class="row"
+    style="position: absolute; bottom: 10px; top: 80px; right: 10px; left: 260px; overflow: hidden;">
+    <div class="col-lg-3" style="overflow-y: scroll; height: 100%;">
+      <div class="row" ng-repeat="node in nodes" ng-if="!node.invisible">
+        <input ng-change="refresh()" ng-model="node.name" />
+        <a href="" ng-click="removeNode(node)">
+          <i tooltip="Remove node" class="fa fa-lg fa-times"></i>
+        </a>
+      </div>
+      <a href="" ng-click="addNode()">Add node</a>
+      <hr />
+      <span>Multiplier</span><br /> <input type="number" step="any"
+        ng-model="options.sizeMult" />
+      <a href="" ng-click="modifyMultiplier(0.5)">
+        <i class="fa fa-lg fa-caret-up"></i>
+      </a>
+      <a href="" ng-click="modifyMultiplier(-0.5)">
+        <i class="fa fa-lg fa-caret-down"></i>
+      </a>
+      <br /> <span>Gravity</span><br /> <input type="number"
+        step="any" ng-model="options.gravMult" />
+      <a href="" ng-click="modifyGravity(0.5)">
+        <i class="fa fa-lg fa-caret-up"></i>
+      </a>
+      <a href="" ng-click="modifyGravity(-0.5)">
+        <i class="fa fa-lg fa-caret-down"></i>
+      </a>
+      <br /> <span>Rest length</span><br /> <input type="number"
+        step="any" ng-model="options.restLength" />
+      <a href="" ng-click="modifyRestLength(50)">
+        <i class="fa fa-lg fa-caret-up"></i>
+      </a>
+      <a href="" ng-click="modifyRestLength(-50)">
+        <i class="fa fa-lg fa-caret-down"></i>
+      </a>
+      <hr />
+      <div class="row" ng-repeat="edge in edges"
+        ng-if="edge.type==='edge'">
+        <select ng-model="edge.source" ng-change="refreshEdges()"
+          ng-options="node.name for node in nodes"
+          style="max-width: 100px;">
+        </select>
+        <a href="" tooltip="Switch" ng-click="switchEdge(edge)">-></a>
+        <select ng-change="refreshEdges()" ng-model="edge.target"
+          ng-options="node.name for node in nodes"
+          style="max-width: 100px;">
+        </select>
+        <a href="" ng-click="removeEdge(edge)">
+          <i tooltip="Remove edge" class="fa fa-lg fa-times"></i>
+        </a>
+      </div>
+      <a href="" ng-click="addEdge()">Add edge</a>
+      <div class="row">
+        <button ng-click="downloadSVG('circ-diagram')">Download
+          as SVG</button>
+        <hr />
+        <span>Load VNA</span> <input class="btn" type="file"
+          nv-file-select="" uploader="uploader" accept=".vna" />
+      </div>
+    </div>
+    <div class="col-lg-9" style="height: 100%;">
+      <!--  -->
+      <circle-diagram id="circ-diagram" nodes="nodes" edges="edges"
+        options="options" disks="disks"> </circle-diagram>
+    </div>
+  </div>
+</div>
