@@ -1,0 +1,29 @@
+<Context>
+	<Resource name="jdbc/postgres"
+          auth="Container"
+          type="javax.sql.DataSource"
+          factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+          testWhileIdle="true"
+          testOnBorrow="true"
+          testOnReturn="false"
+          validationQuery="SELECT 1"
+          validationInterval="30000"
+          timeBetweenEvictionRunsMillis="30000"
+          maxActive="100"
+          minIdle="10"
+          maxWait="10000"
+          initialSize="10"
+          maxTotal="6"
+          removeAbandonedTimeout="600"
+          fairQueue=""
+          removeAbandoned="true"
+          minEvictableIdleTimeMillis="30000"
+          jmxEnabled="true"
+          jdbcInterceptors="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;
+            org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;
+            org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer"
+          username="petrox"
+          password="x"
+          driverClassName="org.postgresql.Driver"
+          url="jdbc:postgresql://localhost:5432/spacelab"/>
+</Context>
