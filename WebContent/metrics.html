@@ -74,7 +74,7 @@
       <div class="widget">
         <div class="widget-title">
           <i class="fa fa-users"></i> Metrics <input type="text"
-            placeholder="Search"
+            placeholder="Filter..."
             class="form-control input-sm pull-right" ng-model="search" />
         </div>
         <div class="widget-body medium no-padding" style="height: 100%">
@@ -95,7 +95,7 @@
               </thead>
               <tbody>
                 <tr
-                  ng-repeat="metric in metrics | orderBy:predicate:reverse | filter:search">
+                  ng-repeat="metric in metrics | orderBy:predicate:reverse | anyWordFilter: {title:search, in_groups:search, alias:search, units:search,units_full:search}">
                   <td style="width: 20%;">{{metric.title}}<br
                     ng-if="metric.title")> <span
                     style="color: gray"><small>({{metric.alias}})</small></span>
@@ -111,6 +111,9 @@
                   <td><a href=""
                       ng-click="editMetric(metric,$index)">
                       <i class="fa fa-pencil la-lg" tooltip="Edit"></i>
+                    </a> <a href=""
+                      ng-click="viewMetricDetails(metric,$index)">
+                      <i class="fa fa-code-fork la-lg" tooltip="Details"></i>
                     </a></td>
                 </tr>
               </tbody>
@@ -118,8 +121,8 @@
           </div>
         </div>
         <div style="padding: 5px 15px;">
-          <a ng-click="addDevice()" href="#" onclick="return false;"
-            class="pull-right">Add Device</a>
+          <a ng-click="addMetric()" href="#" onclick="return false;"
+            class="pull-right">Create new Metric</a>
           <div class="clearfix"></div>
         </div>
       </div>

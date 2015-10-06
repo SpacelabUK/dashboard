@@ -8,10 +8,11 @@
 
 <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="css/select.min.css">
 <link rel="stylesheet" type="text/css" href="css/dashboard.css">
 <link rel="stylesheet" type="text/css" href="css/white.css">
-<link rel="stylesheet" type="text/css"
-  href="css/angular-gridster.min.css">
+<!-- <link rel="stylesheet" type="text/css"
+  href="css/angular-gridster.min.css"> -->
 <style type="text/css">
 /* .btn-outline {
 	background-color: transparent;
@@ -27,6 +28,7 @@
 <script type="text/javascript" src="lib/d3.min.js" defer></script>
 <script type="text/javascript" src="lib/d3.layout.cloud.js" defer></script>
 <script type="text/javascript" src="lib/angular.min.js"></script>
+<script type="text/javascript" src="lib/angular-sanitize.min.js"></script>
 <script type="text/javascript" src="lib/angular-cookies.js" defer></script>
 <script type="text/javascript" src="lib/angular-ui-router.min.js" defer></script>
 <script type="text/javascript" src="lib/angular-file-upload.min.js"
@@ -37,7 +39,8 @@
 <script type="text/javascript" src="lib/jquery.min.js" defer></script>
 <script type="text/javascript" src="lib/FileSaver.min.js" defer></script>
 <script type="text/javascript" src="lib/xlsx.full.min.js" defer></script>
-<script type="text/javascript" src="lib/angular-gridster.min.js" defer></script>
+<!-- <script type="text/javascript" src="lib/angular-gridster.min.js" defer></script> -->
+<script type="text/javascript" src="lib/select.min.js" defer></script>
 <script type="text/javascript" src="bootstrap.js" defer></script>
 <script type="text/javascript" src="util/HTTPFactory.js" defer></script>
 <script type="text/javascript" src="util/PlanFactory.js" defer></script>
@@ -99,6 +102,11 @@
           </a>
         </li>
         <li class="sidebar-list">
+          <a ui-sref="issues">
+            Issues <span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li>
+        <li class="sidebar-list">
           <a ui-sref="spatialfunctions">
             Functions <span class="menu-icon fa fa-external-link"></span>
           </a>
@@ -122,11 +130,11 @@
           </a>
         </li>
         <li class="sidebar-title separator">
-          <span>APPLICATIONS</span>
+          <span>Tools</span>
         </li>
         <li class="sidebar-list">
-          <a ui-sref="state1">
-            Forums <span class="menu-icon fa fa-external-link"></span>
+          <a ui-sref="circlediagram">
+            Net-Integration<span class="menu-icon fa fa-external-link"></span>
           </a>
         </li>
       </ul>
