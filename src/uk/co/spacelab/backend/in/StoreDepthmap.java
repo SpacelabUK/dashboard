@@ -21,6 +21,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
@@ -30,7 +32,6 @@ import org.json.JSONObject;
 import org.postgis.PGgeometry;
 
 import flow.js.upload.FlowInfoStorage;
-import uk.co.spacelab.Converter.PGSQLWriter;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.InternalException;
@@ -44,7 +45,6 @@ import uk.co.spacelab.depthmap.Raster;
 import uk.co.spacelab.depthmap.DepthMap.DepthCell;
 import uk.co.spacelab.depthmap.Raster.RasterBand;
 import uk.co.spacelab.dxf.DXFReader;
-import uk.co.spacelab.fileio.FileIO;
 import uk.co.spacelab.plan.GeometryLayer;
 
 /**
@@ -63,7 +63,7 @@ public class StoreDepthmap extends SplabHttpServlet {
 	}
 
 	Map<String, Integer> processSpaces(JSONArray spacesIn, int studyID)
-			throws  SQLException, ParseException {
+			throws SQLException, ParseException {
 		Map<String, Integer> spaces = new HashMap<String, Integer>();
 		Map<String, JSONObject> spacesJSON = new HashMap<String, JSONObject>();
 		Map<String, String> spaceNames = new HashMap<String, String>();
@@ -186,12 +186,15 @@ public class StoreDepthmap extends SplabHttpServlet {
 
 			String depthmapName = "Visibility";
 			DXFReader dxf = new DXFReader();
-			dxf.addData(FileIO.loadStrings(fileDXF.getAbsolutePath()));
+
+			dxf.addData(IOUtils.readLines(FileUtils
+					.openInputStream(new File(fileDXF.getAbsolutePath()))));
 			DepthMap dpm =
 					new DepthMap(
 							depthmapName,
-							FileIO.loadStrings(fileCSV.getAbsolutePath()), dxf,
-							1.0f / scaleFromInterface);
+							IOUtils.readLines(FileUtils.openInputStream(
+									new File(fileCSV.getAbsolutePath()))),
+							dxf, 1.0f / scaleFromInterface);
 			Map<String, double []> blockPositions = dpm.blockPositions;
 			System.out.println(blockPositions);
 			try {
@@ -397,8 +400,8 @@ public class StoreDepthmap extends SplabHttpServlet {
 		for (DepthCell c : dpm.cells) {
 			if (isWithinLimits(c.x - depthMapOffset[0], c.y - depthMapOffset[1],
 					limits)) {
-				cellsWithin
-						.add(c.copyAt(-depthMapOffset[0], -depthMapOffset[1]));
+				cellsWithin.add(c.copyAt(c.ref, -depthMapOffset[0],
+						-depthMapOffset[1]));
 			}
 		}
 		if (cellsWithin.size() < 1) return null;

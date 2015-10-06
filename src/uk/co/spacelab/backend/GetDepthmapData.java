@@ -54,9 +54,9 @@ public class GetDepthmapData extends HttpServlet {
 			JSONObject result = new JSONObject();
 			String bandName =
 					Database.selectWhatFromTableWhere("band_info", "alias",
-							"space_id=? AND band_id=?",
-							String.valueOf(spaceID), String.valueOf(bandID))
-							.getJSONObject(0).getString("alias");
+							"space_id=? AND band_id=?", String.valueOf(spaceID),
+							String.valueOf(bandID)).getJSONObject(0)
+							.getString("alias");
 			result.put("band", bandName);
 			// String analysis_type = "Essence";
 			JSONObject data =
@@ -64,14 +64,15 @@ public class GetDepthmapData extends HttpServlet {
 							"SELECT ST_MetaData(st_band),ST_AsGDALRaster(st_band,'XYZ')"
 									+ ",ST_Count(st_band) FROM "
 									+ "ST_Band((SELECT map FROM depthmaps WHERE space_id=? "
-									+ "AND analysis_type=?::depthmap_types AND def=true),"
-									+ "?);", spaceID, analysis_type, bandID)
-							.getJSONObject(0);
+									+ "AND analysis_type=?::depthmap_types),"
+									+ "?);",
+							spaceID, analysis_type, bandID).getJSONObject(0);
 			// System.out.println(data.getInt("st_count"));
 			String [] tileData =
 					new String(
-							hexStringToByteArray(data
-									.getString("st_asgdalraster"))).split("\n");
+							hexStringToByteArray(
+									data.getString("st_asgdalraster")))
+											.split("\n");
 			double maxV = -Double.MAX_VALUE, minV = Double.MAX_VALUE;
 			JSONArray tiles = new JSONArray();
 			for (int i = 0; i < tileData.length; i++) {
@@ -101,8 +102,7 @@ public class GetDepthmapData extends HttpServlet {
 			metadata.put("minv", minV);
 			result.put("metadata", metadata);
 			JSONObject spaceLimits =
-					Database.selectWhatFromTableWhere(
-							"spaces",
+					Database.selectWhatFromTableWhere("spaces",
 							"plan_min[0] AS min_x,plan_min[1] AS min_y,"
 									+ "plan_max[0] AS max_x,plan_max[1] AS max_y",
 							"id=?", String.valueOf(spaceID)).getJSONObject(0);
@@ -111,7 +111,8 @@ public class GetDepthmapData extends HttpServlet {
 			PrintWriter out = response.getWriter();
 			out.print(result);
 			// System.out.println(tileData.length + " " + counter);
-			// "SELECT * FROM ST_AsBinary(ST_Band((SELECT map FROM depthmaps WHERE id=49),"
+			// "SELECT * FROM ST_AsBinary(ST_Band((SELECT map FROM depthmaps
+			// WHERE id=49),"
 			// + bandID + " ));")
 			// .getJSONObject(0).getString("st_asbinary")));
 			// "SELECT * FROM spaces;"));
@@ -141,8 +142,8 @@ public class GetDepthmapData extends HttpServlet {
 		byte [] data = new byte [len / 2];
 		for (int i = 0; i < len; i += 2) {
 			data[i / 2] =
-					(byte) ((Character.digit(s.charAt(i), 16) << 4) + Character
-							.digit(s.charAt(i + 1), 16));
+					(byte) ((Character.digit(s.charAt(i), 16) << 4)
+							+ Character.digit(s.charAt(i + 1), 16));
 		}
 		return data;
 	}

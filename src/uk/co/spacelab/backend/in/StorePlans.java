@@ -2,6 +2,7 @@ package uk.co.spacelab.backend.in;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -21,6 +22,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +36,6 @@ import uk.co.spacelab.backend.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.common.MatrixMath;
 import uk.co.spacelab.dxf.DXFReader;
-import uk.co.spacelab.fileio.FileIO;
 import uk.co.spacelab.plan.GeometryLayer;
 
 /**
@@ -98,7 +100,8 @@ public class StorePlans extends SplabHttpServlet {
 							space.getString("match"));
 			}
 			DXFReader dxf = new DXFReader();
-			dxf.addData(FileIO.loadStrings(filePath));
+			dxf.addData(IOUtils
+					.readLines(FileUtils.openInputStream(new File(filePath))));
 			List<String []> entities = dxf.breakDXFEntities(dxf.ent);
 			Map<String, String> spaceMap = new HashMap<String, String>();
 			for (String [] ent : entities) {
@@ -144,15 +147,18 @@ public class StorePlans extends SplabHttpServlet {
 										"study_id=? AND alias=?", studyID,
 										alias);
 						String newFileName = studyID + "_" + alias + ".csv";
-						FileIO.saveStrings(PLANS_DIR + newFileName,
-								block.getAsCSV());
+						IOUtils.writeLines(block.getAsCSV(), "\n",
+								new FileOutputStream(
+										new File(PLANS_DIR + newFileName)));
+
 						// BufferedImage img = block.getImage(1280, 1024);
 						BufferedImage img = block.getImage(1280);
 						File outputfile =
 								new File(
 										PLANS_DIR + studyID + "_" + alias
 												+ ".png");
-//						ImageIO.write(img, "png", outputfile);
+						ImageIO.write(img, "png", outputfile);
+						img.flush();
 
 						Connection psql = Database.getConnection();
 						if (aliasToMatch.equals("*")) {
@@ -222,7 +228,8 @@ public class StorePlans extends SplabHttpServlet {
 							space.getString("match"));
 				}
 				DXFReader dxf = new DXFReader();
-				dxf.addData(FileIO.loadStrings(filePath));
+				dxf.addData(IOUtils.readLines(
+						FileUtils.openInputStream(new File(filePath))));
 				List<String []> entities = dxf.breakDXFEntities(dxf.ent);
 				Map<String, String> spaceMap = new HashMap<String, String>();
 				for (String [] ent : entities) {
@@ -295,9 +302,8 @@ public class StorePlans extends SplabHttpServlet {
 								typeMap.put(type,
 										new ArrayList<GeometryLayer.Polyline>());
 							typeMap.get(type).add(p);
-						} else
-							if (p.layer.toUpperCase().startsWith(
-									DXFReader.generalIdentifier + "TEAM-")) {
+						} else if (p.layer.toUpperCase().startsWith(
+								DXFReader.generalIdentifier + "TEAM-")) {
 							String type =
 									p.layer.substring(
 											DXFReader.generalIdentifier.length()

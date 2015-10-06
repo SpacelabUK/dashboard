@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
@@ -32,7 +34,6 @@ import uk.co.spacelab.backend.Database.COL;
 import uk.co.spacelab.backend.Database.TABLE;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.dxf.DXFReader;
-import uk.co.spacelab.fileio.FileIO;
 
 /**
  * Servlet implementation class GetPlanComparableData
@@ -129,7 +130,8 @@ public class GetPlanComparableData extends FlowUpload {
 				JSONArray accSpaces = new JSONArray();
 				JSONArray teamSpaces = new JSONArray();
 				DXFReader dxf = new DXFReader();
-				dxf.addData(FileIO.loadStrings(filePath));
+				dxf.addData(IOUtils.readLines(
+						FileUtils.openInputStream(new File(filePath))));
 				List<String []> entities = dxf.breakDXFEntities(dxf.ent);
 				for (String [] ent : entities) {
 					if (ent[0].equals("INSERT"))
@@ -146,8 +148,8 @@ public class GetPlanComparableData extends FlowUpload {
 							o.put("name", alias);
 							o.put("alias", alias);
 							accSpaces.put(o);
-						} else
-							if (alias.toUpperCase().endsWith(teamIdentifier)) {
+						} else if (alias.toUpperCase()
+								.endsWith(teamIdentifier)) {
 							alias =
 									alias.substring(0, alias.length()
 											- teamIdentifier.length());

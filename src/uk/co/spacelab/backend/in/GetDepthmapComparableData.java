@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
@@ -25,7 +27,6 @@ import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.dxf.DXFReader;
-import uk.co.spacelab.fileio.FileIO;
 
 /**
  * Servlet implementation class GetDeptghmapComparableData
@@ -104,7 +105,8 @@ public class GetDepthmapComparableData extends FlowUpload {
 
 					JSONArray spaces = new JSONArray();
 					DXFReader dxf = new DXFReader();
-					dxf.addData(FileIO.loadStrings(filePath));
+					dxf.addData(IOUtils.readLines(
+							FileUtils.openInputStream(new File(filePath))));
 					List<String []> entities = dxf.breakDXFEntities(dxf.ent);
 					for (String [] ent : entities) {
 						if (ent[0].equals("INSERT"))
