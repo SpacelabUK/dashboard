@@ -11,10 +11,11 @@ import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -23,36 +24,23 @@ import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.SplabHttpServlet;
 
 /**
- * Servlet implementation class StoreMetric
+ * DO NOT REALEASE WITH THIS CLASS ACTIVE IT HAS NO PROPER DATA VALIDATION
+ * 
+ * This class is meant to be the mediator for storing metrics to the database.
+ * It requires the metric validation system to be ported to Java (from the
+ * Javasript client in study.js) to properly validate the feasibility of storing
+ * the metric
  */
 @WebServlet("/StoreMetric")
 public class StoreMetric extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public StoreMetric() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-
+		Subject subject = SecurityUtils.getSubject();
+		if (!subject.hasRole("admin")) {
+			sendInterfaceError(response, "Not authorised");
+			return;
+		}
 		// do not remove the below line as it helps keep the unicode characters
 		// in the transfer
 		response.setContentType("application/json; charset=UTF-8");
@@ -66,8 +54,12 @@ public class StoreMetric extends SplabHttpServlet {
 		// System.out.println(paramsJSON);
 		JSONObject metric = paramsJSON.getJSONObject("metric");
 		Integer metricID = null;
+
 		if (metric.has("id")) metricID = metric.getInt("id");
-		String alias = (String) metric.keys().next();
+
+		// if the metricID is not null then we are editing an existing metric.
+		// Currently we only allow editing the following properties for the
+		// metrics
 		Map<String, String> knownProperties = new HashMap<String, String>();
 		knownProperties.put("title", "text");
 		knownProperties.put("description", "text");
@@ -80,6 +72,7 @@ public class StoreMetric extends SplabHttpServlet {
 			knownProperties.put("datum", "text");
 			knownProperties.put("alias", "text");
 
+			String alias = (String) metric.keys().next();
 			metric = metric.getJSONObject(alias);
 			String name = null;
 			if (metric.has("title")) name = metric.getString("title");
@@ -92,6 +85,7 @@ public class StoreMetric extends SplabHttpServlet {
 			if (null == metricID)
 				fetchMetric(psql, knownProperties, metric, 0);
 			else {
+				// TODO: DO NOT DELETE (SEE ABOVE TODO)
 				updateMetric(psql, knownProperties, metric, metricID);
 				response.getWriter().println(metric);
 			}
