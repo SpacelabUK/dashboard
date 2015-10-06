@@ -1,6 +1,6 @@
 app.factory('HTTPFactory', [
 		'$http', '$q', function($http, $q) {
-			var backend = "/tomcutter/";
+			var backend = "/Database/";
 			var pub = {
 				backendGet : function(url) {
 					return $http.get(backend + url);
