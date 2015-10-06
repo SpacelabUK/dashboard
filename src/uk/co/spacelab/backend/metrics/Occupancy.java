@@ -1,17 +1,10 @@
 package uk.co.spacelab.backend.metrics;
 
-import java.awt.SystemTray;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,11 +19,7 @@ import org.json.JSONObject;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.Util;
 
-import javax.naming.InitialContext;
-
 import java.sql.*;
-
-import javax.sql.*;
 
 /**
  * Servlet implementation class Occupancy
@@ -349,6 +338,11 @@ public class Occupancy extends HttpServlet {
 				new String [] {"study_id", "type_ids", "states"});
 		knownFunctions.put("no_of_people_per_round",
 				new String [] {"study_id", "states"});
+		knownFunctions
+				.put("no_of_people_in_poly_types_per_round",
+						new String [] {"study_id", "entity_types",
+								"entity_states", "entity_flags",
+								"polygon_types"});
 		knownFunctions.put("round_times", new String [] {"study_id"});
 
 		try (Connection con = Database.getConnection();) {
@@ -407,7 +401,70 @@ public class Occupancy extends HttpServlet {
 					}
 				}
 				out.println(resultOut);
+			} else if (type.equals("occ_per_space_and_round_prc")) {
+				int studyID = Integer.parseInt(params.get("studyid")[0]);
+				JSONArray spaces =
+						Database.customQuery(
+								"SELECT space_id,alias as space_alias, spaces.study_id,count AS desks "
+										+ "FROM splab_desks_per_space AS desks_per_space "
+										+ "JOIN spaces ON spaces.id=desks_per_space.space_id "
+										+ "WHERE spaces.study_id=?",
+								studyID);
+				// JSONArray rounds = Database.
+				JSONArray aggregate =
+						Database.customQuery(
+								"SELECT space_id,snapshot_id,day_id,round_id,occupied_desks"
+										+ " FROM splab_space_desk_occ_per_round"
+										+ " WHERE " + "study_id=?",
+								studyID);
+				// JSONObject total =
+				// Database.customQuery(
+				// // "SELECT COUNT(*) FROM splab_removed_desks(?)",
+				// // obsID));
+				// "SELECT (SELECT COUNT(*) FROM splab_added_desks(?))"
+				// + "+ (SELECT COUNT(*) FROM splab_predefined_desks(?))"
+				// + "- (SELECT COUNT(*) FROM splab_removed_desks(?))",
+				// obsID, obsID, obsID).getJSONObject(0);
+				// int totalDesks = total.getInt((String) total.keys().next());
+
+				Map<Integer, JSONObject> spaceMap =
+						new HashMap<Integer, JSONObject>();
+				for (int i = 0; i < spaces.length(); i++) {
+					JSONObject row = spaces.getJSONObject(i);
+					int spaceID = row.getInt("space_id");
+					String spaceAlias = row.getString("space_alias");
+					String img =
+							row.getString("study_id") + "_" + spaceAlias
+									+ ".png";
+					// if (!spaceMap.containsKey(spaceID))
+					spaceMap.put(spaceID, new JSONObject().put("id", spaceID)
+							.put("alias", spaceAlias)
+							.put("snapshots", new JSONArray())
+							.put("desks", row.getInt("desks")).put("img", img));
+				}
+				for (int i = 0; i < aggregate.length(); i++) {
+					JSONObject row = aggregate.getJSONObject(i);
+					int spaceID = row.getInt("space_id");
+					row.remove("space_id");
+					int desks = spaceMap.get(spaceID).getInt("desks");
+					// System.out.println(spaceID + " "
+					// + row.getInt("occupied_desks"));
+					if (desks == 0)
+						row.put("occupancy", 0);
+					else
+						row.put("occupancy",
+								row.getInt("occupied_desks") / (float) (desks));
+					row.remove("occupied_desks");
+					spaceMap.get(spaceID).getJSONArray("snapshots").put(row);
+				}
+				JSONArray result = new JSONArray();
+				for (Integer i : spaceMap.keySet())
+					result.put(spaceMap.get(i));
+
+				out.println(result);
+
 			} else {
+
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
 						"unknown request");
 			}
