@@ -11,11 +11,15 @@ app.controller('opnStdCtrl', [
 			$scope.fetching = fetching;
 			$scope.studies = projectFactory.getOpenStudies();
 			$scope.predicate = 'id';
-			HTTPFactory.backendGet('GetAll?t=allstudies').then(function(response) {
-				$scope.studies = response.data;
-			}, function(error) {
-				console.log(error);
-			});
+			$scope.fetchInitialData = function() {
+				HTTPFactory.backendGet('GetAll?t=allstudies').then(function(response) {
+					$scope.studies = response.data;
+				}, function(error) {
+					console.log(error);
+				});
+			};
+
+			$scope.fetchInitialData();
 
 			$scope.addObservation = function(study) {
 				projectFactory.addStudyPart(study, 'observation');
@@ -128,6 +132,21 @@ app.controller('opnStdCtrl', [
 						}
 					}
 				});
+			};
+			$scope.addProject = function() {
+				$modal.open({
+					templateUrl : 'addProject.html',
+					controller : 'addProjectInstance'
+				}).result.then(function(response) {
+					console.log(response);
+					$scope.search = response.name;
+					$scope.fetchInitialData();
+				});
+			};
+			$scope.addStudy = function(project) {
+				console.log(project);
+				projectFactory.addStudy(project);
+				$scope.fetchInitialData();
 			};
 		}
 ]);
@@ -547,16 +566,16 @@ app
 									'walking', 'standing', 'sitting'
 							];
 							$scope.isNumber = function(metric) {
-								return !metric.measure || !metric.measure.type ||
-										metric.measure.type == 'number';
+								return !metric.solution || !metric.solution.type ||
+										metric.solution.type == 'number';
 							};
 							$scope.isTable = function(metric) {
-								return metric.measure && metric.measure.type &&
-										metric.measure.type == 'table';
+								return metric.solution && metric.solution.type &&
+										metric.solution.type == 'table';
 							};
 							$scope.isList = function(metric) {
-								return metric.measure && metric.measure.type &&
-										metric.measure.type == 'list';
+								return metric.solution && metric.solution.type &&
+										metric.solution.type == 'list';
 							};
 							var requiredStyles = [
 									'background-color', 'border-left-color',
@@ -604,7 +623,7 @@ app
 								'standalone="no"?>' + //
 								'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" ' + //
 								'"http://www.w3.org/Graphics/SVG/1.2/DTD/svg11.dtd">';
-								image_data += svg.outerHTML;
+								image_data += svg.outerHTML.replace(/#/g, '%23');
 
 								window.open('data:image/svg+xml;utf8,' + image_data, '_blank');
 
@@ -739,26 +758,26 @@ app
 								return e.alias;
 							};
 							$scope.getCellContent = function(e, key, property) {
-								if (e.measure.content.data[key.alias][property.alias]) {
+								if (e.solution.content.data[key.alias][property.alias]) {
 									if (e.no_of_decimals !== null && !isNaN(e.no_of_decimals))
-										return e.measure.content.data[key.alias][property.alias]
+										return e.solution.content.data[key.alias][property.alias]
 												.toFixed(e.no_of_decimals);
 									// .toFixed(2);
 									else
-										return e.measure.content.data[key.alias][property.alias];
+										return e.solution.content.data[key.alias][property.alias];
 								}
 								return '';
 							};
 							$scope.getContent = function(e) {
-								if (e && e.measure && e.measure.content !== null &&
-										e.measure.content !== undefined) {
-									if (e.measure.content !== 'no data' &&
+								if (e && e.solution && e.solution.content !== null &&
+										e.solution.content !== undefined) {
+									if (e.solution.content !== 'no data' &&
 											e.no_of_decimals !== null &&
 											e.no_of_decimals != undefined &&
-											e.no_of_decimals != 'all' && e.measure.content.toFixed) {
-										return e.measure.content.toFixed(e.no_of_decimals);
+											e.no_of_decimals != 'all' && e.solution.content.toFixed) {
+										return e.solution.content.toFixed(e.no_of_decimals);
 									} else
-										return e.measure.content;
+										return e.solution.content;
 								}
 								return 'fetching...';
 							};
@@ -779,7 +798,6 @@ app
 												var allMetrics = [
 														'project_name', 'activities_split'
 												];
-
 												for (j = 0; j < $scope.wantedMetrics.length; j++) {
 													var met = {
 														id : $scope.wantedMetrics[j].id,
@@ -817,9 +835,11 @@ app
 													$scope.pageTitle = 'Issue ' + newMetrics[0].id +
 															": " + newMetrics[0].title;
 
-												for (i = 0; i < $scope.wantedMetrics.length; i++)
-													allMetrics = allMetrics
-															.concat($scope.wantedMetrics[i].metrics);
+												for (i = 0; i < $scope.wantedMetrics.length; i++) {
+													for (j = 0; j < $scope.wantedMetrics[i].metrics.length; j++)
+														allMetrics
+																.push($scope.wantedMetrics[i].metrics[j].alias);
+												}
 												$scope.study = StudyFactory.fetchStudy($scope.id,
 														allMetrics);
 											});
@@ -828,6 +848,18 @@ app
 							};
 						}
 				]);
+app.directive('autoFocus', [
+		'$timeout', function($timeout) {
+			return {
+				restrict : 'AC',
+				link : function(_scope, _element) {
+					$timeout(function() {
+						_element[0].focus();
+					}, 0);
+				}
+			};
+		}
+]);
 app
 		.factory(
 				'StudyFactory',
@@ -1582,7 +1614,7 @@ app
 										var array1 = data[0].content;
 										var array2 = data[1].content;
 										return {
-											title : 'Transpose table',
+											title : 'Join arrays',
 											get : function() {
 												return {
 													then : function(success, error) {
@@ -1649,10 +1681,13 @@ app
 											}
 										};
 									},
+									/*
+									 * Appends tables one under the other
+									 */
 									'table_union' : function(data) {
-										var t1info = data[0].content;
+										var t1info = JSON.parse(data[0].content);
 										var table1 = data[1].content;
-										var t2info = data[2].content;
+										var t2info = JSON.parse(data[2].content);
 										var table2 = data[3].content;
 										return {
 											title : 'Union tables',
@@ -1742,6 +1777,135 @@ app
 																}
 															}
 														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+
+									/*
+									 * Appends tables as columns. Must have same key type
+									 */
+									'table_join' : function(data) {
+										var tables = data[0].content;
+										return {
+											title : 'Join tables',
+											allowNoData : true,
+											get : function() {
+												return {
+													then : function(success, error) {
+														var i, j, k, prop, key, nkeyAlias, dataVal, kfound, newKey;
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : {}
+														};
+														response.data.keys = [];
+														response.data.data = {};
+														for (i = 0; i < tables.length; i++) {
+															if (!response.data.keyType)
+																response.data.keyType = tables[i].content.keyType;
+															else if (tables[i].content.keyType !== response.data.keyType) {
+																// throw error, key type does not match
+																// success({
+																// status : 201,
+																// data : 'error'
+																// });
+																// return;
+																continue;
+															}
+															for (j = 0; j < tables[i].content.keys.length; j++) {
+																var key = tables[i].content.keys[j];
+																var found = false;
+																for (k = 0; k < response.data.keys.length; k++) {
+																	if (response.data.keys[k].alias === key.alias) {
+																		found = true;
+																		break;
+																	}
+																}
+																if (!found) {
+																	response.data.keys.push(key);
+																	response.data.data[key.alias] = {};
+																}
+															}
+														}
+														response.type = 'table';
+														response.data.properties = [];
+
+														for (i = 0; i < tables.length; i++) {
+															if (!tables[i].content.properties) {
+																// for (k = 0; k <
+																// tables[i].content.keys.length; k++) {
+																// var key = tables[i].content.keys[k];
+																// response.data.data[key.alias][newProperty.alias]
+																// =
+																// tables[i].content.data[key.alias][tables[i].content.properties[j].alias]
+																// }
+																continue;
+															}
+															for (j = 0; j < tables[i].content.properties.length; j++) {
+																var newProperty = {};
+																newProperty.alias = tables[i].metricData.alias +
+																		'-' + tables[i].content.properties[j].alias;
+																newProperty.title = tables[i].metricData.title;
+																// tables[i].content.properties[j];
+																response.data.properties.push(newProperty);
+																// var newPropertyAlias = .alias +
+																// "-" + property.alias;
+																for (k = 0; k < tables[i].content.keys.length; k++) {
+																	var key = tables[i].content.keys[k];
+																	response.data.data[key.alias][newProperty.alias] = tables[i].content.data[key.alias][tables[i].content.properties[j].alias]
+																}
+															}
+														}
+														success(response);
+													}
+												};
+											},
+											callback : function(response) {
+												var result = {
+													content : response.data
+												};
+												if (response.type)
+													result.type = response.type;
+												return result;
+											}
+										};
+									},
+
+									/*
+									 * Combines multiple metrics into an array
+									 */
+									'as_array' : function(data) {
+										return {
+											title : 'As array',
+											allowNoData : true,
+											get : function() {
+												return {
+													then : function(success, error) {
+														var i;
+														if (status === 201) {
+															success(data[0]);
+															return;
+														}
+														var response = {
+															data : []
+														};
+														for (i = 0; i < data.length; i++) {
+															response.data.push(data[i]);
+														}
+														response.type = 'array';
 														success(response);
 													}
 												};
@@ -2123,6 +2287,9 @@ app
 									},
 								};
 								return {
+									hasInternalFunction : function(wantedFunc) {
+										return typeof infuncs[wantedFunc] === 'function';
+									},
 									fetchFunction : function(wantedFunc, inputs) {
 										var f;
 										var extf = externalFuncs[wantedFunc];
@@ -2382,12 +2549,13 @@ app
 								return result;
 							};
 
-							var fetchA = function(measure) {
+							var fetchMetric = function(measureFunc) {
 								var deferred = $q.defer();
 								var getter;
-								if (measure.proc) {
+								if (measureFunc.proc) {
+									// procedure-server metric, needs to be fetched
 									var paramString = "";
-									var params = measure.params();
+									var params = measureFunc.params();
 									if (params) {
 										angular.forEach(params, function(value, key) {
 											// console.log(measure.proc, value, key);
@@ -2401,21 +2569,20 @@ app
 										});
 									}
 									getter = HTTPFactory.backendGet('Occupancy?t=' +
-											measure.proc + paramString);
+											measureFunc.proc + paramString);
 								} else
-									getter = measure.get();
+									// local metric, just get()
+									getter = measureFunc.get();
 								getter.then(function(response) {
 									if (response.status && response.status === 201) {
-										// var body = response.data;
-										// // body.
 										deferred.resolve({
-											title : measure.title,
+											title : measureFunc.title,
 											content : response.data[0].error,
 											status : 201,
 											type : 'error'
 										});
 									} else
-										deferred.resolve(measure.callback(response));
+										deferred.resolve(measureFunc.callback(response));
 								}, function(error) {
 									// console.log(error);
 								});
@@ -2452,6 +2619,8 @@ app
 										// promises.push($q.when(m));
 										// } else {
 										nobj = createMetric(knownMeasures, args, m);
+										if (input.title)
+											nobj.metricData.title = input.title;
 										knownMeasures[input.datum].measure = nobj;
 										promises.push($q.when(nobj));
 										// }
@@ -2463,12 +2632,18 @@ app
 									}
 								}
 								var result = {
+									metricData : measure,
 									funcName : measure.datum,
 									promises : promises
 								};
 								return result;
 							};
-							var resolveMeasure = function(measure, knownFunctions) {
+							/**
+							 * Fetches dependencies and eventually resolves the metric putting
+							 * it into the measure variable. angular.copy(var1,var2) will
+							 * erase all fields in var2 and copy over the fields from var1
+							 */
+							var resolveMetric = function(measure, knownFunctions) {
 								if (measure.solveObj)
 									return measure.solveObj;
 								var promiseOut = $q.defer();
@@ -2478,26 +2653,29 @@ app
 									var internalPromises = [];
 									for (var i = 0; i < result.length; i++) {
 										if (result[i].promises) {
-											internalPromises.push(resolveMeasure(result[i],
+											internalPromises.push(resolveMetric(result[i],
 													knownFunctions));
 										} else
 											internalPromises.push($q.when(result[i]));
 									}
 									$q.all(internalPromises).then(
 											function(solvedMeasures) {
-												for (var i = 0; i < solvedMeasures.length; i++) {
-													if (solvedMeasures[i].status &&
-															solvedMeasures[i].status === 201) {
-														var result = angular.copy(solvedMeasures[i]);
-														result.request = measure;
-														promiseOut.resolve(result);
-														return;
-													}
-												}
-												var mes = knownFunctions.fetchFunction(
+												var measureFunc = knownFunctions.fetchFunction(
 														measure.funcName, solvedMeasures);
-												fetchA(mes).then(function(result) {
-													result.request = measure;
+												if (!measureFunc.allowNoData)
+													for (var i = 0; i < solvedMeasures.length; i++) {
+														if (solvedMeasures[i].status &&
+																solvedMeasures[i].status === 201) {
+															var result = angular.copy(solvedMeasures[i]);
+															result.metricData = measure.metricData;
+															angular.copy(result, measure);
+															promiseOut.resolve(result);
+															return;
+														}
+													}
+												fetchMetric(measureFunc).then(function(result) {
+													result.metricData = measure.metricData;
+													angular.copy(result, measure);
 													promiseOut.resolve(result);
 												});
 											});
@@ -2677,7 +2855,8 @@ app
 										wanted_metrics : wantedMetrics
 									}));
 									var mKeepProperties = [
-											"alias", "units", "units_full", "no_of_decimals"
+											"alias", "units", "units_full", "no_of_decimals",
+											'description'
 									]
 									// promises.push($http.get("studies/originalFunctions.json"));
 									$q.all(promises).then(
@@ -2687,9 +2866,6 @@ app
 												var knownExtFunctions = response[0].data.functions;
 												// var knownExtFunctions = response[1].data;
 												var kf = knownFunctions(knownExtFunctions);
-												var resolvedFunction = function(solvedMeasure) {
-													angular.copy(solvedMeasure, solvedMeasure.request);
-												};
 												for (var i = 0; i < wantedMetrics.length; i++) {
 													if (knownMetrics[wantedMetrics[i]]) {
 														var result = knownMetrics[wantedMetrics[i]];
@@ -2698,11 +2874,10 @@ app
 															if (result.measure[k] || result.measure[k] === 0)
 																result[k] = result.measure[k];
 														}
-														result.measure = createMetric(knownMetrics, args,
+														result.solution = createMetric(knownMetrics, args,
 																result.measure);
 														// console.log(result.measure);
-														resolveMeasure(result.measure, kf).then(
-																resolvedFunction);
+														resolveMetric(result.solution, kf);
 														// console.log(wantedMetrics[i], result);
 														study[wantedMetrics[i]] = result;
 													} else {
@@ -2717,6 +2892,146 @@ app
 											});
 
 									return study;
+								},
+								testMetric : function(id, metricTree) {
+									var wantedMetrics = [];
+									var wantedFunctions = [];
+									var study = {
+										id : id
+									};
+									var args = {
+										study_id : study.id
+									};
+									var testAlias = (Math.random().toString(36) + '00000000000000000')
+											.slice(2, 5 + 2);
+									var knownInternalFunctions = knownFunctions();
+									/**
+									 * recursive function to bring out the wanted metrics
+									 * ("ilk":"m") and wanted functions ("ilk":"f")
+									 */
+									function extractMetricInputs(inputs, depth) {
+										if (depth > 1000)
+											return null;
+										for (var i = 0; i < inputs.length; i++) {
+											var input = inputs[i];
+											if (input.ilk === "i" &&
+													!args.hasOwnProperty(input.datum)) {
+												return {
+													err : "Unknown input " + input.datum
+												};
+											} else if (input.ilk === "f") {
+												if (knownInternalFunctions
+														.hasInternalFunction(input.datum)) {
+													// function is internal, don't try to download
+												} else
+													wantedFunctions.push(input.datum);
+												extractMetricInputs(input.inputs, depth + 1);
+											} else if (input.ilk === "m") {
+												wantedMetrics.push(input.datum);
+											}
+										}
+									}
+									if (metricTree && metricTree.measure &&
+											metricTree.measure.ilk === "f" &&
+											metricTree.measure.inputs) {
+										if (knownInternalFunctions
+												.hasInternalFunction(metricTree.measure.datum)) {
+											// function is internal, don't try to download
+										} else
+											wantedFunctions.push(metricTree.measure.datum);
+										var result = extractMetricInputs(metricTree.measure.inputs,
+												0);
+										if (result == null) {
+											// internal error - check depth
+										} else if (result.err) {
+											return $q.reject(result.err);
+										}
+									}
+									// console.log(wantedMetrics, wantedFunctions);
+									var promises = [];
+									// promises.push($http.get("studies/originalMetrics.json"));
+									promises.push(HTTPFactory.backendPost("Metrics", {
+										wanted_metrics : wantedMetrics,
+										wanted_functions : wantedFunctions
+									}));
+									var mKeepProperties = [
+											"alias", "units", "units_full", "no_of_decimals",
+											'description'
+									]
+									var deferred = $q.defer();
+									$q
+											.all(promises)
+											.then(
+													function(response) {
+														var knownMetrics = response[0].data.metrics;
+														knownMetrics[testAlias] = metricTree;
+														wantedMetrics.push(testAlias);
+														// return;
+														var knownExtFunctions = response[0].data.functions;
+
+														// console.log(knownMetrics, knownExtFunctions);
+														// var knownExtFunctions = response[1].data;
+														var kf = knownFunctions(knownExtFunctions);
+														var resolvedFunction = function(solvedMeasure) {
+
+															var keys = Object.keys(solvedMeasure.solution);
+															for (var i = 0; i < keys.length; i++)
+																delete solvedMeasure.solution[keys[i]];
+															solvedMeasure.solution.content = solvedMeasure.content;
+															// delete solvedMeasure.solution.promises;
+															// delete solvedMeasure.solution.funcname;
+
+															// console.log(solvedMeasure);
+															// var solution =
+															// angular.copy(solvedMeasure.solution);
+															// console.log(solvedMeasure.solution);
+															// // angular.copy(solvedMeasure,
+															// // solvedMeasure.solution);
+															// angular.copy(solvedMeasure,
+															// solvedMeasure.solution);
+															// // solvedMeasure.measure =
+															// // solvedMeasure.measure.solveObj;
+															// delete solvedMeasure.solution.solution;
+
+														};
+														var internalPromises = [];
+														for (var i = 0; i < wantedMetrics.length; i++) {
+															if (knownMetrics[wantedMetrics[i]]) {
+																var metric = knownMetrics[wantedMetrics[i]];
+																metric.properties = {};
+																for (var j = 0; j < mKeepProperties.length; j++) {
+																	var k = mKeepProperties[j];
+																	if (metric.measure[k] ||
+																			metric.measure[k] === 0)
+																		metric.properties[k] = metric.measure[k];
+																}
+																// console.log(metric.properties);
+																metric.solution = createMetric(knownMetrics,
+																		args, metric.measure);
+																internalPromises.push(resolveMetric(
+																		metric.solution, kf));
+																// console.log(wantedMetrics[i], result);
+																study[wantedMetrics[i]] = metric;
+															} else {
+																study[wantedMetrics[i]] = {
+																	title : wantedMetrics[i],
+																	measure : {
+																		content : "Unknown measure"
+																	}
+																};
+															}
+														}
+														$q.all(internalPromises).then(function(response) {
+															deferred.resolve({
+																data : study[testAlias]
+															});
+														});
+
+													}, function(error) {
+														console.log(error);
+														deferred.reject(error.data);
+													});
+									return deferred.promise;
 								}
 							};
 							return out;

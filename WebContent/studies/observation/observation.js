@@ -5,11 +5,11 @@ app.controller('observationController', [
 		'$modal',
 		function($scope, $stateParams, HTTPFactory, $modal) {
 			"use strict";
-			$scope.id = $stateParams.part_id;
+			$scope.id = $stateParams.studyid;
 			$scope.spacePredicate = "alias";
 
 			HTTPFactory.backendGet(
-					'Occupancy?t=occ_per_space_and_round_prc&obsid=' + $scope.id).then(
+					'Occupancy?t=occ_per_space_and_round_prc&studyid=' + $scope.id).then(
 					function(response) {
 						console.log(response.data);
 						$scope.spaces = response.data;
@@ -20,7 +20,6 @@ app.controller('observationController', [
 				HTTPFactory.backendGet(
 						"GetSpaceData?spaceid=" + space.id + "&functeam=func").then(
 						function(response) {
-							console.log(response.data);
 							var promise = $modal.open({
 								templateUrl : 'studies/polyView.html',
 								controller : 'polyViewController',
@@ -42,7 +41,6 @@ app.controller('observationController', [
 				HTTPFactory.backendGet(
 						"GetDepthmapData?spaceid=" + space.id + "&measure=" + measureid +
 								"&analysis_type=" + 'Accessibility').then(function(response) {
-					console.log(response.data);
 					var promise = $modal.open({
 						templateUrl : 'studies/dpmView.html',
 						controller : 'dpmViewController',
@@ -72,11 +70,9 @@ app.controller('observationController', [
 
 			};
 			$scope.showSnapshot = function(space, snapshot) {
-				console.log(space);
 				HTTPFactory.backendGet(
 						"GetObservationData?snapshotid=" + snapshot.snapshot_id).then(
 						function(response) {
-							console.log(response.data);
 							var promise = $modal.open({
 								templateUrl : 'studies/planView.html',
 								controller : 'planViewController',
@@ -98,6 +94,53 @@ app.controller('observationController', [
 						});
 
 			};
+
+			HTTPFactory.backendGet('GetTeamData?studyid=' + $scope.id).then(
+					function(response) {
+						$scope.teams = response.data;
+						for (var i = 0; i < $scope.teams.length; i++) {
+							$scope.teams[i].indx = i;
+						}
+					}, function(error) {
+						console.log(error);
+					});
+			$scope.editTeam = function(team) {
+				$modal.open({
+					templateUrl : 'editTeam.html',
+					controller : [
+							'$scope', '$modalInstance', 'team',
+							function($scope, $modalInstance, team) {
+								$scope.team = team;
+								$scope.dismiss = function() {
+									console.log('bbb');
+									$modalInstance.dismiss('cancel');
+								}
+								$scope.ok = function() {
+									console.log('aaa');
+									$modalInstance.close(team);
+								}
+							}
+					],
+					resolve : {
+						team : function() {
+							return angular.copy(team);
+						}
+					}
+				}).result.then(function(response) {
+					var keys = Object.keys(response);
+					for (var i = 0; i < keys.length; i++)
+						if (response[keys[i]] === null || response[keys[i]] === undefined)
+							delete response[keys[i]];
+					HTTPFactory.backendPost('StoreTeam', {
+						team : response
+					}).then(function(response) {
+						$scope.teams[team.indx] = response.data;
+					}, function(error) {
+						console.log(error);
+					});
+					console.log(response);
+				});
+			}
 		}
 ]);
 app.controller('planViewController', [
