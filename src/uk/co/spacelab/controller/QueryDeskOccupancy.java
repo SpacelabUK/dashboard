@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import uk.co.spacelab.backend.Database;
 
 /**
  * Servlet implementation class QueryDeskOccupancy

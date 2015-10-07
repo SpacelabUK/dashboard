@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend.in;
+package uk.co.spacelab.controller;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

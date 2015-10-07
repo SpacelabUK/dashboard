@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend.metrics;
+package uk.co.spacelab.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -56,7 +56,7 @@ public class Occupancy extends HttpServlet {
 		response.setContentType("application/json; charset=UTF-8");
 		PrintWriter out = response.getWriter();
 		Map<String, String []> knownFunctions =
-				new HashMap<String, String []>();
+				new HashMap<>();
 		knownFunctions
 				.put("activity_in_polygon_types",
 						new String [] {"study_id", "polygon_type_ids",
@@ -345,7 +345,7 @@ public class Occupancy extends HttpServlet {
 								"polygon_types"});
 		knownFunctions.put("round_times", new String [] {"study_id"});
 
-		try (Connection con = Database.getConnection();) {
+		try (Connection con = Database.getConnection()) {
 			if (type.equals("devices") || type.equals("projects")
 					|| type.equals("polygon_types")) {
 			} else if (knownFunctions.containsKey(type)) {
@@ -428,7 +428,7 @@ public class Occupancy extends HttpServlet {
 				// int totalDesks = total.getInt((String) total.keys().next());
 
 				Map<Integer, JSONObject> spaceMap =
-						new HashMap<Integer, JSONObject>();
+						new HashMap<>();
 				for (int i = 0; i < spaces.length(); i++) {
 					JSONObject row = spaces.getJSONObject(i);
 					int spaceID = row.getInt("space_id");

@@ -140,7 +140,7 @@ public class StakeholderReader {
 		}
 		return people;
 	}
-	protected JSONObject getStaticData(File file, int studyID)
+	public JSONObject getStaticData(File file, int studyID)
 			throws FileNotFoundException, IOException, ClassNotFoundException,
 			SQLException, ParseException {
 		// Database.getConnection();
@@ -753,7 +753,7 @@ public class StakeholderReader {
 		return issues;
 	}
 
-	protected void convert(File file, int studyID, JSONObject staticDataJSON)
+	public void convert(File file, int studyID, JSONObject staticDataJSON)
 			throws ClassNotFoundException, SQLException, IOException,
 			ParseException {
 
