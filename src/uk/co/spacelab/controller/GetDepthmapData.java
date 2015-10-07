@@ -44,14 +44,7 @@ public class GetDepthmapData extends HttpServlet {
 		int spaceID = Integer.parseInt(request.getParameter("spaceid"));
 		int bandID = Integer.parseInt(request.getParameter("measure"));
 		String analysis_type = request.getParameter("analysis_type");
-		// String measure = request.getParameter("measure");
 		try {
-			// int bandID =
-			// Database.selectWhatFromTableWhere("band_info", "band_id",
-			// "space_id=? AND alias=?", String.valueOf(spaceID),
-			// measure).getJSONObject(0).getInt("band_id");
-			// System.out.println("Band: " + bandID);
-			// int mapID = 49;
 
 			JSONObject result = new JSONObject();
 			String bandName =
@@ -112,20 +105,8 @@ public class GetDepthmapData extends HttpServlet {
 			response.setContentType("application/json; charset=UTF-8");
 			PrintWriter out = response.getWriter();
 			out.print(result);
-			// System.out.println(tileData.length + " " + counter);
-			// "SELECT * FROM ST_AsBinary(ST_Band((SELECT map FROM depthmaps
-			// WHERE id=49),"
-			// + bandID + " ));")
-			// .getJSONObject(0).getString("st_asbinary")));
-			// "SELECT * FROM spaces;"));
 
-			// } catch (PSQLException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
