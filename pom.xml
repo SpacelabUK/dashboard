@@ -106,6 +106,7 @@
 	</dependencies>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<finalName>Database</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
