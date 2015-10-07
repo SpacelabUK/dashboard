@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend.in;
+package uk.co.spacelab.controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -51,7 +51,7 @@ public class StorePolygons extends HttpServlet {
 					"no data received -_-");
 			return;
 		}
-		Map<String, Integer> typeIDMap = new HashMap<String, Integer>();
+		Map<String, Integer> typeIDMap = new HashMap<>();
 		try {
 			JSONArray spaces = paramsJSON.getJSONArray("spaces");
 			String studyid = paramsJSON.getString("studyid");
@@ -92,21 +92,7 @@ public class StorePolygons extends HttpServlet {
 						typeID = result.getJSONObject(0).getInt("id");
 					}
 					System.out.println(functeam + " " + type + " " + typeID);
-					String sql =
-							"INSERT INTO polygons (polygon,space_id,functeam,type_id) VALUES ("
-									// ST_GeomFromText('POLYGON((-71.1776585052917
-									// 42.3902909739571,-71.1776820268866
-									// 42.3903701743239,
-									// -71.1776063012595
-									// 42.3903825660754,-71.1775826583081
-									// 42.3903033653531,-71.1776585052917
-									// 42.3902909739571))');
-									+ spaceID + functeam + typeID + ");";
-					sql =
-							"INSERT INTO polygons "
-									+ "(polygon,space_id,functeam,type_id)"
-									+ " VALUES (" + "ST_GeomFromText(?),?,?,?"
-									+ ");";
+
 					JSONArray polys =
 							types.getJSONObject(type).getJSONArray("polys");
 					for (int k = 0; k < polys.length(); k++) {

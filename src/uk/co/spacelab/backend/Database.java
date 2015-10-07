@@ -425,7 +425,7 @@ public class Database {
 		// return new JSONArray("[{result:success}]");
 		// }
 	}
-	protected static void insertInto(String table, String columnString,
+	public static void insertInto(String table, String columnString,
 			Object [] args) throws ClassNotFoundException, SQLException,
 					ParseException {
 		String valueString = "";
@@ -454,7 +454,7 @@ public class Database {
 		return new AbstractMap.SimpleImmutableEntry<String, String []>(
 				toSetString, args);
 	}
-	protected static void update(String table, Map<String, String> toSet,
+	public static void update(String table, Map<String, String> toSet,
 			String where, Object [] whereArgs) throws ClassNotFoundException,
 					SQLException, ParseException {
 
@@ -590,7 +590,7 @@ public class Database {
 	 *         [observation_id, space_id, lel]=[15, 6, 1]
 	 *         </p>
 	 */
-	protected static Map.Entry<String, Map.Entry<Set<String>, List<String>>> constructBooleanString(
+	public static Map.Entry<String, Map.Entry<Set<String>, List<String>>> constructBooleanString(
 			JSONObject json) {
 		String result = "";
 		Set<String> cols = new HashSet<String>();

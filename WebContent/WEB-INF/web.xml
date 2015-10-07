@@ -35,7 +35,7 @@
   </welcome-file-list>
   <servlet>
     <servlet-name>fileServlet</servlet-name>
-    <servlet-class>uk.co.spacelab.backend.FileServlet</servlet-class>
+    <servlet-class>uk.co.spacelab.controller.FileServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>fileServlet</servlet-name>

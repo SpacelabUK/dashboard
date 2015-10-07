@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend.in;
+package uk.co.spacelab.controller;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,6 +32,7 @@ import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
 import uk.co.spacelab.backend.MalformedDataException;
 import uk.co.spacelab.backend.SplabSessionListener;
+import uk.co.spacelab.backend.in.SQLiteToPostgreSQL;
 
 /**
  * Servlet implementation class UploadGatheredData

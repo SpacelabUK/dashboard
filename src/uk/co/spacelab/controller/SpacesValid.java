@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import uk.co.spacelab.backend.Database;
+import uk.co.spacelab.backend.JSONHelper;
+
 @WebServlet("/SpacesValid")
 public class SpacesValid extends HttpServlet {
 	private static final long serialVersionUID = 1L;
