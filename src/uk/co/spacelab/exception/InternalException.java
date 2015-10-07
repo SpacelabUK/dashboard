@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab.exception;
 
 public class InternalException extends RuntimeException {
 

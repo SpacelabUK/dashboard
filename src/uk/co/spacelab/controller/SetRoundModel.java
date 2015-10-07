@@ -115,44 +115,17 @@ public class SetRoundModel extends HttpServlet {
 					new String [] {observationid, startdate, enddate,
 							roundduration, roundString};
 			if (modeltable != null) {
-				// create new row in time model table
-				// String sql = "INSERT INTO date_round_matrices (" + keyString
-				// +
-				// ") VALUES (" + valueString + ");";
-				// $results = $db->prepare ( $query );
-				// // $results->bindParam ( ':table', $type, PDO::PARAM_STR );
-				// $results->bindParam ( ':observationid', $parentID,
-				// PDO::PARAM_INT
-				// );
-				// $results->bindParam ( ':startdate', $startdate,
-				// PDO::PARAM_STR );
-				// $results->bindParam ( ':enddate', $enddate, PDO::PARAM_STR );
-				// $results->bindParam ( ':roundduration', $roundduration,
-				// PDO::PARAM_STR );
-				// $results->bindParam ( ':roundtimes', $rounds, PDO::PARAM_STR
-				// );
-				// $results->execute ();
+
 				Connection psql = Database.getConnection();
 				Database.insertInto(psql, "date_round_matrices", columnString,
 						valueString, values);
 				psql.close();
-				// echo print_r ( $results->fetch () );
-				// $row = $results->fetch ();
-				// $modelid = $row ['id'];
+
 				Map<String, String> toSet = new HashMap<String, String>();
 				toSet.put("time_model_table", type);
 				Database.update("observations", toSet, "id=?",
 						new String [] {observationid});
-				// $query = 'UPDATE observations SET
-				// time_model_table=:modeltable
-				// WHERE observation_id=:observationid;';
-				// $results = $db->prepare ( $query );
-				// $results->bindParam ( ':modeltable', $type, PDO::PARAM_STR );
-				// $results->bindParam ( ':observationid', $parentID,
-				// PDO::PARAM_INT
-				// );
-				//
-				// $results->execute ();
+
 			}
 		} catch (ClassNotFoundException | SQLException | JSONException
 				| ParseException e) {

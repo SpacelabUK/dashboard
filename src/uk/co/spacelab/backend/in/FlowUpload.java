@@ -1,19 +1,14 @@
 package uk.co.spacelab.backend.in;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.shiro.session.Session;
 
 import flow.js.upload.FlowInfo;
 import flow.js.upload.FlowInfoStorage;
 import flow.js.upload.HttpUtils;
-import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.SplabHttpServlet;
-import uk.co.spacelab.backend.SplabSessionListener;
 
 import java.io.File;
 import java.io.IOException;

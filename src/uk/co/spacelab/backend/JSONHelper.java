@@ -13,7 +13,7 @@ public class JSONHelper {
 	public static JSONObject decodeRequest(HttpServletRequest request)
 			throws IOException {
 		StringBuffer jb = new StringBuffer();
-		String line = null;
+		String line;
 		JSONObject jsonObject;
 		BufferedReader reader = request.getReader();
 		while ((line = reader.readLine()) != null)

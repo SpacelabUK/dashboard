@@ -6,11 +6,9 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,11 +25,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
-import uk.co.spacelab.backend.InternalException;
+import uk.co.spacelab.exception.InternalException;
 import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.Util;
-import uk.co.spacelab.backend.Database.COL;
-import uk.co.spacelab.backend.Database.TABLE;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.in.FlowUpload;
 import uk.co.spacelab.dxf.DXFReader;
@@ -304,24 +300,9 @@ public class GetPlanComparableData extends FlowUpload {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				// final File file = new File(filePath);
-				// filePath = UUID.randomUUID().toString();
-				// FileIO.copyFile(file, UPLOAD_DIR + "/" + filePath);
-				// file.renameTo(new File());
+
 				result.put("fileid", fileID);
 				result.put("studyid", studyID);
-				int minutesToExpire = 1;
-
-				// final ScheduledExecutorService worker =
-				// Executors.newSingleThreadScheduledExecutor();
-				// Runnable task = new Runnable() {
-				// public void run() {
-				// file.delete();
-				// }
-				// };
-				// worker.schedule(task, minutesToExpire, TimeUnit.MINUTES);
-				// result.put("expire", new Date(
-				// new Date().getTime() + minutesToExpire * 60 * 1000));
 
 				response.setContentType("application/json; charset=UTF-8");
 				PrintWriter out = response.getWriter();

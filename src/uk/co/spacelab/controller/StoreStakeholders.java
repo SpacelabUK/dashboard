@@ -2,13 +2,10 @@ package uk.co.spacelab.controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Map;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -21,9 +18,7 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
-import uk.co.spacelab.backend.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
-import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.in.StakeholderReader;
 
 /**

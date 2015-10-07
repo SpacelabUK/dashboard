@@ -60,8 +60,8 @@ public class Metrics extends SplabHttpServlet {
 			String sql = "SELECT * FROM splab_get_external_metrics()";
 			if (null != filter) {
 				List<String> knownColumns =
-						Arrays.asList(new String [] {"title", "id", "alias",
-								"description", "in_groups", "type"});
+						Arrays.asList("title", "id", "alias",
+								"description", "in_groups", "type");
 
 				String [] filters = filter.split(",");
 				filter = "";
@@ -95,15 +95,6 @@ public class Metrics extends SplabHttpServlet {
 				sql =
 						"SELECT to_json(array_agg(x)) AS splab_get_external_metrics "
 								+ "  FROM (SELECT " + filter
-								// + " metrics.alias, "
-								// + " metrics.title, "
-								// + " metrics.units, "
-								// + " metrics.units_full, "
-								// + " metrics.description, "
-								// + " metrics.datum_type AS type, "
-								// + " metrics.no_of_decimals, "
-								// + " to_json(array_agg(metric_groups.id)) AS
-								// in_groups "
 								+ "         WHERE metrics.alias IS NOT NULL "
 								+ "         GROUP BY metrics.id) AS x; ";
 			}
@@ -210,20 +201,8 @@ public class Metrics extends SplabHttpServlet {
 					for (int i = 0; i < funcs.length(); i++)
 						requiredFunctions.add(funcs.getString(i));
 				}
-				// sample string :
-				// {"required_metrics":null,"metric_description":{"parent_id":null,"id":575,"alias":"project\"_name","value":null,"type":null,"description":null,"name":null,"units":null,"units_full":null,"no_of_decimals":null,"value_type":null,"depth":0,"inputs":[
-				// ]}}
-
-				// Matcher m =
-				// Pattern.compile("(\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"):null(\\s*?),").matcher(metricData);
-				// while (m.find()) {
-				// System.err.println(m.group());
-				// }
-				// System.out.println(metricData.replaceAll("(\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"):null(\\s*?),",""));
-				// System.out.println(metricData.replaceAll(",(\\s*?)(\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"):null",""));
-				// System.out.println(metricData.replaceAll("\"(.*?)\":null,",""));
 				counter++;
-				// break;
+
 			}
 			JSONObject fetchedFunctions = new JSONObject();
 			String [] funcs =
@@ -294,20 +273,6 @@ public class Metrics extends SplabHttpServlet {
 				if (o.has(key)) o.remove(key);
 		}
 		return metric;
-		// // removes unnecessary key-values (created by the database in
-		// // the process of extracting)
-		// for (String key : removeKeys) {
-		// // followed by comma
-		// metricData = metricData.replaceAll("\"" + key + "\":([^\\}]*?),",
-		// "");
-		// // following comma and followed by object closure
-		// metricData = metricData.replaceAll(",\"" + key + "\":(.*?)(\\})",
-		// "}");
-		// // followed by object closure
-		// metricData = metricData.replaceAll("\"" + key + "\":(.*?)(\\})",
-		// "}");
-		// // System.out.println(metricData);
-		// }
 	}
 	JSONObject fetchMetric(Connection psql, int id)
 			throws SQLException, ParseException {
@@ -325,21 +290,6 @@ public class Metrics extends SplabHttpServlet {
 	}
 	String removeJSONNulls(String in) {
 
-		// removes null valued properties followed with a comma i.e.
-		// "parent_id":null,
-		// complex version: (catches escaped quotes in keys)
-		// metricData =
-		// metricData.replaceAll("(\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"):(null|\\[\\])(\\s*?),",
-		// "");
-		// simple version:
-		// metricData =
-		// metricData.replaceAll("\"(?:(?!\").)*\"(\\s*?):(\\s*?)(null|\\[(\\s*?)\\])(\\s*?),",
-		// "");
-		// paranoid version (escaped quotes and spaces)
-		// metricData =
-		// metricData.replaceAll("(\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\")(\\s*?):(\\s*?)(null|\\[(\\s*?)\\])(\\s*?),",
-		// "");
-		// simple version:
 		in = in.replaceAll("\"(?:(?!\").)*\":(null|\\[\\]),", "");
 
 		// removes null valued properties following a comma i.e.

@@ -166,7 +166,7 @@ public class StoreMetric extends SplabHttpServlet {
 				valueString = "?,?,?";
 				Database.insertInto(psql, Database.TABLE_METRICS_INPUTS,
 						columnString, valueString,
-						new Object [] {id, inputID, i});
+						id, inputID, i);
 			}
 		}
 		return id;

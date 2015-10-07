@@ -5,16 +5,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,23 +19,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.postgis.PGgeometry;
 
-import flow.js.upload.FlowInfoStorage;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
-import uk.co.spacelab.backend.InternalException;
+import uk.co.spacelab.exception.InternalException;
 import uk.co.spacelab.backend.JSONHelper;
-import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.exception.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
-import uk.co.spacelab.backend.SplabSessionListener;
-import uk.co.spacelab.backend.Util;
 import uk.co.spacelab.depthmap.DepthMap;
 import uk.co.spacelab.depthmap.Raster;
 import uk.co.spacelab.depthmap.DepthMap.DepthCell;
@@ -100,19 +89,7 @@ public class StoreDepthmap extends SplabHttpServlet {
 			spaceNames.put(q.getString("alias").toUpperCase(),
 					q.getString("alias"));
 		}
-		// for (String space : spaces.keySet()) {
-		//
-		// if (spaces.get(space) == -1) {
-		//
-		// Database.insertInto(psql, "spaces", "study_id,alias", "?,?",
-		// studyID, space);
-		// int currval =
-		// Database.getSequenceCurrVal(psql,
-		// Database.SEQUENCE_SPACES).getJSONObject(0)
-		// .getInt("currval");
-		// spaces.put(space, currval);
-		// }
-		// }
+
 		psql.commit();
 		psql.setAutoCommit(true);
 
@@ -122,24 +99,15 @@ public class StoreDepthmap extends SplabHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		String UPLOAD_DIR = null, FILES_PATH = null;
-		try {
-			FILES_PATH = Database.getProperty("files_path");
-			UPLOAD_DIR = Database.getProperty("upload_dir");
-		} catch (SQLException | ParseException e) {
-			throw new InternalException("Error while getting properties");
-		}
+
 		PrintWriter out = response.getWriter();
-		UPLOAD_DIR = FILES_PATH + UPLOAD_DIR;
 		if (request.getCharacterEncoding() != null) {
 			Integer studyID;
-			boolean append = false;
 			System.out.println("analysis...");
 			JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 			File fileCSV, fileDXF;
 			String type, name;
-			boolean allNew = true;
-			Map<String, Integer> spaceMatch = null;
+			Map<String, Integer> spaceMatch;
 			try {
 				name = paramsJSON.getString("name");
 				studyID = paramsJSON.getInt("studyid");
@@ -269,108 +237,12 @@ public class StoreDepthmap extends SplabHttpServlet {
 				psql.commit();
 				psql.setAutoCommit(true);
 
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return;
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return;
-			}
-			// Raster r = dpm.getMeasuresMap();
-			catch (ClassNotFoundException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return;
 			}
 
-			// // for (String s : spaces.keySet()) {
-			// // DepthMapBranch n = new
-			// // DepthMapBranch(dpth.getDepthMapWithinSpace(s));
-			// // if (null != n) s.trunk.addChild("-" + dpth.dpm.name, n);
-			// // }
-
-			// if (paramsJSON.has("accSpaces")) {
-
-			// JSONArray accSpaces = paramsJSON.getJSONArray("accSpaces");
-			// if (blockz == null) {
-			// Map<String, String> selectedSpaces =
-			// new HashMap<String, String>(accSpaces.length());
-			// for (int i = 0; i < accSpaces.length(); i++) {
-			// JSONObject space = accSpaces.getJSONObject(i);
-			// selectedSpaces.put(space.getString("alias"),
-			// space.getString("match"));
-			// }
-			// DXFReader dxf = new DXFReader();
-			// dxf.addData(FileIO.loadStrings(fileName));
-			// List<String []> entities = dxf.breakDXFEntities(dxf.ent);
-			// Map<String, String> spaceMap =
-			// new HashMap<String, String>();
-			// for (String [] ent : entities) {
-			// if (ent[0].equals("INSERT"))
-			// if (ent[2].startsWith(DXFReader.generalIdentifier)) {
-			// String alias =
-			// ent[2].substring(
-			// DXFReader.generalIdentifier
-			// .length()).split("\\(")[0]
-			// .trim();
-			// if (selectedSpaces.containsKey(alias))
-			// spaceMap.put(alias,
-			// selectedSpaces.get(alias));
-			// }
-			// }
-			// blockz =
-			// getBlocks(dxf.breakDXFEntities(dxf.blk),
-			// MatrixMath.getIdentity(), scale);
-			// }
-			// try {
-			// Map<String, Integer> typeIDMap = new HashMap<String, Integer>();
-			//
-			// psql = Database.getConnection();
-			// psql.setAutoCommit(false);
-			// boolean append = false;
-			// boolean appendTypes = true;
-			// for (String s : blockz.keySet()) {
-			// if (!s.startsWith(DXFReader.generalIdentifier)) continue;
-			// GeometryLayer block = blockz.get(s);
-			// String cleanName =
-			// s.substring(DXFReader.generalIdentifier.length())
-			// .split("\\(")[0];
-			// int lastDashIndex = cleanName.lastIndexOf("-");
-			// if (lastDashIndex == -1) continue;
-			// String alias = cleanName.substring(0, lastDashIndex).trim();
-			//
-			// JSONArray result = null;
-			// result =
-			// Database.selectAllFromTableWhere(psql, "spaces",
-			// "study_id = ? AND LOWER(alias) = LOWER(?)",
-			// String.valueOf(studyID), alias);
-			//
-			// if (result.length() != 1)
-			// throw new JSONException("no such space (" + alias
-			// + ") found");
-			// int spaceID = result.getJSONObject(0).getInt("id");
-			//
-			// String functeam =
-			// cleanName.substring(lastDashIndex + 1).trim();
-			// if (!functeam.equalsIgnoreCase("ACC")) continue;
-			// if (!append) {
-			// Database.deleteFrom(psql, "polygons",
-			// "space_id=? AND functeam=?",
-			// String.valueOf(spaceID), "func");
-			// }
-			// }
-			// if (psql.isClosed())
-			// throw new InternalException("Connection is already closed");
-			// psql.commit();
-			// psql.setAutoCommit(true);
-			// psql.close();
-			// } catch (SQLException | ParseException e) {
-			// e.printStackTrace();
-			// } catch (ClassNotFoundException e) {
-			// e.printStackTrace();
-			// }
 			fileCSV.delete();
 			fileDXF.delete();
 		}
@@ -522,15 +394,7 @@ public class StoreDepthmap extends SplabHttpServlet {
 									String.valueOf(startX),
 									String.valueOf(startY),
 									String.valueOf(mapID)});
-					// pstmt.close();
-					// pstmt =
-					// conn.prepareStatement();
-					// pstmt.setInt(1, );
-					// pstmt.setInt(2, );
-					// pstmt.setInt(3, startY);
-					// pstmt.setString(4, mapName);
-					// pstmt.executeUpdate();
-					// pstmt.close();
+
 				} catch (SQLException e) {
 					System.err.println("patch: " + patch);
 					System.err.println("Could not populate band " + bandAlias);
@@ -559,18 +423,6 @@ public class StoreDepthmap extends SplabHttpServlet {
 						"depthmap_origin=CAST(? AS point)",
 						"study_id=? AND alias=?", new String [] {point,
 								String.valueOf(studyID), spaceAlias});
-				// PreparedStatement pstmt;
-				// pstmt =
-				// conn.prepareStatement("INSERT INTO "
-				// + TABLE_SPACE_BASEPOINTS + "("
-				// + BASEPOINTS_SPACE_ALIAS + ", "
-				// + BASEPOINTS_POSITION_X + ","
-				// + BASEPOINTS_POSITION_Y + ") VALUES (?,?,?);");
-				// pstmt.setString(1, spaceAlias);
-				// pstmt.setDouble(2, );
-				// pstmt.setDouble(3, );
-				// pstmt.executeUpdate();
-				// pstmt.close();
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

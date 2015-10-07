@@ -9,7 +9,6 @@ import java.text.ParseException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,7 +18,7 @@ import org.apache.shiro.subject.Subject;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.FileHandler;
-import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.exception.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.backend.SplabSessionListener;
 import uk.co.spacelab.backend.in.StakeholderReader;
@@ -94,9 +93,7 @@ public class GetStakeholderComparableData extends SplabHttpServlet {
 			pw.print(out.toString());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

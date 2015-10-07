@@ -46,12 +46,7 @@ public class Occupancy extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 
 		Map<String, String []> params = request.getParameterMap();
-		// if (params == null || !Util.validParam(params, "t")
-		// || !Util.validParam(params, "obsid")) {
-		// response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-		// "missing data from request... -_-");
-		// return;
-		// }
+
 		String type = params.get("t")[0];
 		response.setContentType("application/json; charset=UTF-8");
 		PrintWriter out = response.getWriter();

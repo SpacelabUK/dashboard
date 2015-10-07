@@ -30,9 +30,9 @@ import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
-import uk.co.spacelab.backend.InternalException;
+import uk.co.spacelab.exception.InternalException;
 import uk.co.spacelab.backend.JSONHelper;
-import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.exception.MalformedDataException;
 import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.common.MatrixMath;
 import uk.co.spacelab.dxf.DXFReader;
@@ -53,7 +53,7 @@ public class StorePlans extends SplabHttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		// System.err.println(this.getServletContext().getRealPath("/"));
-		String UPLOAD_DIR = null, PLANS_DIR = null, FILES_PATH = null;
+		String UPLOAD_DIR, PLANS_DIR, FILES_PATH;
 		try {
 			FILES_PATH = Database.getProperty("files_path");
 			UPLOAD_DIR = Database.getProperty("upload_dir");
@@ -69,7 +69,6 @@ public class StorePlans extends SplabHttpServlet {
 		} catch (SQLException | ParseException e) {
 			throw new InternalException("Error while getting properties");
 		}
-		UPLOAD_DIR = FILES_PATH + UPLOAD_DIR;
 		PLANS_DIR = FILES_PATH + PLANS_DIR;
 		JSONObject paramsJSON = JSONHelper.decodeRequest(request);
 		String fileID;
@@ -359,11 +358,6 @@ public class StorePlans extends SplabHttpServlet {
 							polyString += ",";
 							polyString += points[0] + " " + points[1];
 							polyString += "))";
-							// System.out.println(polyString);
-							// Database.insertInto(psql, "polygons",
-							// "polygon,space_id,functeam,type_id",
-							// "ST_GeomFromText(?),?,?,?", polyString,
-							// spaceID, "func", typeID);
 
 							Database.insertInto(psql, "polygons",
 									"polygon,space_id,functeam,type_id",

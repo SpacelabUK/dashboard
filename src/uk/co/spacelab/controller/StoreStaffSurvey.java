@@ -5,11 +5,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
@@ -26,7 +23,6 @@ import org.apache.shiro.subject.Subject;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.JSONObject;
 
-import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;

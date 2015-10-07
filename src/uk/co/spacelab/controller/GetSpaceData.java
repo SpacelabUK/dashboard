@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import uk.co.spacelab.backend.Database;
-import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.exception.MalformedDataException;
 
 /**
  * Servlet implementation class GetSpaceData

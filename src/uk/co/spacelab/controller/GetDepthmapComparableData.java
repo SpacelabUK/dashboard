@@ -21,7 +21,6 @@ import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.SplabSessionListener;

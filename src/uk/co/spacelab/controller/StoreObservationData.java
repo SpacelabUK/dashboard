@@ -1,37 +1,25 @@
 package uk.co.spacelab.controller;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.session.Session;
-import org.apache.shiro.subject.Subject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.JSONHelper;
-import uk.co.spacelab.backend.MalformedDataException;
-import uk.co.spacelab.backend.SplabSessionListener;
+import uk.co.spacelab.exception.MalformedDataException;
 import uk.co.spacelab.backend.in.SQLiteToPostgreSQL;
 
 /**
@@ -98,12 +86,10 @@ public class StoreObservationData extends HttpServlet {
 		String fileName;
 		// Integer observationID;
 		Integer studyID;
-		JSONArray spaces;
+
 		try {
 			fileName = paramsJSON.getString("fileid");
-			// observationID = paramsJSON.getInt("observationid");
 			studyID = paramsJSON.getInt("studyid");
-			spaces = paramsJSON.getJSONArray("spaces");
 		} catch (NullPointerException e) {
 			throw new MalformedDataException("Malformed data buddy... -.-");
 		}

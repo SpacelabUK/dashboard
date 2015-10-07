@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListener;
+import uk.co.spacelab.Constants;
 
 public class SplabSessionListener implements SessionListener {
 	private static int EXPIRATION_SECONDS = 10 * 60;

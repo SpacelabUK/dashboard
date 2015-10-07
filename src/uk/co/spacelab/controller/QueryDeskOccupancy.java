@@ -65,11 +65,7 @@ public class QueryDeskOccupancy extends HttpServlet {
 		groupByString = groupByString.substring(1, groupByString.length() - 1);
 		String orderByString = input.getJSONArray("orderBy").toString();
 		orderByString = orderByString.substring(1, orderByString.length() - 1);
-		
-		// String [] groupBy = new String [] {};
-		// String [] orderBy = new String [] {};
-		// String limiter = "{\"=\",[observation_id,15]}";
-		// String limiter = "{\"=\",[space_id,6]}";
+
 		
 		JSONObject limitBy = input.getJSONObject("limitBy");
 		Map.Entry<String, Map.Entry<Set<String>, List<String>>> limits =

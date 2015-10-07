@@ -21,7 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import uk.co.spacelab.backend.Database;
-import uk.co.spacelab.backend.MalformedDataException;
+import uk.co.spacelab.exception.MalformedDataException;
 
 public class StaffSurveyReader {
 	// private enum QuestionType {

@@ -1,4 +1,4 @@
-package uk.co.spacelab.backend;
+package uk.co.spacelab;
 
 public class Constants {
 	public static final boolean DEBUG = false;

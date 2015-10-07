@@ -3,9 +3,6 @@ package uk.co.spacelab.controller;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -19,7 +16,6 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.json.JSONObject;
 
-import uk.co.spacelab.backend.Constants;
 import uk.co.spacelab.backend.FileHandler;
 import uk.co.spacelab.backend.SplabHttpServlet;
 import uk.co.spacelab.backend.SplabSessionListener;
@@ -118,10 +114,7 @@ public class GetStaffSurveyComparableData extends SplabHttpServlet {
 			pw.print(out.toString());
 			// } catch (ClassNotFoundException e) {
 			// e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

@@ -53,12 +53,7 @@ public class StoreIssue extends HttpServlet {
 			throws ServletException, IOException {
 
 		JSONObject paramsJSON = JSONHelper.decodeRequest(request);
-		// if (paramsJSON == null || paramsJSON.length() == 0
-		// || !paramsJSON.has("spaces")) {
-		// response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-		// "no data received -_-");
-		// return;
-		// }
+
 		System.out.println(paramsJSON);
 		JSONObject issue = paramsJSON.getJSONObject("issue");
 		if (!issue.has("id")) response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Issue ID is required");
@@ -80,11 +75,6 @@ public class StoreIssue extends HttpServlet {
 				}
 				columnString += k;
 				valueString += "?";
-				// if (knownProperties.get(k) == "text")
-				// args.add(metric.getString(k));
-				// else if (knownProperties.get(k) == "integer")
-				// args.add(metric.getInt(k));
-				// else
 				args.add(issue.get(k));
 				counter++;
 			}
@@ -113,7 +103,7 @@ public class StoreIssue extends HttpServlet {
 					columnString = "metric_group_id,metric_id,metric_order";
 					valueString = "?,?,?";
 					Database.insertInto(psql, Database.TABLE_METRIC_GROUP_METRICS, columnString, valueString,
-							new Object [] {id, metricID, i});
+							id, metricID, i);
 				}
 			}
 			psql.commit();
