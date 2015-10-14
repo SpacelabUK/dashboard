@@ -48,15 +48,6 @@
 
   <!-- End Header Bar -->
 
-  <!-- Main Content -->
-  <div class="row alerts-container" data-ng-controller="AlertsCtrl"
-    data-ng-show="alerts.length">
-    <div class="col-xs-12">
-      <alert data-ng-repeat="alert in alerts" type="{{alert.type}}"
-        close="closeAlert($index)">{{alert.msg}}</alert>
-    </div>
-  </div>
-
   <div class="row">
     <div class="col-lg-12">
       <div class="widget">
@@ -71,19 +62,19 @@
               <thead>
                 <tr>
                   <th class="text-center"><a href=""
-                      ng-click="predicate = 'id'; reverse=false">ID</a>
+                      ng-click="vm.predicate = 'id'; reverse=false">ID</a>
                     <a href=""
-                      ng-click="predicate = '-id'; reverse=false">^</a></th>
+                      ng-click="vm.predicate = '-id'; reverse=false">^</a></th>
                   <th><a href=""
-                      ng-click="predicate = 'name'; reverse=false">Name</a>
+                      ng-click="vm.predicate = 'name'; reverse=false">Name</a>
                     <a href=""
-                      ng-click="predicate = '-name'; reverse=false">^</a></th>
+                      ng-click="vm.predicate = '-name'; reverse=false">^</a></th>
                   <th class="text-center">Status</th>
                   <th class="text-center">Studies</th>
                 </tr>
               </thead>
               <tbody
-                ng-repeat="function in functions | orderBy:predicate:reverse | filter:search">
+                ng-repeat="function in vm.functions | orderBy:vm.predicate:reverse | filter:search">
                 <tr>
                   <td class="text-center">{{function.alias}}</td>
                   <td>{{function.name}}</td>
@@ -98,8 +89,8 @@
           </div>
         </div>
         <div style="padding: 5px 15px;">
-          <a ng-click="addDevice()" href="#" onclick="return false;"
-            class="pull-right">Add Device</a>
+          <a ng-click="vm.add()" href="#" onclick="return false;"
+            class="pull-right">Add Spatial Function</a>
           <div class="clearfix"></div>
         </div>
       </div>

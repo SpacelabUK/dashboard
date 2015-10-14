@@ -18,7 +18,9 @@
 			getIssues : getIssues,
 			removeMetricFromIssue : removeMetricFromIssue,
 			addMetricToIssue : addMetricToIssue,
-			switchIssueMetricOrder : switchIssueMetricOrder
+			switchIssueMetricOrder : switchIssueMetricOrder,
+			getSpatialFunctions : getSpatialFunctions,
+			addSpatialFunction : addSpatialFunction
 		};
 		return service;
 		function getDevices() {
@@ -69,6 +71,16 @@
 				metric_group : issueID
 			};
 			return $http.post(backend + 'SwitchIssueMetricOrder', data);
+		}
+		function getSpatialFunctions() {
+			return $http.get(backend + 'GetAll?t=spatial_functions');
+		}
+		function addSpatialFunction(alias, name) {
+			var data = {
+				'alias' : alias,
+				'name' : name
+			};
+			return $http.post(backend + 'Insert?t=spatial_function', data);
 		}
 	}
 })();

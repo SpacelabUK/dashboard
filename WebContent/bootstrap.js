@@ -2,7 +2,6 @@
  * Style guide: https://github.com/johnpapa/angular-styleguide
  */
 
-
 var app = angular.module('Dashboard', [
 		'ngSanitize', 'ui.bootstrap', 'ngCookies', 'ui.router',
 		'angularFileUpload', 'flow', 'ui.select'
@@ -178,19 +177,6 @@ angular.module('Dashboard').factory(
 									});
 						},
 						refreshSpatialFunctions : function() {
-							fetch(HTTPFactory.getBackend() + 'GetAll?t=spatial_functions')
-									.then(function(response) {
-										var result = response.data;
-										if (result) {
-											while (functions.length > 0)
-												functions.pop();
-											for (var i = 0; i < result.length; i++) {
-												functions.push(result[i]);
-											}
-										}
-									}, function(error) {
-										console.error(error);
-									});
 						},
 						refreshStudies : function(project) {
 							fetch(
@@ -216,9 +202,6 @@ angular.module('Dashboard').factory(
 						getProjects : function() {
 							return projects;
 						},
-						getSpatialFunctions : function() {
-							return functions;
-						},
 						getOpenStudies : function() {
 							return openStudies;
 						},
@@ -239,22 +222,7 @@ angular.module('Dashboard').factory(
 
 							return deferred.promise;
 						},
-						addSpatialFunction : function(alias, name) {
-							var data = {
-								'alias' : alias,
-								'name' : name
-							};
-							var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
-									.getBackend() +
-									'Insert?t=spatial_function', data);
-							httpPromise.then(function(response) {
-								deferred.resolve(response);
-							}, function(error) {
-								console.error(error);
-							});
-
-							return deferred.promise;
-						},
+						
 						addStudy : function(project) {
 							fetch(
 									HTTPFactory.getBackend() + 'GetAll?t=studies&projectid=' +
@@ -338,28 +306,6 @@ angular.module('Dashboard').config([
 			});
 		}
 ]);
-
-angular.module('Dashboard').controller(
-		'spFuncCtrl',
-		[
-				'$scope', '$modal', 'projectFactory',
-				function($scope, $modal, projectFactory) {
-					"use strict";
-					$scope.functions = projectFactory.getSpatialFunctions();
-					// $scope.projects.displayStudies = false;
-					$scope.predicate = 'id';
-					projectFactory.refreshSpatialFunctions();
-					// $scope.$watch('projects', function() {
-					// alert('hey, projects has changed!');
-					// });
-					$scope.addDevice = function() {
-						$modal.open({
-							templateUrl : 'addSpatialFunction.html',
-							controller : 'addSpatialFunctionInstance'
-						});
-					};
-				}
-		]);
 
 angular.module('Dashboard').factory('fetching', [
 		'$q', '$http', function($q, $http) {
@@ -455,242 +401,7 @@ angular.module('Dashboard')
 							};
 						}
 				]);
-angular.module('Dashboard').controller(
-		"addSpatialFunctionInstance",
-		[
-				'$scope',
-				'$modalInstance',
-				'projectFactory',
-				function($scope, $modalInstance, projectFactory) {
-					"use strict";
-					$scope.func = {
-						alias : '',
-						name : ''
-					};
-					$scope.add = function() {
-						if ($scope.func.name.length > 0) {
-							projectFactory.addSpatialFunction($scope.func.alias,
-									$scope.func.name).then(function(response) {
-								// console.log(response);
-								projectFactory.refreshSpatialFunctions();
-							}, function(error) {
-								console.error(error);
-							});
-							$modalInstance.close();
-						}
-						// $modalInstance.dismiss('cancel');
-					};
 
-					$scope.validateID = function(value) {
-						return value.length > 3;
-					};
-					$scope.cancel = function() {
-						$modalInstance.dismiss('cancel');
-					};
-				}
-		]);
-// define(['angular', 'app', 'require', './services/site-definition-service'],
-// function (angular, app, requirejs) {
-// 
-// 'use strict';
-// angular.module('Dashboard').service('LazyLoader', ['$cacheFactory', '$http',
-// '$rootScope', '$q',
-// 'SiteDefinitionService',
-// function (cacheFactory, http, rootScope, q, siteDefService) {
-// var self = this;
-// 
-// this.loadDependencies = function(stateName) {
-// 
-// var deferred = q.defer();
-// http.get('rest/sitedefinition/' + stateName).success(function (data, status,
-// headers, config) {
-// var deps = data.dependencies; // array
-// if(deps && deps instanceof Array) {
-// loadDependenciesFromArray(deps, deferred);
-// } else {
-// deferred.resolve();
-// }
-// });
-// 
-// return deferred.promise();
-// }
-// 
-// this.loadDependenciesFromArray = function(depArr, deferred){
-// requirejs(depArr, function() {
-// deferred.resolve();
-// });
-// 
-// }]);
-// });
-// angular.module('Dashboard').config(
-// [
-// '$stateProvider', '$urlRouterProvider',
-// function($stateProvider, $urlRouterProvider) {
-// "use strict";
-// //
-// // For any unmatched url, redirect to /state1
-// $urlRouterProvider.otherwise("/");
-// // $urlRouterProvider.when('study',{
-// // templateUrl: 'studies/study.html',
-// // resolve: resolveController('studies/study.js')
-// // });
-// //
-// // Now set up the states
-// $stateProvider.state('main', {
-// url : "/",
-// templateUrl : "main.html"
-// }).state('state1', {
-// url : "/state1",
-// templateUrl : "../observations/progress/index.php",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : [
-// '$scope', '$stateParams', function($scope, $stateParams) {
-// // get the id
-// $scope.id = $stateParams.partyID;
-//
-// // get the location
-// $scope.location = $stateParams.partyLocation;
-// }
-// ]
-// }).state('observationssetup', {
-// url : "/observations/setup",
-// templateUrl : "../observations/setup/index.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : [
-// '$scope', '$stateParams', function($scope, $stateParams) {
-// // get the id
-// $scope.id = $stateParams.partyID;
-//
-// // get the location
-// $scope.location = $stateParams.partyLocation;
-// }
-// ]
-// }).state('observationsprogress', {
-// url : "/observations/progress",
-// templateUrl : "../observations/progress/index.php",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : [
-// '$scope', '$stateParams', function($scope, $stateParams) {
-// // get the id
-// $scope.id = $stateParams.partyID;
-//
-// // get the location
-// $scope.location = $stateParams.partyLocation;
-// }
-// ]
-// }).state('projects', {
-// url : "/projects",
-// templateUrl : "projects.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : [
-// '$scope', '$stateParams', function($scope, $stateParams) {
-// // get the id
-// $scope.id = $stateParams.partyID;
-//
-// // get the location
-// $scope.location = $stateParams.partyLocation;
-// }
-// ]
-// }).state('devices', {
-// url : "/devices",
-// templateUrl : "app/devices/devices.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : 'devicesController',
-// controllerAs : 'vm',
-// }).state('metrics', {
-// url : "/metrics",
-// templateUrl : "metrics.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : 'metricsCtrl'
-// }).state('issues', {
-// url : "/issues/{issue}",
-// templateUrl : "issues.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : 'issuesCtrl'
-// }).state('circlediagram', {
-// url : "/circlediagram",
-// templateUrl : "circleDiagram.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : 'circleDiagramCtrl'
-// }).state('spatialfunctions', {
-// url : "/spatialfunctions",
-// templateUrl : "spatialfunctions.html",
-// // for urls like this: /state1/:partyID/:partyLocation
-// controller : 'spFuncCtrl'
-// })
-// // .state('studies', {
-// // url : "/studies", //
-// // templateUrl : "studies/index.html",
-// // controller : 'opnStdCtrl'
-// // })
-// .state('study', {
-// url : "/studies/view/{studyid}", //
-// templateUrl : "studies/study.html",
-// controller : 'MainStudyCtrl'
-// }).state('studyissues', {
-// url : "/studies/issues/{studyid}/{viewAlias}", //
-// templateUrl : "studies/studyIssues.html",
-// controller : 'StudyIssuesCtrl'
-// }).state('allstudyissues', {
-// url : "/studies/issue/{issue}/{studyid}", //
-// templateUrl : "studies/allStudyIssues.html",
-// controller : 'AllStudyIssuesCtrl'
-// }).state('comparestudies', {
-// url : "/studies/compare/{studyid}", //
-// templateUrl : "studies/study.compare.html",
-// controller : 'StdCompareCtrl'
-// }).state('observation', {
-// url : "/observation/{studyid}",
-// templateUrl : "studies/observation/observation.html",
-// controller : "observationController"
-// }).state('part', {
-// url : "/part/:studyid",
-// templateUrl : "studies/study.html",
-// controller : [
-// '$scope', '$stateParams', function($scope) {
-// $scope.items = [
-// "A", "List", "Of", "Items"
-// ];
-// }
-// ]
-// }).state('state1.list', {
-// url : "/list",
-// templateUrl : "state1.list.html",
-// controller : [
-// '$scope', '$stateParams', function($scope) {
-// $scope.items = [
-// "A", "List", "Of", "Items"
-// ];
-// }
-// ]
-// }).state('state2', {
-// url : "/state2",
-// templateUrl : "state2.html"
-// }).state('state2.list', {
-// url : "/list",
-// templateUrl : "state2.list.html",
-// controller : [
-// '$scope', '$stateParams', function($scope) {
-// $scope.things = [
-// "A", "Set", "Of", "Things"
-// ];
-// }
-// ]
-// });
-// }
-// ]);
-// var app = angular.module("app", []);
-// angular.module('Dashboard').config(function($routeProvider) {
-// $routeProvider.when("/", {
-// templateUrl : "main.html",
-// controller : "AppCtrl"
-// });
-// });
-// angular.module('Dashboard').controller("AppCtrl", function($scope) {
-// $scope.model = {
-// message : "This is my app!!!"
-// }
-// });
 /**
  * Master Controller
  */
