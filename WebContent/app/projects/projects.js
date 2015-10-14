@@ -1,156 +1,104 @@
-app.controller('opnStdCtrl', [
-		'$scope',
-		'$modal',
-		'projectFactory',
-		'RoundModelFactory',
-		'HTTPFactory',
-		'fetching',
-		function($scope, $modal, projectFactory, RoundModelFactory, HTTPFactory,
-				fetching) {
-			"use strict";
-			$scope.fetching = fetching;
-			$scope.studies = projectFactory.getOpenStudies();
-			$scope.predicate = 'id';
-			$scope.fetchInitialData = function() {
-				HTTPFactory.backendGet('GetAll?t=allstudies').then(function(response) {
-					$scope.studies = response.data;
-				}, function(error) {
-					console.log(error);
-				});
-			};
+(function() {
+	"use strict";
+	angular.module('app.projects').controller('Projects', projectsController);
+	projectsController.$inject = [
 
-			$scope.fetchInitialData();
+			'$scope', '$modal', 'dataService',
+	// 'RoundModelFactory', 'fetching'
+	];
 
-			$scope.addObservation = function(study) {
-				projectFactory.addStudyPart(study, 'observation');
-			};
-			$scope.addPlans = function(study) {
-				$modal.open({
-					templateUrl : 'studies/plans/addPlans.html',
-					controller : 'addPlansInstance',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			// $scope.fetchingObservationRounds = function(id) {
-			// return fetching.is('obs', id);
-			// }
-			$scope.setRoundModel = function(observation) {
-				fetching.set('obs', observation.id);
-				RoundModelFactory.getRoundModel(observation).then(function(response) {
-					var data = response.data[0];
-					if (data) {
-						// var startdate = new Date();
-						// startdate.parse(data['startdate']);
-						// var enddate = new Date();
-						// enddate.parse(data['enddate']);
-						if (!observation.roundModel) {
-							observation.roundModel = {
-								observationid : observation.id,
-								type : 'date_round_matrices'
-							};
-						}
-						console.log(response);
-						observation.roundModel.startdate = Date.parse(data.start_date);
-						observation.roundModel.enddate = Date.parse(data.end_date);
-						observation.roundModel.duration = 60;// data['roundduration'];
-					}
-					// console.log(observation);
-					fetching.unset('obs', observation.id);
-					$modal.open({
-						templateUrl : 'studies/observation/setRoundModel.html',
-						controller : 'setRoundModel',
-						size : 'lg',
-						resolve : {
-							observation : function() {
-								return observation;
-							}
-						}
-					});
-				}, function(error) {
-					console.log(error);
-				});
-			};
-			$scope.addObservationData = function(study) {
-				$modal.open({
-					templateUrl : 'studies/observation/addObservationData.html',
-					controller : 'addObservationDataInstance',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addPolygons = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addPolygons.html',
-					controller : 'addPolygonsInstance',
-					windowClass : 'addPolys',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addDepthmap = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addDepthmap.html',
-					controller : 'addDepthmapInstance',
-					windowClass : 'addDepthmap',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addStaffSurvey = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addStaffSurvey.html',
-					controller : 'addStaffSurveyInstance',
-					windowClass : 'addStaffSurvey',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addStakeholders = function(study) {
-				$modal.open({
-					templateUrl : 'studies/addStakeholders.html',
-					controller : 'addStakeholdersInstance',
-					windowClass : 'addStakeholders',
-					resolve : {
-						study : function() {
-							return study;
-						}
-					}
-				});
-			};
-			$scope.addProject = function() {
-				$modal.open({
-					templateUrl : 'addProject.html',
-					controller : 'addProjectInstance'
-				}).result.then(function(response) {
-					console.log(response);
-					$scope.search = response.name;
-					$scope.fetchInitialData();
-				});
-			};
-			$scope.addStudy = function(project) {
-				console.log(project);
-				projectFactory.addStudy(project);
-				$scope.fetchInitialData();
-			};
+	function projectsController($scope, $modal, dataService, importFactory) {
+		var vm = this;
+		fetchInitialData();
+		function fetchInitialData() {
+			dataService.getProjects().then(function(response) {
+				vm.projects = response.data;
+			}, function(error) {
+				console.log(error);
+			});
 		}
-]);
-app.controller('MainStudyCtrl', [
+		vm.predicate = 'id';
+
+		vm.addProject = function() {
+			$modal.open({
+				templateUrl : 'app/projects/addProjectModal.html',
+				controller : 'addProject',
+				controllerAs : 'vm'
+			}).result.then(function(response) {
+				console.log(response);
+				$scope.search = response.name;
+				fetchInitialData();
+			});
+		};
+		vm.addStudy = function(project) {
+			console.log(project);
+			projectFactory.addStudy(project);
+			$scope.fetchInitialData();
+		};
+
+		// =========
+
+		$scope.addObservation = function(study) {
+			projectFactory.addStudyPart(study, 'observation');
+		};
+		// $scope.fetchingObservationRounds = function(id) {
+		// return fetching.is('obs', id);
+		// }
+		$scope.setRoundModel = function(observation) {
+			fetching.set('obs', observation.id);
+			RoundModelFactory.getRoundModel(observation).then(function(response) {
+				var data = response.data[0];
+				if (data) {
+					// var startdate = new Date();
+					// startdate.parse(data['startdate']);
+					// var enddate = new Date();
+					// enddate.parse(data['enddate']);
+					if (!observation.roundModel) {
+						observation.roundModel = {
+							observationid : observation.id,
+							type : 'date_round_matrices'
+						};
+					}
+					console.log(response);
+					observation.roundModel.startdate = Date.parse(data.start_date);
+					observation.roundModel.enddate = Date.parse(data.end_date);
+					observation.roundModel.duration = 60;// data['roundduration'];
+				}
+				// console.log(observation);
+				fetching.unset('obs', observation.id);
+				$modal.open({
+					templateUrl : 'studies/observation/setRoundModel.html',
+					controller : 'setRoundModel',
+					size : 'lg',
+					resolve : {
+						observation : function() {
+							return observation;
+						}
+					}
+				});
+			}, function(error) {
+				console.log(error);
+			});
+		};
+		$scope.addPlans = function(study) {
+			importFactory.addPlan(study);
+		};
+		$scope.addObservationData = function(study) {
+			importFactory.addObservation(study);
+		};
+		$scope.addDepthmap = function(study) {
+			importFactory.addObservation(study);
+		};
+		$scope.addStaffSurvey = function(study) {
+			importFactory.addStaffSurvey(study);
+		};
+		$scope.addStakeholders = function(study) {
+			importFactory.addStakeholders(study);
+
+		};
+	}
+})();
+angular.module('app.projects').controller('MainStudyCtrl', [
 		'$scope',
 		'$stateParams',
 		'StudyFactory',

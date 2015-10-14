@@ -1,99 +1,101 @@
-app.factory('ModalFactory', [
-		'$modal',
-		function($modal) {
-			var waitModalInstance;
-			var waitData = {
-				text : 'Loading...'
-			};
-			var pub = {
-				openWaitModal : function(waitText, progress) {
-					waitData.text = waitText;
-					waitData.progress = progress;
-					waitModalInstance = $modal.open({
-						animation : 0,
-						templateUrl : 'util/waitModal.html',
-						backdrop : 'static',
-						keyboard : 'false',
-						controller : 'waitModalCtrl',
-						windowClass : 'wait-dialog',
-						resolve : {
-							"waitData" : function() {
-								return waitData;
-							}
+angular.module('app.core').factory(
+		'modalFactory',
+		[
+				'$modal',
+				function($modal) {
+					var waitModalInstance;
+					var waitData = {
+						text : 'Loading...'
+					};
+					var pub = {
+						openWaitModal : function(waitText, progress) {
+							waitData.text = waitText;
+							waitData.progress = progress;
+							waitModalInstance = $modal.open({
+								animation : 0,
+								templateUrl : 'services/waitModal.html',
+								backdrop : 'static',
+								keyboard : 'false',
+								controller : 'waitModalCtrl',
+								windowClass : 'wait-dialog',
+								resolve : {
+									"waitData" : function() {
+										return waitData;
+									}
+								}
+							});
+							return waitModalInstance;
+						},
+						closeWaitModal : function() {
+							if (waitModalInstance)
+								waitModalInstance.dismiss('cancel');
+						},
+						modifyWaitMessage : function(waitText, progress) {
+							waitData.text = waitText;
+							waitData.progress = progress;
+						},
+						openConfirmModal : function(message, okText, cancelText) {
+							var promise = $modal.open({
+								templateUrl : 'util/confirmModal.html',
+								controller : 'confirmDialog',
+								resolve : {
+									message : function() {
+										return message;
+									},
+									okText : function() {
+										return okText;
+									},
+									cancelText : function() {
+										return cancelText;
+									}
+								}
+							});
+							return promise;
+						},
+						openErrorModal : function(message) {
+							var promise = $modal.open({
+								templateUrl : 'util/errorModal.html',
+								controller : 'errorDialog',
+								resolve : {
+									message : function() {
+										return message;
+									}
+								}
+							});
+							return promise;
+						},
+						openSelectFileModal : function(title, description, accept,
+								uploader, okAction, fileValid) {
+							var promise = $modal.open({
+								templateUrl : 'util/selectFileModal.html',
+								controller : 'selectFileDialog',
+								resolve : {
+									title : function() {
+										return title;
+									},
+									description : function() {
+										return description;
+									},
+									accept : function() {
+										return accept;
+									},
+									uploader : function() {
+										return uploader;
+									},
+									okAction : function() {
+										return okAction;
+									},
+									fileValid : function() {
+										return fileValid;
+									}
+								}
+							});
+							return promise;
 						}
-					});
-					return waitModalInstance;
-				},
-				closeWaitModal : function() {
-					if (waitModalInstance)
-						waitModalInstance.dismiss('cancel');
-				},
-				modifyWaitMessage : function(waitText, progress) {
-					waitData.text = waitText;
-					waitData.progress = progress;
-				},
-				openConfirmModal : function(message, okText, cancelText) {
-					var promise = $modal.open({
-						templateUrl : 'util/confirmModal.html',
-						controller : 'confirmDialog',
-						resolve : {
-							message : function() {
-								return message;
-							},
-							okText : function() {
-								return okText;
-							},
-							cancelText : function() {
-								return cancelText;
-							}
-						}
-					});
-					return promise;
-				},
-				openErrorModal : function(message) {
-					var promise = $modal.open({
-						templateUrl : 'util/errorModal.html',
-						controller : 'errorDialog',
-						resolve : {
-							message : function() {
-								return message;
-							}
-						}
-					});
-					return promise;
-				},
-				openSelectFileModal : function(title, description, accept, uploader,
-						okAction, fileValid) {
-					var promise = $modal.open({
-						templateUrl : 'util/selectFileModal.html',
-						controller : 'selectFileDialog',
-						resolve : {
-							title : function() {
-								return title;
-							},
-							description : function() {
-								return description;
-							},
-							accept : function() {
-								return accept;
-							},
-							uploader : function() {
-								return uploader;
-							},
-							okAction : function() {
-								return okAction;
-							},
-							fileValid : function() {
-								return fileValid;
-							}
-						}
-					});
-					return promise;
+					};
+					return pub;
 				}
-			};
-			return pub;
-		}
-]);
+		]);
 
 app.controller('selectFileDialog', [
 		'$scope',

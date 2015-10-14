@@ -3,514 +3,540 @@ var spacelabColours = [
 		'#838280', '#2A3890', '#EB008C', '#A5DFF6', '#D6A3CA', '#A897C8',
 		'#B6DA9A', '#F6B387', '#442A79', '#006738', '#57595B'
 ]
-app.directive("doughnutChart", [
+angular
+		.module('app.core')
+		.directive(
+				"doughnutChart",
+				[
 
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				parts : '=',
-				labels : '=',
-				showText : '=',
-				showOnlyFirst : '=',
-				colours : '='
-			},
-			link : function(scope, element, attrs) {
+					function() {
+						var directiveDefinitionObject = {
+							restrict : 'E',
+							scope : {
+								parts : '=',
+								labels : '=',
+								showText : '=',
+								showOnlyFirst : '=',
+								colours : '='
+							},
+							link : function(scope, element, attrs) {
 
-				var width = 250, height = 250, radius = Math.min(width, height) / 2;
+								var width = 250, height = 250, radius = Math.min(width, height) / 2;
 
-				var pie = d3.layout.pie().sort(null);
+								var pie = d3.layout.pie().sort(null);
 
-				var arc = d3.svg.arc().innerRadius(radius - 75)
-						.outerRadius(radius - 25);
+								var arc = d3.svg.arc().innerRadius(radius - 75).outerRadius(
+										radius - 25);
 
-				var svg = d3.select(element[0]).append("svg").attr("width", width)
-						.attr("height", height).append("g").attr("transform",
-								"translate(" + width / 2 + "," + height / 2 + ")");
+								var svg = d3.select(element[0]).append("svg").attr("width",
+										width).attr("height", height).append("g").attr("transform",
+										"translate(" + width / 2 + "," + height / 2 + ")");
 
-				// var path = svg.selectAll("path").data(pie(scope.parts))
-				// .enter().append("path").attr("fill",
-				// function(d, i) {
-				// return spacelabColours[i];
-				// }).attr("d", arc);
-				// if (scope.showText) {
-				// if (scope.showOnlyFirst) {
-				// svg.append("text")
-				// // .attr("transform", function(d) {
-				// // return "translate(" + arc.centroid(d) + ")"; })
-				// // .attr("dy", ".35em")
-				// .attr('font-family', 'Apercu,serif').attr(
-				// 'font-size', '30px').attr("transform",
-				// "translate(" + 0 + "," + 10 + ")").style(
-				// "text-anchor", "middle").text(function(d) {
-				// return scope.parts[0];
-				// });
-				// }
-				// }
+								// var path = svg.selectAll("path").data(pie(scope.parts))
+								// .enter().append("path").attr("fill",
+								// function(d, i) {
+								// return spacelabColours[i];
+								// }).attr("d", arc);
+								// if (scope.showText) {
+								// if (scope.showOnlyFirst) {
+								// svg.append("text")
+								// // .attr("transform", function(d) {
+								// // return "translate(" + arc.centroid(d) + ")"; })
+								// // .attr("dy", ".35em")
+								// .attr('font-family', 'Apercu,serif').attr(
+								// 'font-size', '30px').attr("transform",
+								// "translate(" + 0 + "," + 10 + ")").style(
+								// "text-anchor", "middle").text(function(d) {
+								// return scope.parts[0];
+								// });
+								// }
+								// }
 
-				scope.$watch('parts', function(newParts, oldParts) {
-					svg.selectAll("path").remove();
-					var path = svg.selectAll("path").data(pie(scope.parts)).enter()
-							.append("path").attr("fill", function(d, i) {
-								return spacelabColours[i];
-							}).attr("d", arc);
+								scope.$watch('parts', function(newParts, oldParts) {
+									svg.selectAll("path").remove();
+									var path = svg.selectAll("path").data(pie(scope.parts))
+											.enter().append("path").attr("fill", function(d, i) {
+												return spacelabColours[i];
+											}).attr("d", arc);
 
-					if (scope.showText) {
-						if (scope.showOnlyFirst) {
-							svg.selectAll("text").remove();
-							svg.append("text")
-							// .attr("transform", function(d) {
-							// return "translate(" + arc.centroid(d) + ")";
-							// })
-							// .attr("dy", ".35em")
-							.attr('font-family', 'Apercu,serif').attr('font-size', '30px')
-									.attr("transform", "translate(" + 0 + "," + 10 + ")").style(
-											"text-anchor", "middle").text(function(d) {
-										if (scope.labels)
-											return scope.labels[0];
-										else
-											return scope.parts[0];
-									});
-						}
-					}
-				}, true);
-			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-app.directive("responsiveDoughnutChart", [
-
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				parts : '=',
-				labels : '=',
-				showText : '=',
-				showOnlyFirst : '=',
-				colours : '=',
-				title : '='
-			},
-			link : function(scope, element, attrs) {
-
-				var width = 250, height = 250, radius = Math.min(width, height) / 2;
-
-				var pie = d3.layout.pie().sort(null);
-
-				var arc = d3.svg.arc().innerRadius(radius - 75)
-						.outerRadius(radius - 25);
-
-				var svg = d3.select(element[0]).append("svg")
-				// .attr("width",
-				// width)
-				.attr("height", "100%").attr("width", "100%").attr(
-						"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
-						"0 0 " + width + " " + height).append("g").attr("transform",
-						"translate(" + width / 2 + "," + height / 2 + ")");
-
-				scope.$watch('parts', function(newParts, oldParts) {
-					svg.selectAll("path").remove();
-					var path = svg.selectAll("path").data(pie(scope.parts)).enter()
-							.append("path").attr("fill", function(d, i) {
-								return spacelabColours[i];
-							}).attr("d", arc);
-					if (scope.showText) {
-						if (scope.showOnlyFirst) {
-							svg.selectAll("text").remove();
-							// svg.append("text").style("text-anchor",
-							// "middle")
-							// .attr("y", 150)
-							// .text(scope.title);
-							svg.append("text")
-							// .attr("transform", function(d) {
-							// return "translate(" +
-							// arc.centroid(d) + ")";
-							// })
-							// .attr("dy", ".35em")
-							.attr('font-family', 'Apercu,serif').attr('font-size', '30px')
-									.attr("transform", "translate(" + 0 + "," + 10 + ")").style(
-											"text-anchor", "middle").text(function(d) {
-										if (scope.labels)
-											return scope.labels[0];
-										else
-											return scope.parts[0];
-									});
-						}
-					}
-				}, true);
-			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-app.directive("doughnutChartEr", [
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				data : '=',
-				// labels : '=',
-				showText : '=',
-				showOnlyFirst : '=',
-				colours : '=',
-				showLegend : '=',
-				title : '=',
-				noOfDecimals : '=',
-				units : '='
-
-			},
-			link : function(scope, element, attrs) {
-
-				var width = 400, height = 250, radius = Math.min(width, height) / 2;
-
-				var pie = d3.layout.pie().sort(null).value(function(d) {
-					return d.value;
-				});
-
-				var legendRectSize = 10; // NEW
-				var legendSpacing = 4; // NEW
-
-				var arc = d3.svg.arc().innerRadius(radius - 75)
-						.outerRadius(radius - 25);
-
-				var svg = d3.select(element[0]).append("svg")
-				// .attr("width",
-				// width)
-				.attr("height", "100%").attr("width", "100%").attr(
-						"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
-						"0 0 " + width + " " + height).append("g").attr("transform",
-						"translate(" + width / 3 + "," + height / 2 + ")");
-				scope.$watch('data', function(newData) {
-					svg.selectAll("path").remove();
-					console.log(scope);
-					if (!scope.noOfDecimals && scope.noOfDecimals != 0)
-						scope.noOfDecimals = 2;
-					var prop = newData.properties[0].alias;
-					var data = [];
-					for (var i = 0; i < newData.keys.length; i++) {
-						var key = newData.keys[i].alias;
-						var obj = {
-							key : key,
-							value : newData.data[key][prop]
+									if (scope.showText) {
+										if (scope.showOnlyFirst) {
+											svg.selectAll("text").remove();
+											svg.append("text")
+											// .attr("transform", function(d) {
+											// return "translate(" + arc.centroid(d) + ")";
+											// })
+											// .attr("dy", ".35em")
+											.attr('font-family', 'Apercu,serif').attr('font-size',
+													'30px').attr("transform",
+													"translate(" + 0 + "," + 10 + ")").style(
+													"text-anchor", "middle").text(function(d) {
+												if (scope.labels)
+													return scope.labels[0];
+												else
+													return scope.parts[0];
+											});
+										}
+									}
+								}, true);
+							}
 						};
-						if ('name' in newData.keys[i])
-							obj.key = newData.keys[i].name
-						data.push(obj);
+						return directiveDefinitionObject;
 					}
-					// var path = svg.selectAll("path").data(pie(data)).enter().append(
-					// "path").attr("fill", function(d, i) {
-					// return spacelabColours[i];
-					// }).attr("d", arc);
+				]);
+angular
+		.module('app.core')
+		.directive(
+				"responsiveDoughnutChart",
+				[
 
-					var g = svg.selectAll(".arc").data(pie(data)).enter().append("g")
-							.attr("class", "arc");
+					function() {
+						var directiveDefinitionObject = {
+							restrict : 'E',
+							scope : {
+								parts : '=',
+								labels : '=',
+								showText : '=',
+								showOnlyFirst : '=',
+								colours : '=',
+								title : '='
+							},
+							link : function(scope, element, attrs) {
 
-					g.append("path").attr("d", arc).style("fill", function(d, i) {
-						return spacelabColours[i];
-					});
-					// if(scope.title) svg.append("text").style("text-anchor",
-					// "middle")
-					// .attr("y", 150)
-					// .text(scope.title);
-					if (scope.showText) {
-						if (scope.showOnlyFirst) {
-							svg.selectAll("text").remove();
+								var width = 250, height = 250, radius = Math.min(width, height) / 2;
 
-							svg.append("text")
-							// .attr("transform", function(d) {
-							// return "translate(" +
-							// arc.centroid(d) + ")";
-							// })
-							// .attr("dy", ".35em")
-							.attr('font-family', 'Apercu,serif').attr('font-size', '20px')
-									.attr("transform", "translate(" + 0 + "," + 10 + ")").style(
+								var pie = d3.layout.pie().sort(null);
+
+								var arc = d3.svg.arc().innerRadius(radius - 75).outerRadius(
+										radius - 25);
+
+								var svg = d3.select(element[0]).append("svg")
+								// .attr("width",
+								// width)
+								.attr("height", "100%").attr("width", "100%").attr(
+										"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
+										"0 0 " + width + " " + height).append("g").attr(
+										"transform",
+										"translate(" + width / 2 + "," + height / 2 + ")");
+
+								scope.$watch('parts', function(newParts, oldParts) {
+									svg.selectAll("path").remove();
+									var path = svg.selectAll("path").data(pie(scope.parts))
+											.enter().append("path").attr("fill", function(d, i) {
+												return spacelabColours[i];
+											}).attr("d", arc);
+									if (scope.showText) {
+										if (scope.showOnlyFirst) {
+											svg.selectAll("text").remove();
+											// svg.append("text").style("text-anchor",
+											// "middle")
+											// .attr("y", 150)
+											// .text(scope.title);
+											svg.append("text")
+											// .attr("transform", function(d) {
+											// return "translate(" +
+											// arc.centroid(d) + ")";
+											// })
+											// .attr("dy", ".35em")
+											.attr('font-family', 'Apercu,serif').attr('font-size',
+													'30px').attr("transform",
+													"translate(" + 0 + "," + 10 + ")").style(
+													"text-anchor", "middle").text(function(d) {
+												if (scope.labels)
+													return scope.labels[0];
+												else
+													return scope.parts[0];
+											});
+										}
+									}
+								}, true);
+							}
+						};
+						return directiveDefinitionObject;
+					}
+				]);
+angular
+		.module('app.core')
+		.directive(
+				"doughnutChartEr",
+				[
+					function() {
+						var directiveDefinitionObject = {
+							restrict : 'E',
+							scope : {
+								data : '=',
+								// labels : '=',
+								showText : '=',
+								showOnlyFirst : '=',
+								colours : '=',
+								showLegend : '=',
+								title : '=',
+								noOfDecimals : '=',
+								units : '='
+
+							},
+							link : function(scope, element, attrs) {
+
+								var width = 400, height = 250, radius = Math.min(width, height) / 2;
+
+								var pie = d3.layout.pie().sort(null).value(function(d) {
+									return d.value;
+								});
+
+								var legendRectSize = 10; // NEW
+								var legendSpacing = 4; // NEW
+
+								var arc = d3.svg.arc().innerRadius(radius - 75).outerRadius(
+										radius - 25);
+
+								var svg = d3.select(element[0]).append("svg")
+								// .attr("width",
+								// width)
+								.attr("height", "100%").attr("width", "100%").attr(
+										"preserveAspectRatio", "xMidYMid meet").attr("viewBox",
+										"0 0 " + width + " " + height).append("g").attr(
+										"transform",
+										"translate(" + width / 3 + "," + height / 2 + ")");
+								scope.$watch('data', function(newData) {
+									svg.selectAll("path").remove();
+									console.log(scope);
+									if (!scope.noOfDecimals && scope.noOfDecimals != 0)
+										scope.noOfDecimals = 2;
+									var prop = newData.properties[0].alias;
+									var data = [];
+									for (var i = 0; i < newData.keys.length; i++) {
+										var key = newData.keys[i].alias;
+										var obj = {
+											key : key,
+											value : newData.data[key][prop]
+										};
+										if ('name' in newData.keys[i])
+											obj.key = newData.keys[i].name
+										data.push(obj);
+									}
+									// var path =
+									// svg.selectAll("path").data(pie(data)).enter().append(
+									// "path").attr("fill", function(d, i) {
+									// return spacelabColours[i];
+									// }).attr("d", arc);
+
+									var g = svg.selectAll(".arc").data(pie(data)).enter().append(
+											"g").attr("class", "arc");
+
+									g.append("path").attr("d", arc).style("fill", function(d, i) {
+										return spacelabColours[i];
+									});
+									// if(scope.title) svg.append("text").style("text-anchor",
+									// "middle")
+									// .attr("y", 150)
+									// .text(scope.title);
+									if (scope.showText) {
+										if (scope.showOnlyFirst) {
+											svg.selectAll("text").remove();
+
+											svg.append("text")
+											// .attr("transform", function(d) {
+											// return "translate(" +
+											// arc.centroid(d) + ")";
+											// })
+											// .attr("dy", ".35em")
+											.attr('font-family', 'Apercu,serif').attr('font-size',
+													'20px').attr("transform",
+													"translate(" + 0 + "," + 10 + ")").style(
+													"text-anchor", "middle").text(function(d) {
+												// if (scope.keys)
+												return scope.keys[0].alias;
+												// return 'lol';
+												// else
+												// return scope.parts[0];
+											});
+										} else {
+											g.append("text").attr("transform", function(d) {
+												return "translate(" + arc.centroid(d) + ")";
+											}).attr("dy", ".25em").style("text-anchor", "middle")
+													.attr('font-family', 'Apercu,serif').style(
+															'font-size', '10px').style('fill', '#ffffff')
+													.text(function(d) {
+														// return d.data.age;
+														// return d.data.key;
+														var r = d.value.toFixed(scope.noOfDecimals);
+														if (scope.units)
+															r += scope.units;
+														return r;
+													});
+										}
+									}
+									if (scope.showLegend) {
+										var legend = svg.selectAll('.legend') // NEW
+										.data(data) // NEW
+										.enter() // NEW
+										.append('g') // NEW
+										.attr('class', 'legend') // NEW
+										.attr('transform', function(d, i) { // NEW
+											var height = legendRectSize + legendSpacing; // NEW
+											var offset = height * data.length / 2; // NEW
+											var horz = radius * 1.2 - 2 * legendRectSize; // NEW
+											var vert = i * height - offset; // NEW
+											return 'translate(' + horz + ',' + vert + ')'; // NEW
+										}); // NEW
+
+										legend.append('rect') // NEW
+										.attr('width', legendRectSize) // NEW
+										.attr('height', legendRectSize) // NEW
+										.style('fill', function(d, i) {
+											return spacelabColours[i]
+										}) // NEW
+										.style('stroke', function(d, i) {
+											return spacelabColours[i]
+										}); // NEW
+
+										legend.append('text') // NEW
+										.attr('x', legendRectSize + legendSpacing) // NEW
+										.attr('y', legendRectSize - legendSpacing * 0.5) // NEW
+										.attr('font-family', 'Apercu,serif').style('font-size',
+												'10px').text(function(d) {
+											return d.key;
+										}); // NEW
+									}
+									svg.append("text").attr('font-family', 'Apercu,serif').attr(
+											'font-size', '20px').attr("transform",
+											"translate(" + 0 + "," + (-radius + 15) + ")").style(
 											"text-anchor", "middle").text(function(d) {
-										// if (scope.keys)
-										return scope.keys[0].alias;
-										// return 'lol';
-										// else
-										// return scope.parts[0];
+										return scope.title;
 									});
-						} else {
-							g.append("text").attr("transform", function(d) {
-								return "translate(" + arc.centroid(d) + ")";
-							}).attr("dy", ".25em").style("text-anchor", "middle").attr(
-									'font-family', 'Apercu,serif').style('font-size', '10px')
-									.style('fill', '#ffffff').text(function(d) {
-										// return d.data.age;
-										// return d.data.key;
-										var r = d.value.toFixed(scope.noOfDecimals);
-										if (scope.units)
-											r += scope.units;
-										return r;
-									});
-						}
+								}, true);
+							}
+						};
+						return directiveDefinitionObject;
 					}
-					if (scope.showLegend) {
-						var legend = svg.selectAll('.legend') // NEW
-						.data(data) // NEW
-						.enter() // NEW
-						.append('g') // NEW
-						.attr('class', 'legend') // NEW
-						.attr('transform', function(d, i) { // NEW
-							var height = legendRectSize + legendSpacing; // NEW
-							var offset = height * data.length / 2; // NEW
-							var horz = radius * 1.2 - 2 * legendRectSize; // NEW
-							var vert = i * height - offset; // NEW
-							return 'translate(' + horz + ',' + vert + ')'; // NEW
-						}); // NEW
+				]);
+angular.module('app.core').directive(
+		"simpleLineChart",
+		[
 
-						legend.append('rect') // NEW
-						.attr('width', legendRectSize) // NEW
-						.attr('height', legendRectSize) // NEW
-						.style('fill', function(d, i) {
-							return spacelabColours[i]
-						}) // NEW
-						.style('stroke', function(d, i) {
-							return spacelabColours[i]
-						}); // NEW
+			function() {
+				var directiveDefinitionObject = {
+					restrict : 'E',
+					scope : {
+						parts : '='
+					},
+					link : function(scope, element, attrs) {
+						/* implementation heavily influenced by http://bl.ocks.org/1166403 */
 
-						legend.append('text') // NEW
-						.attr('x', legendRectSize + legendSpacing) // NEW
-						.attr('y', legendRectSize - legendSpacing * 0.5) // NEW
-						.attr('font-family', 'Apercu,serif').style('font-size', '10px')
-								.text(function(d) {
-									return d.key;
-								}); // NEW
+						// define dimensions of graph
+						var m = [
+								80, 80, 80, 80
+						]; // margins
+						var w = 1000 - m[1] - m[3]; // width
+						var h = 400 - m[0] - m[2]; // height
+
+						// create a simple data array that we'll plot with a line (this
+						// array represents only the Y values, X will just be the index
+						// location)
+
+						// X scale will fit all values from data[] within pixels 0-w
+
+						// create a line function that can convert data[] into x and y
+						// points
+
+						// Add an SVG element with the desired dimensions and margin.
+						var graph = d3.select(element[0]).append("svg:svg").attr("width",
+								w + m[1] + m[3]).attr("height", h + m[0] + m[2])
+								.append("svg:g").attr("transform",
+										"translate(" + m[3] + "," + m[0] + ")");
+
+						// Add the line by appending an svg:path element with the data line
+						// we created above
+						// do this AFTER the axes above so that the line is above the
+						// tick-lines
+
+						scope.$watch('parts', function(newParts, oldParts) {
+							// console.log(newParts);
+							var line = d3.svg.line().x(function(d, i) {
+								return x(i);
+							}).y(function(d) {
+								return y(d);
+							})
+							var x = d3.scale.linear().domain([
+									0, newParts.length
+							]).range([
+									0, w
+							]);
+							// Y scale will fit values from 0-10 within pixels h-0 (Note the
+							// inverted domain for the y-scale: bigger is up!)
+							var max = -1000000;
+							var min = 1000000;
+							for (var i = 0; i < newParts.length; i++) {
+								if (parseInt(newParts[i]) < min)
+									min = parseInt(newParts[i]);
+								if (parseInt(newParts[i]) > max)
+									max = parseInt(newParts[i]);
+							}
+							var y = d3.scale.linear().domain([
+									min, max
+							]).range([
+									h, 0
+							]);
+							// automatically determining max range can work something like
+							// this
+							// var y = d3.scale.linear().domain([0, d3.max(data)]).range([h,
+							// 0]);
+
+							// create yAxis
+							var xAxis = d3.svg.axis().scale(x).tickValues([
+									8, 16, 24, 32, 40
+							]);
+							// Add the x-axis.
+							graph.selectAll('g').remove();
+							graph.append("svg:g").attr("class", "x axis").attr("transform",
+									"translate(0," + h + ")").attr('fill', 'none').attr('stroke',
+									'black').call(xAxis);
+
+							// create left yAxis
+							var yAxisLeft = d3.svg.axis().scale(y).ticks(4).orient("left");
+							// Add the y-axis to the left
+							graph.append("svg:g").attr("class", "y axis").attr("transform",
+									"translate(-25,0)").attr('fill', 'none').attr('stroke',
+									'black').call(yAxisLeft);
+							graph.selectAll('path').remove();
+							graph.append("svg:path").attr("d", line(newParts)).attr('fill',
+									'none').attr('stroke', 'black');
+						}, true);
 					}
-					svg.append("text").attr('font-family', 'Apercu,serif').attr(
-							'font-size', '20px').attr("transform",
-							"translate(" + 0 + "," + (-radius + 15) + ")").style(
-							"text-anchor", "middle").text(function(d) {
-						return scope.title;
-					});
-				}, true);
+				};
+				return directiveDefinitionObject;
 			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-app.directive("simpleLineChart", [
+		]);
+angular.module('app.core').directive(
+		"responsiveLineChart",
+		[
 
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				parts : '='
-			},
-			link : function(scope, element, attrs) {
-				/* implementation heavily influenced by http://bl.ocks.org/1166403 */
+			function() {
+				var directiveDefinitionObject = {
+					restrict : 'E',
+					scope : {
+						parts : '='
+					},
+					link : function(scope, element, attrs) {
+						/* implementation heavily influenced by http://bl.ocks.org/1166403 */
 
-				// define dimensions of graph
-				var m = [
-						80, 80, 80, 80
-				]; // margins
-				var w = 1000 - m[1] - m[3]; // width
-				var h = 400 - m[0] - m[2]; // height
+						// define dimensions of graph
+						var m = [
+								80, 80, 80, 80
+						]; // margins
+						var w = 1000 - m[1] - m[3]; // width
+						var h = 400 - m[0] - m[2]; // height
+						var svg = d3.select(element[0]).append("svg:svg")
+						// .attr("width",
+						// w + m[1] + m[3]).attr("height", h + m[0] + m[2])
+						.attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox",
+								"0 0 " + (w + m[1] + m[3]) + " " + (h + m[0] + m[2]));
+						var graph = svg.append("svg:g").attr("transform",
+								"translate(" + m[3] + "," + m[0] + ")");
 
-				// create a simple data array that we'll plot with a line (this
-				// array represents only the Y values, X will just be the index
-				// location)
+						// Add the line by appending an svg:path element with the data line
+						// we created above
+						// do this AFTER the axes above so that the line is above the
+						// tick-lines
 
-				// X scale will fit all values from data[] within pixels 0-w
+						scope.$watch('parts', function(newParts, oldParts) {
+							// console.log(newParts);
+							var line = d3.svg.line().x(function(d, i) {
+								return x(i);
+							}).y(function(d) {
+								return y(d);
+							})
+							var x = d3.scale.linear().domain([
+									0, newParts.length
+							]).range([
+									0, w
+							]);
+							// Y scale will fit values from 0-10 within pixels h-0 (Note the
+							// inverted domain for the y-scale: bigger is up!)
+							var max = -1000000;
+							var min = 1000000;
+							for (var i = 0; i < newParts.length; i++) {
+								if (parseInt(newParts[i]) < min)
+									min = parseInt(newParts[i]);
+								if (parseInt(newParts[i]) > max)
+									max = parseInt(newParts[i]);
+							}
+							var y = d3.scale.linear().domain([
+									min, max
+							]).range([
+									h, 0
+							]);
+							// automatically determining max range can work something like
+							// this
+							// var y = d3.scale.linear().domain([0, d3.max(data)]).range([h,
+							// 0]);
 
-				// create a line function that can convert data[] into x and y
-				// points
+							// create yAxis
+							var xAxis = d3.svg.axis().scale(x).tickValues([
+									8, 16, 24, 32, 40
+							]);
+							// Add the x-axis.
+							graph.selectAll('g').remove();
+							graph.append("svg:g").attr("class", "x axis").attr("transform",
+									"translate(0," + h + ")").attr('fill', 'none').attr('stroke',
+									'black').call(xAxis);
 
-				// Add an SVG element with the desired dimensions and margin.
-				var graph = d3.select(element[0]).append("svg:svg").attr("width",
-						w + m[1] + m[3]).attr("height", h + m[0] + m[2]).append("svg:g")
-						.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
-
-				// Add the line by appending an svg:path element with the data line
-				// we created above
-				// do this AFTER the axes above so that the line is above the
-				// tick-lines
-
-				scope.$watch('parts', function(newParts, oldParts) {
-					// console.log(newParts);
-					var line = d3.svg.line().x(function(d, i) {
-						return x(i);
-					}).y(function(d) {
-						return y(d);
-					})
-					var x = d3.scale.linear().domain([
-							0, newParts.length
-					]).range([
-							0, w
-					]);
-					// Y scale will fit values from 0-10 within pixels h-0 (Note the
-					// inverted domain for the y-scale: bigger is up!)
-					var max = -1000000;
-					var min = 1000000;
-					for (var i = 0; i < newParts.length; i++) {
-						if (parseInt(newParts[i]) < min)
-							min = parseInt(newParts[i]);
-						if (parseInt(newParts[i]) > max)
-							max = parseInt(newParts[i]);
+							// create left yAxis
+							var yAxisLeft = d3.svg.axis().scale(y).ticks(4).orient("left");
+							// Add the y-axis to the left
+							graph.append("svg:g").attr("class", "y axis").attr("transform",
+									"translate(-25,0)").attr('fill', 'none').attr('stroke',
+									'black').call(yAxisLeft);
+							graph.selectAll('path').remove();
+							graph.append("svg:path").attr("d", line(newParts)).attr('fill',
+									'none').attr('stroke', 'black');
+						}, true);
 					}
-					var y = d3.scale.linear().domain([
-							min, max
-					]).range([
-							h, 0
-					]);
-					// automatically determining max range can work something like
-					// this
-					// var y = d3.scale.linear().domain([0, d3.max(data)]).range([h,
-					// 0]);
-
-					// create yAxis
-					var xAxis = d3.svg.axis().scale(x).tickValues([
-							8, 16, 24, 32, 40
-					]);
-					// Add the x-axis.
-					graph.selectAll('g').remove();
-					graph.append("svg:g").attr("class", "x axis").attr("transform",
-							"translate(0," + h + ")").attr('fill', 'none').attr('stroke',
-							'black').call(xAxis);
-
-					// create left yAxis
-					var yAxisLeft = d3.svg.axis().scale(y).ticks(4).orient("left");
-					// Add the y-axis to the left
-					graph.append("svg:g").attr("class", "y axis").attr("transform",
-							"translate(-25,0)").attr('fill', 'none').attr('stroke', 'black')
-							.call(yAxisLeft);
-					graph.selectAll('path').remove();
-					graph.append("svg:path").attr("d", line(newParts)).attr('fill',
-							'none').attr('stroke', 'black');
-				}, true);
+				};
+				return directiveDefinitionObject;
 			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-app.directive("responsiveLineChart", [
+		]);
 
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				parts : '='
-			},
-			link : function(scope, element, attrs) {
-				/* implementation heavily influenced by http://bl.ocks.org/1166403 */
+angular.module('app.core').directive(
+		"snapshotViewer",
+		[
+			function() {
+				var directiveDefinitionObject = {
+					restrict : 'E',
+					scope : {
+						image : '=',
+						entitydata : '='
+					},
+					link : function(scope, element, attrs) {
+						"use strict";
+						/*
+						 * implementation heavily influenced by http://bl.ocks.org/1166403
+						 */
 
-				// define dimensions of graph
-				var m = [
-						80, 80, 80, 80
-				]; // margins
-				var w = 1000 - m[1] - m[3]; // width
-				var h = 400 - m[0] - m[2]; // height
-				var svg = d3.select(element[0]).append("svg:svg")
-				// .attr("width",
-				// w + m[1] + m[3]).attr("height", h + m[0] + m[2])
-				.attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox",
-						"0 0 " + (w + m[1] + m[3]) + " " + (h + m[0] + m[2]));
-				var graph = svg.append("svg:g").attr("transform",
-						"translate(" + m[3] + "," + m[0] + ")");
+						// define dimensions of graph
+						var m = [
+								80, 80, 80, 80
+						]; // margins
+						var w = 1000 - m[1] - m[3]; // width
+						var h = 400 - m[0] - m[2]; // height
+						var svg = d3.select(element[0]).append("svg:svg");
+						// var graph = svg.append(
+						// "svg:g").attr("transform",
+						// "translate(" + m[3] + "," + m[0] + ")");
 
-				// Add the line by appending an svg:path element with the data line
-				// we created above
-				// do this AFTER the axes above so that the line is above the
-				// tick-lines
-
-				scope.$watch('parts', function(newParts, oldParts) {
-					// console.log(newParts);
-					var line = d3.svg.line().x(function(d, i) {
-						return x(i);
-					}).y(function(d) {
-						return y(d);
-					})
-					var x = d3.scale.linear().domain([
-							0, newParts.length
-					]).range([
-							0, w
-					]);
-					// Y scale will fit values from 0-10 within pixels h-0 (Note the
-					// inverted domain for the y-scale: bigger is up!)
-					var max = -1000000;
-					var min = 1000000;
-					for (var i = 0; i < newParts.length; i++) {
-						if (parseInt(newParts[i]) < min)
-							min = parseInt(newParts[i]);
-						if (parseInt(newParts[i]) > max)
-							max = parseInt(newParts[i]);
-					}
-					var y = d3.scale.linear().domain([
-							min, max
-					]).range([
-							h, 0
-					]);
-					// automatically determining max range can work something like
-					// this
-					// var y = d3.scale.linear().domain([0, d3.max(data)]).range([h,
-					// 0]);
-
-					// create yAxis
-					var xAxis = d3.svg.axis().scale(x).tickValues([
-							8, 16, 24, 32, 40
-					]);
-					// Add the x-axis.
-					graph.selectAll('g').remove();
-					graph.append("svg:g").attr("class", "x axis").attr("transform",
-							"translate(0," + h + ")").attr('fill', 'none').attr('stroke',
-							'black').call(xAxis);
-
-					// create left yAxis
-					var yAxisLeft = d3.svg.axis().scale(y).ticks(4).orient("left");
-					// Add the y-axis to the left
-					graph.append("svg:g").attr("class", "y axis").attr("transform",
-							"translate(-25,0)").attr('fill', 'none').attr('stroke', 'black')
-							.call(yAxisLeft);
-					graph.selectAll('path').remove();
-					graph.append("svg:path").attr("d", line(newParts)).attr('fill',
-							'none').attr('stroke', 'black');
-				}, true);
-			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-
-app.directive("snapshotViewer", [
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				image : '=',
-				entitydata : '='
-			},
-			link : function(scope, element, attrs) {
-				"use strict";
-				/*
-				 * implementation heavily influenced by http://bl.ocks.org/1166403
-				 */
-
-				// define dimensions of graph
-				var m = [
-						80, 80, 80, 80
-				]; // margins
-				var w = 1000 - m[1] - m[3]; // width
-				var h = 400 - m[0] - m[2]; // height
-				var svg = d3.select(element[0]).append("svg:svg");
-				// var graph = svg.append(
-				// "svg:g").attr("transform",
-				// "translate(" + m[3] + "," + m[0] + ")");
-
-				// Add the line by appending an svg:path element
-				// with the data line
-				// we created above
-				// do this AFTER the axes above so that the line is
-				// above the
-				// tick-lines
-				var lineFunction = d3.svg.line().x(function(d) {
-					return d.x;
-				}).y(function(d) {
-					return d.y;
-				}).interpolate("linear");
-				scope.$watchCollection('[image,entitydata]',
-						function(newValues, oldValues) {
+						// Add the line by appending an svg:path element
+						// with the data line
+						// we created above
+						// do this AFTER the axes above so that the line is
+						// above the
+						// tick-lines
+						var lineFunction = d3.svg.line().x(function(d) {
+							return d.x;
+						}).y(function(d) {
+							return d.y;
+						}).interpolate("linear");
+						scope.$watchCollection('[image,entitydata]', function(newValues,
+								oldValues) {
 							var i;
 							// console.log(newParts);
 							var newImage = newValues[0];
@@ -698,12 +724,13 @@ app.directive("snapshotViewer", [
 								// 2).attr("fill", "none");
 							}
 						}, true);
+					}
+				};
+				return directiveDefinitionObject;
 			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-app.directive('circleDiagram',
+		]);
+angular.module('app.core').directive(
+		'circleDiagram',
 		[
 			function() {
 				var directiveDefinitionObject = {
@@ -1098,82 +1125,93 @@ app
 						return directiveDefinitionObject;
 					}
 				]);
-app.directive("dpmViewer", [
-	function() {
-		var directiveDefinitionObject = {
-			restrict : 'E',
-			scope : {
-				image : '=',
-				dpmdata : '='
-			},
-			link : function(scope, element, attrs) {
-				var svg = d3.select(element[0]).append("svg:svg");
-				function update(newValues) {
-					var newImage = newValues[0];
-					var dpmData = newValues[1];
-					var tiles = dpmData.tiles;
-					var metadata = dpmData.metadata;
-					var wN = metadata.width;
-					var pixelW = parseFloat(metadata.scalex);
-					var pixelH = parseFloat(metadata.scaley);
-					var band = dpmData.band;
-					var limits = dpmData.spaceLimits;
-					var rangeX = limits.max_x - limits.min_x;
-					var rangeY = limits.max_y - limits.min_y;
-					var iRangeX = 1.0 / rangeX;
-					var iRangeY = 1.0 / rangeY;
-					var minV = parseFloat(metadata.minv);
-					var iValueRange = 1.0 / (parseFloat(metadata.maxv) - minV);
-					var img = new Image();
-					img.src = newImage;
-					img.onload = function() {
-						var width = this.width;
-						var height = this.height;
-						var diff = {
-							x : width * iRangeX *
-									(parseFloat(metadata.upperleftx) - parseFloat(limits.min_x)),
-							y : height * iRangeY *
-									(parseFloat(metadata.upperlefty) - parseFloat(limits.min_y))
-						}
-						pixelW = width * iRangeX * pixelW;
-						pixelH = -height * pixelH * iRangeY;
-						svg.attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox",
-								"0 0 " + (width) + " " + (height));
-						svg.selectAll("image").remove();
-						svg.append("svg:image").attr('x', 0).attr('y', 0).attr('height',
-								height).attr('width', width).attr('xlink:href', newImage);
+angular
+		.module('app.core')
+		.directive(
+				"dpmViewer",
+				[
+					function() {
+						var directiveDefinitionObject = {
+							restrict : 'E',
+							scope : {
+								image : '=',
+								dpmdata : '='
+							},
+							link : function(scope, element, attrs) {
+								var svg = d3.select(element[0]).append("svg:svg");
+								function update(newValues) {
+									var newImage = newValues[0];
+									var dpmData = newValues[1];
+									var tiles = dpmData.tiles;
+									var metadata = dpmData.metadata;
+									var wN = metadata.width;
+									var pixelW = parseFloat(metadata.scalex);
+									var pixelH = parseFloat(metadata.scaley);
+									var band = dpmData.band;
+									var limits = dpmData.spaceLimits;
+									var rangeX = limits.max_x - limits.min_x;
+									var rangeY = limits.max_y - limits.min_y;
+									var iRangeX = 1.0 / rangeX;
+									var iRangeY = 1.0 / rangeY;
+									var minV = parseFloat(metadata.minv);
+									var iValueRange = 1.0 / (parseFloat(metadata.maxv) - minV);
+									var img = new Image();
+									img.src = newImage;
+									img.onload = function() {
+										var width = this.width;
+										var height = this.height;
+										var diff = {
+											x : width *
+													iRangeX *
+													(parseFloat(metadata.upperleftx) - parseFloat(limits.min_x)),
+											y : height *
+													iRangeY *
+													(parseFloat(metadata.upperlefty) - parseFloat(limits.min_y))
+										}
+										pixelW = width * iRangeX * pixelW;
+										pixelH = -height * pixelH * iRangeY;
+										svg.attr("preserveAspectRatio", "xMidYMid meet").attr(
+												"viewBox", "0 0 " + (width) + " " + (height));
+										svg.selectAll("image").remove();
+										svg.append("svg:image").attr('x', 0).attr('y', 0).attr(
+												'height', height).attr('width', width).attr(
+												'xlink:href', newImage);
 
-						svg.selectAll("rect").remove();
-						var div = d3.select("body").append("div")
-								.attr("class", "d3tooltip").style("opacity", 0);
-						svg.selectAll("rect").data(tiles).enter().append("rect").attr("x",
-								function(d) {
-									return diff.x + (d.i % wN) * pixelW;
-								}).attr("y", function(d) {
-							return -diff.y + (height) + (((d.i / wN) | 0) * pixelH);
-						}).attr("width", function(d) {
-							return pixelW;
-						}).attr("height", function(d) {
-							return pixelH;
-						}).attr(
-								"fill",
-								function(d) {
-									return d3.hsl(240 - 240.0 * ((d.v - minV) * iValueRange), 1,
-											0.5);
-								});
+										svg.selectAll("rect").remove();
+										var div = d3.select("body").append("div").attr("class",
+												"d3tooltip").style("opacity", 0);
+										svg.selectAll("rect").data(tiles).enter().append("rect")
+												.attr("x", function(d) {
+													return diff.x + (d.i % wN) * pixelW;
+												}).attr(
+														"y",
+														function(d) {
+															return -diff.y + (height) +
+																	(((d.i / wN) | 0) * pixelH);
+														}).attr("width", function(d) {
+													return pixelW;
+												}).attr("height", function(d) {
+													return pixelH;
+												}).attr(
+														"fill",
+														function(d) {
+															return d3.hsl(
+																	240 - 240.0 * ((d.v - minV) * iValueRange),
+																	1, 0.5);
+														});
 
+									}
+								}
+								scope.$watchCollection('[image,dpmdata]', function(newValues,
+										oldValues) {
+									update(newValues);
+								}, true);
+							}
+						};
+						return directiveDefinitionObject;
 					}
-				}
-				scope.$watchCollection('[image,dpmdata]',
-						function(newValues, oldValues) {
-							update(newValues);
-						}, true);
-			}
-		};
-		return directiveDefinitionObject;
-	}
-]);
-// app.directive("wordle", [
+				]);
+// angular.module('app.core').directive("wordle", [
 //
 // function() {
 // var directiveDefinitionObject = {

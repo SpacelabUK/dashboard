@@ -1,6 +1,7 @@
 <!doctype html>
-<html lang="en" ng-app="Dashboard" ng-strict-di>
+<html lang="en" ng-app="app" ng-strict-di>
 <head>
+<!-- <base href="/Database/"> -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,6 +12,8 @@
 <link rel="stylesheet" type="text/css" href="css/select.min.css">
 <link rel="stylesheet" type="text/css" href="css/dashboard.css">
 <link rel="stylesheet" type="text/css" href="css/white.css">
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css" defer>
+</script>
 <!-- <link rel="stylesheet" type="text/css"
   href="css/angular-gridster.min.css"> -->
 <style type="text/css">
@@ -39,29 +42,84 @@
 <script type="text/javascript" src="lib/jquery.min.js" defer></script>
 <script type="text/javascript" src="lib/FileSaver.min.js" defer></script>
 <script type="text/javascript" src="lib/xlsx.full.min.js" defer></script>
+<script type="text/javascript" src="lib/toastr.min.js" defer></script>
 <!-- <script type="text/javascript" src="lib/angular-gridster.min.js" defer></script> -->
 <script type="text/javascript" src="lib/select.min.js" defer></script>
 <script type="text/javascript" src="bootstrap.js" defer></script>
-<script type="text/javascript" src="util/HTTPFactory.js" defer></script>
-<script type="text/javascript" src="util/PlanFactory.js" defer></script>
-<script type="text/javascript" src="util/ModalFactory.js" defer></script>
-<script type="text/javascript" src="util/TextFactory.js" defer></script>
+<script type="text/javascript" src="app/services/HTTPFactory.js" defer></script>
+<script type="text/javascript" src="app/services/PlanFactory.js" defer></script>
 <script type="text/javascript"
   src="studies/observation/setRoundModel.js" defer></script>
-<script type="text/javascript" src="studies/study.js" defer></script>
 <script type="text/javascript" src="studies/observation/observation.js"
   defer></script>
 <script type="text/javascript" src="studies/study.compare.js" defer></script>
-<script type="text/javascript" src="studies/plans/addPlans.js" defer></script>
-<script type="text/javascript" src="studies/addPolygons.js" defer></script>
-<script type="text/javascript" src="studies/addDepthmap.js" defer></script>
-<script type="text/javascript" src="studies/addStaffSurvey.js" defer></script>
-<script type="text/javascript" src="studies/addStakeholders.js" defer></script>
+<script type="text/javascript" src="app/import/plans/addPlans.js" defer></script>
+<!-- <script type="text/javascript" src="import/addPolygons.js" defer></script> -->
+<script type="text/javascript" src="app/import/depthmap/addDepthmap.js"
+  defer></script>
 <script type="text/javascript"
-  src="studies/observation/addObservationData.js" defer></script>
+  src="app/import/staffsurvey/addStaffSurvey.js" defer></script>
+<script type="text/javascript"
+  src="app/import/stakeholders/addStakeholders.js" defer></script>
+<script type="text/javascript"
+  src="app/import/observation/addObservationData.js" defer></script>
 <!--  <script type="text/javascript" src="lib/d3-wordcloud-decorator.js" defer></script>
 <script type="text/javascript" src="lib/wordcloud-directive.js" defer></script> -->
-<script type="text/javascript" src="charts.js" defer></script>
+
+
+<!-- Bootstrapping -->
+<script src="app/app.module.js" defer></script>
+
+<!-- Reusable Blocks/Modules -->
+<script src="app/blocks/exception/exception.module.js" defer></script>
+<script src="app/blocks/exception/exception-handler.provider.js" defer></script>
+<script src="app/blocks/exception/exception.js" defer></script>
+<script src="app/blocks/logger/logger.module.js" defer></script>
+<script src="app/blocks/logger/logger.js" defer></script>
+<script src="app/blocks/router/router.module.js" defer></script>
+<script src="app/blocks/router/routehelper.js" defer></script>
+
+<!-- Core -->
+<script src="app/core/core.module.js" defer></script>
+<script src="app/core/constants.js" defer></script>
+<script src="app/core/dataService.js" defer></script>
+
+<script src="app/services/modal.factory.js" defer></script>
+<script src="app/services/textParser.service.js" defer></script>
+<script src="app/charts/charts.js" defer></script>
+
+<!-- Projects -->
+<script src="app/projects/projects.module.js" defer></script>
+<script src="app/projects/projects.route.js" defer></script>
+<script src="app/projects/projects.js" defer></script>
+<script src="app/projects/addProjectModal.js" defer></script>
+
+<!-- Devices -->
+<script src="app/devices/devices.module.js" defer></script>
+<script src="app/devices/addDeviceModal.js" defer></script>
+<script src="app/devices/devices.js" defer></script>
+<script src="app/devices/devices.route.js" defer></script>
+
+<!-- Metrics -->
+<script src="app/metrics/metrics.module.js" defer></script>
+<script src="app/metrics/addMetricModal.js" defer></script>
+<script src="app/metrics/editMetricModal.js" defer></script>
+<script src="app/metrics/viewMetricDetailsModal.js" defer></script>
+<script src="app/metrics/metrics.js" defer></script>
+<script src="app/metrics/metrics.route.js" defer></script>
+
+<!-- Issues -->
+<script src="app/issues/issues.module.js" defer></script>
+<script src="app/issues/selectMetricModal.js" defer></script>
+<script src="app/issues/issues.js" defer></script>
+<script src="app/issues/issues.route.js" defer></script>
+
+<!-- Tools / Net - Integration -->
+<script src="app/tools/netIntegration/netIntegration.module.js" defer></script>
+<script src="app/tools/netIntegration/netIntegration.js" defer></script>
+<script src="app/tools/netIntegration/netIntegration.js" defer></script>
+<script src="app/tools/netIntegration/netIntegration.route.js" defer></script>
+
 
 </head>
 <body>
@@ -82,15 +140,15 @@
           <span>PROJECTS</span>
         </li>
         <li class="sidebar-list">
-          <a ui-sref="studies">
-            Open Studies<span class="menu-icon fa fa-external-link"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
           <a ui-sref="projects">
             Projects<span class="menu-icon fa fa-external-link"></span>
           </a>
         </li>
+        <!-- <li class="sidebar-list">
+          <a ui-sref="projects">
+            Projects<span class="menu-icon fa fa-external-link"></span>
+          </a>
+        </li> -->
         <li class="sidebar-list">
           <a ui-sref="devices">
             Devices <span class="menu-icon fa fa-external-link"></span>
@@ -133,7 +191,7 @@
           <span>Tools</span>
         </li>
         <li class="sidebar-list">
-          <a ui-sref="circlediagram">
+          <a ui-sref="tools/netIntegration">
             Net-Integration<span class="menu-icon fa fa-external-link"></span>
           </a>
         </li>
