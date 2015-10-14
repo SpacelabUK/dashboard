@@ -26,6 +26,12 @@ import uk.co.spacelab.backend.SplabHttpServlet;
 @WebServlet("/AddMetricToIssue")
 public class AddMetricToIssue extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String GET_MAX_METRIC_GROUP_ORDER_SQL =
+			"SELECT max(metric_order) AS max_metric_order FROM metric_group_metrics WHERE metric_group_id=?";
+	private static final String INSERT_METRIC_TO_GROUP_SQL =
+			"INSERT INTO metric_group_metrics (metric_id,metric_group_id,metric_order) VALUES (?,?,?)";
+	private static final String GET_INSERTED_METRIC_DETAILS_SQL =
+			"SELECT id,alias,title,units,description FROM metrics WHERE id=?";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -63,35 +69,31 @@ public class AddMetricToIssue extends SplabHttpServlet {
 		}
 		Integer id = null;
 		String group = null;
-		try {
-			id = paramsJSON.getInt("metric_id");
-			group = paramsJSON.getString("metric_group");
-		} catch (JSONException e) {
-			sendInterfaceError(response, e.getLocalizedMessage());
-			return;
-		}
 		PrintWriter out = response.getWriter();
 		try (Connection psql = Database.getConnection()) {
+			id = paramsJSON.getInt("metric_id");
+			group = paramsJSON.getString("metric_group");
 			psql.setAutoCommit(false);
-			String sql =
-					"SELECT max(metric_order) AS max_metric_order FROM metric_group_metrics WHERE metric_group_id=?";
-			JSONArray result = Database.customQuery(psql, sql, group);
+			JSONArray result =
+					Database.customQuery(psql, GET_MAX_METRIC_GROUP_ORDER_SQL,
+							group);
 
 			Integer order = 0;
 			if (result.length() > 0)
 				order = result.getJSONObject(0).getInt("max_metric_order") + 1;
-			sql =
-					"INSERT INTO metric_group_metrics (metric_id,metric_group_id,metric_order) VALUES (?,?,?)";
-			Database.customQueryNoResult(psql, sql, id, group, order);
-			sql =
-					"SELECT id,alias,title,units,description FROM metrics WHERE id=?";
-			result = Database.customQuery(psql, sql, id);
+			Database.customQueryNoResult(psql, INSERT_METRIC_TO_GROUP_SQL, id,
+					group, order);
+			result =
+					Database.customQuery(psql, GET_INSERTED_METRIC_DETAILS_SQL,
+							id);
 			result.getJSONObject(0).put("metric_order", order);
-			out.println(result.getJSONObject(0));
 
 			psql.commit();
 			psql.close();
-		} catch (SQLException | ParseException e) {
+
+			// print after successful database commit
+			out.println(result.getJSONObject(0));
+		} catch (JSONException | SQLException | ParseException e) {
 			sendInterfaceError(response, e.getLocalizedMessage());
 			return;
 		}

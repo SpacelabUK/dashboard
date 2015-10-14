@@ -26,6 +26,12 @@ import uk.co.spacelab.backend.SplabHttpServlet;
 @WebServlet("/RemoveMetricFromIssue")
 public class RemoveMetricFromIssue extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String GET_METRIC_GROUP_ORDER_SQL =
+			"SELECT metric_order FROM metric_group_metrics WHERE metric_id = ? AND metric_group_id =?;";
+	private static final String DELETE_METRIC_FROM_GROUP_SQL =
+			"DELETE FROM metric_group_metrics WHERE metric_id = ? AND metric_group_id = ?;";
+	private static final String UPDATE_METRICS_WITH_HIGHER_ORDER_SQL =
+			"UPDATE metric_group_metrics SET metric_order=(metric_order-1) WHERE metric_order>?";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -62,18 +68,13 @@ public class RemoveMetricFromIssue extends SplabHttpServlet {
 		}
 		Integer id = null;
 		String group = null;
-		try {
+		try (Connection psql = Database.getConnection()) {
 			id = paramsJSON.getInt("metric_id");
 			group = paramsJSON.getString("metric_group");
-		} catch (JSONException e) {
-			sendInterfaceError(response, e.getLocalizedMessage());
-			return;
-		}
-		try (Connection psql = Database.getConnection()) {
 			psql.setAutoCommit(false);
-			String sql =
-					"SELECT metric_order FROM metric_group_metrics WHERE metric_id = ? AND metric_group_id =?;";
-			JSONArray result = Database.customQuery(psql, sql, id, group);
+			JSONArray result =
+					Database.customQuery(psql, GET_METRIC_GROUP_ORDER_SQL, id,
+							group);
 
 			Integer order = 0;
 			if (result.length() == 0) {
@@ -81,16 +82,13 @@ public class RemoveMetricFromIssue extends SplabHttpServlet {
 				return;
 			}
 			order = result.getJSONObject(0).getInt("metric_order");
-			sql =
-					"DELETE FROM metric_group_metrics WHERE metric_id = ? AND metric_group_id = ?;";
-			Database.customQueryNoResult(psql, sql, id, group);
-
-			sql =
-					"UPDATE metric_group_metrics SET metric_order=(metric_order-1) WHERE metric_order=?";
-			Database.customQueryNoResult(psql, sql, order);
+			Database.customQueryNoResult(psql, DELETE_METRIC_FROM_GROUP_SQL, id,
+					group);
+			Database.customQueryNoResult(psql,
+					UPDATE_METRICS_WITH_HIGHER_ORDER_SQL, order);
 			psql.commit();
 			psql.close();
-		} catch (SQLException | ParseException e) {
+		} catch (JSONException | SQLException | ParseException e) {
 			sendInterfaceError(response, e.getLocalizedMessage());
 			return;
 		}

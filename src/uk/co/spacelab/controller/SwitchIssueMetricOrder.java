@@ -25,6 +25,14 @@ import uk.co.spacelab.backend.SplabHttpServlet;
 @WebServlet("/SwitchIssueMetricOrder")
 public class SwitchIssueMetricOrder extends SplabHttpServlet {
 	private static final long serialVersionUID = 1L;
+	private static final String GET_METRIC_GROUP_SQL =
+			"SELECT * FROM metric_group_metrics WHERE metric_group_id=?";
+	private static final String GET_ROWS_IN_GROUP_WITH_ORDER_SQL =
+			"SELECT * FROM metric_group_metrics WHERE metric_group_id=? "
+					+ "AND metric_order=?";
+	private static final String SWITCH_TO_FROM_ORDER_IN_METRIC_GROUP_SQL =
+			"UPDATE metric_group_metrics SET metric_order=? "
+					+ "WHERE metric_order=? AND metric_group_id=?";
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -69,62 +77,48 @@ public class SwitchIssueMetricOrder extends SplabHttpServlet {
 		Integer order1 = null;
 		Integer order2 = null;
 		String metricGroup = null;
-		try {
+		try (Connection psql = Database.getConnection()) {
 			order1 = paramsJSON.getInt("order_1");
 			order2 = paramsJSON.getInt("order_2");
 			metricGroup = paramsJSON.getString("metric_group");
-		} catch (JSONException e) {
-			sendInterfaceError(response, e.getLocalizedMessage());
-			return;
-		}
-		try (Connection psql = Database.getConnection()) {
 			psql.setAutoCommit(false);
 			JSONArray result =
-					Database.customQuery(psql,
-							"SELECT * FROM metric_group_metrics "
-									+ "WHERE metric_group_id=?",
+					Database.customQuery(psql, GET_METRIC_GROUP_SQL,
 							metricGroup);
 			if (order1 < 0 || order2 < 0 || order1 > result.length()
 					|| order2 > result.length()) {
 				sendInterfaceError(response, "Order out of range");
 				return;
 			}
-
+			// check if metric with these orders exist
 			result =
-					Database.customQuery(psql,
-							"SELECT * FROM metric_group_metrics "
-									+ "WHERE metric_group_id=? "
-									+ "AND metric_order=?",
+					Database.customQuery(psql, GET_ROWS_IN_GROUP_WITH_ORDER_SQL,
 							metricGroup, order2);
 			if (result.length() == 0) {
 				sendInterfaceError(response, "No such switch!");
 				return;
 			}
 			result =
-					Database.customQuery(psql,
-							"SELECT * FROM metric_group_metrics "
-									+ "WHERE metric_group_id=? "
-									+ "AND metric_order=?",
+					Database.customQuery(psql, GET_ROWS_IN_GROUP_WITH_ORDER_SQL,
 							metricGroup, order1);
 			if (result.length() == 0) {
 				sendInterfaceError(response, "No such switch!");
 				return;
 			}
+			// switch the order of the second one first to -1 so that we can
+			// find it later. Otherwise the second query will return 2 rows
 			Database.customQueryNoResult(psql,
-					"UPDATE metric_group_metrics SET metric_order=? "
-							+ "WHERE metric_group_id=? AND metric_order=?",
-					-1, metricGroup, order2);
+					SWITCH_TO_FROM_ORDER_IN_METRIC_GROUP_SQL, -1, order2,
+					metricGroup);
 			Database.customQueryNoResult(psql,
-					"UPDATE metric_group_metrics SET metric_order=? "
-							+ "WHERE metric_group_id=? AND metric_order=?",
-					order2, metricGroup, order1);
+					SWITCH_TO_FROM_ORDER_IN_METRIC_GROUP_SQL, order2, order1,
+					metricGroup);
 			Database.customQueryNoResult(psql,
-					"UPDATE metric_group_metrics SET metric_order=? "
-							+ "WHERE metric_group_id=? AND metric_order=?",
-					order1, metricGroup, -1);
+					SWITCH_TO_FROM_ORDER_IN_METRIC_GROUP_SQL, order1, -1,
+					metricGroup);
 			psql.commit();
 			psql.close();
-		} catch (SQLException | ParseException e) {
+		} catch (JSONException | SQLException | ParseException e) {
 			sendInterfaceError(response, "Error! " + e.getLocalizedMessage());
 			return;
 		}
