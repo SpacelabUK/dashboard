@@ -3,11 +3,11 @@
 	angular.module('app.projects').controller('Projects', projectsController);
 	projectsController.$inject = [
 
-			'$scope', '$modal', 'dataService',
+			'$modal', 'dataService', 'importFactory'
 	// 'RoundModelFactory', 'fetching'
 	];
 
-	function projectsController($scope, $modal, dataService, importFactory) {
+	function projectsController($modal, dataService, importFactory) {
 		var vm = this;
 		fetchInitialData();
 		function fetchInitialData() {
@@ -26,25 +26,25 @@
 				controllerAs : 'vm'
 			}).result.then(function(response) {
 				console.log(response);
-				$scope.search = response.name;
+				vm.search = response.name;
 				fetchInitialData();
 			});
 		};
 		vm.addStudy = function(project) {
 			console.log(project);
 			projectFactory.addStudy(project);
-			$scope.fetchInitialData();
+			vm.fetchInitialData();
 		};
 
 		// =========
 
-		$scope.addObservation = function(study) {
+		vm.addObservation = function(study) {
 			projectFactory.addStudyPart(study, 'observation');
 		};
 		// $scope.fetchingObservationRounds = function(id) {
 		// return fetching.is('obs', id);
 		// }
-		$scope.setRoundModel = function(observation) {
+		vm.setRoundModel = function(observation) {
 			fetching.set('obs', observation.id);
 			RoundModelFactory.getRoundModel(observation).then(function(response) {
 				var data = response.data[0];
@@ -80,19 +80,19 @@
 				console.log(error);
 			});
 		};
-		$scope.addPlans = function(study) {
-			importFactory.addPlan(study);
+		vm.addPlans = function(study) {
+			importFactory.addPlans(study);
 		};
-		$scope.addObservationData = function(study) {
+		vm.addObservationData = function(study) {
 			importFactory.addObservation(study);
 		};
-		$scope.addDepthmap = function(study) {
-			importFactory.addObservation(study);
+		vm.addDepthmap = function(study) {
+			importFactory.addDepthmap(study);
 		};
-		$scope.addStaffSurvey = function(study) {
+		vm.addStaffSurvey = function(study) {
 			importFactory.addStaffSurvey(study);
 		};
-		$scope.addStakeholders = function(study) {
+		vm.addStakeholders = function(study) {
 			importFactory.addStakeholders(study);
 
 		};
@@ -494,7 +494,6 @@ angular.module('app.projects').controller(
 // });
 // }
 // ]);
-
 
 app.directive('autoFocus', [
 		'$timeout', function($timeout) {

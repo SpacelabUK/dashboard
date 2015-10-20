@@ -13,7 +13,7 @@ angular.module('app.core').factory(
 							waitData.progress = progress;
 							waitModalInstance = $modal.open({
 								animation : 0,
-								templateUrl : 'services/waitModal.html',
+								templateUrl : 'app/services/waitModal.html',
 								backdrop : 'static',
 								keyboard : 'false',
 								controller : 'waitModalCtrl',
@@ -36,7 +36,7 @@ angular.module('app.core').factory(
 						},
 						openConfirmModal : function(message, okText, cancelText) {
 							var promise = $modal.open({
-								templateUrl : 'util/confirmModal.html',
+								templateUrl : 'app/services/confirmModal.html',
 								controller : 'confirmDialog',
 								resolve : {
 									message : function() {
@@ -54,7 +54,7 @@ angular.module('app.core').factory(
 						},
 						openErrorModal : function(message) {
 							var promise = $modal.open({
-								templateUrl : 'util/errorModal.html',
+								templateUrl : 'app/services/errorModal.html',
 								controller : 'errorDialog',
 								resolve : {
 									message : function() {
@@ -67,7 +67,7 @@ angular.module('app.core').factory(
 						openSelectFileModal : function(title, description, accept,
 								uploader, okAction, fileValid) {
 							var promise = $modal.open({
-								templateUrl : 'util/selectFileModal.html',
+								templateUrl : 'app/services/selectFileModal.html',
 								controller : 'selectFileDialog',
 								resolve : {
 									title : function() {
@@ -97,88 +97,95 @@ angular.module('app.core').factory(
 				}
 		]);
 
-app.controller('selectFileDialog', [
-		'$scope',
-		'$modalInstance',
-		'FileUploader',
-		'title',
-		'description',
-		'accept',
-		'uploader',
-		'okAction',
-		'fileValid',
-		function($scope, $modalInstance, FileUploader, title, description, accept,
-				uploader, okAction, fileValid) {
-			"use strict";
-			$scope.title = title;
-			$scope.description = description;
-			$scope.accept = accept;
-			if (okAction)
-				$scope.okAction = okAction;
-			else
-				$scope.okAction = "Continue";
-			if (fileValid)
-				$scope.fileValid = fileValid;
-			else
-				$scope.fileValid = function() {
-					return true;
-				};
-			if (uploader)
-				$scope.uploader = uploader;
-			else
-				$scope.uploader = new FileUploader({});
-			$scope.attach = function() {
-				$modalInstance.close($scope.uploader);
-			};
-			$scope.cancel = function() {
-				$modalInstance.dismiss('cancel');
-			};
-		}
-]);
-
-app.controller('waitModalCtrl', [
-		'$scope', '$modalInstance', 'waitData',
-		function($scope, $modalInstance, waitData) {
-			$scope.waitData = waitData;
-		}
-]);
-
-app.factory('MatcherFactory', [
-		'$modal',
-		function($modal) {
-			// in a next stage this controller should be merged with the general above
-			var pub = {
-				openMatcherModal : function(type, types, fromElements, toElements,
-						options) {
-					if (!options)
-						options = {};
-					var promise = $modal.open({
-						templateUrl : 'util/matcherModal.html',
-						controller : 'matcherModalInstance',
-						resolve : {
-							type : function() {
-								return type;
-							},
-							types : function() {
-								return types;
-							},
-							fromElements : function() {
-								return fromElements;
-							},
-							toElements : function() {
-								return toElements;
-							},
-							options : function() {
-								return options;
-							}
-						}
-					});
-					return promise;
+angular.module('app.core').controller(
+		'selectFileDialog',
+		[
+				'$scope',
+				'$modalInstance',
+				'FileUploader',
+				'title',
+				'description',
+				'accept',
+				'uploader',
+				'okAction',
+				'fileValid',
+				function($scope, $modalInstance, FileUploader, title, description,
+						accept, uploader, okAction, fileValid) {
+					"use strict";
+					$scope.title = title;
+					$scope.description = description;
+					$scope.accept = accept;
+					if (okAction)
+						$scope.okAction = okAction;
+					else
+						$scope.okAction = "Continue";
+					if (fileValid)
+						$scope.fileValid = fileValid;
+					else
+						$scope.fileValid = function() {
+							return true;
+						};
+					if (uploader)
+						$scope.uploader = uploader;
+					else
+						$scope.uploader = new FileUploader({});
+					$scope.attach = function() {
+						$modalInstance.close($scope.uploader);
+					};
+					$scope.cancel = function() {
+						$modalInstance.dismiss('cancel');
+					};
 				}
-			};
-			return pub;
-		}
-]);
+		]);
+
+angular.module('app.core').controller(
+		'waitModalCtrl',
+		[
+				'$scope', '$modalInstance', 'waitData',
+				function($scope, $modalInstance, waitData) {
+					$scope.waitData = waitData;
+				}
+		]);
+
+angular.module('app.core').factory(
+		'MatcherFactory',
+		[
+				'$modal',
+				function($modal) {
+					// in a next stage this controller should be merged with the general
+					// above
+					var pub = {
+						openMatcherModal : function(type, types, fromElements, toElements,
+								options) {
+							if (!options)
+								options = {};
+							var promise = $modal.open({
+								templateUrl : 'app/services/matcherModal.html',
+								controller : 'matcherModalInstance',
+								resolve : {
+									type : function() {
+										return type;
+									},
+									types : function() {
+										return types;
+									},
+									fromElements : function() {
+										return fromElements;
+									},
+									toElements : function() {
+										return toElements;
+									},
+									options : function() {
+										return options;
+									}
+								}
+							});
+							return promise;
+						}
+					};
+					return pub;
+				}
+		]);
 /**
  * @param options.prematch:
  *          Will try to match FROM and TO elements. If set to 'ignorecase' it
@@ -190,7 +197,8 @@ app.factory('MatcherFactory', [
  * @param options.toPrematch:
  *          see options.prematch
  */
-app
+angular
+		.module('app.core')
 		.controller(
 				'matcherModalInstance',
 				[
@@ -388,26 +396,30 @@ app
 							};
 						}
 				]);
-app.controller('confirmDialog', [
-		'$scope', '$modalInstance', 'message', 'okText', 'cancelText',
-		function($scope, $modalInstance, message, okText, cancelText) {
-			$scope.message = message;
-			$scope.okText = okText;
-			$scope.cancelText = cancelText;
-			$scope.cancel = function() {
-				$modalInstance.dismiss('cancel');
-			};
-			$scope.ok = function() {
-				$modalInstance.close('ok');
-			};
-		}
-]);
-app.controller('errorDialog', [
-		'$scope', '$modalInstance', 'message',
-		function($scope, $modalInstance, message) {
-			$scope.message = message;
-			$scope.ok = function() {
-				$modalInstance.dismiss();
-			};
-		}
-]);
+angular.module('app.core').controller(
+		'confirmDialog',
+		[
+				'$scope', '$modalInstance', 'message', 'okText', 'cancelText',
+				function($scope, $modalInstance, message, okText, cancelText) {
+					$scope.message = message;
+					$scope.okText = okText;
+					$scope.cancelText = cancelText;
+					$scope.cancel = function() {
+						$modalInstance.dismiss('cancel');
+					};
+					$scope.ok = function() {
+						$modalInstance.close('ok');
+					};
+				}
+		]);
+angular.module('app.core').controller(
+		'errorDialog',
+		[
+				'$scope', '$modalInstance', 'message',
+				function($scope, $modalInstance, message) {
+					$scope.message = message;
+					$scope.ok = function() {
+						$modalInstance.dismiss();
+					};
+				}
+		]);

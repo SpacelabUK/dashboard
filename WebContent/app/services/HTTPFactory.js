@@ -1,4 +1,4 @@
-app.factory('HTTPFactory', [
+angular.module('app.core').factory('HTTPFactory', [
 		'$http', '$q', function($http, $q) {
 			var backend = "/Database/";
 			var pub = {

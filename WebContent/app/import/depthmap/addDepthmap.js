@@ -1,5 +1,6 @@
 var propIdentifier = 'PROPERTIES';
-app
+angular
+		.module('app.core')
 		.controller(
 				'addDepthmapInstance',
 				[
@@ -12,10 +13,10 @@ app
 						'FileUploader',
 						'PlanFactory',
 						'HTTPFactory',
-						'ModalFactory',
+						'modalFactory',
 						'MatcherFactory',
 						function($scope, $modalInstance, $http, $modal, $q, study,
-								FileUploader, PlanFactory, HTTPFactory, ModalFactory,
+								FileUploader, PlanFactory, HTTPFactory, modalFactory,
 								MatcherFactory) {
 							"use strict";
 							$scope.study = study;
@@ -115,7 +116,7 @@ app
 							};
 							$scope.attach = function(study) {
 								var csvData, dxfData;
-								ModalFactory.openWaitModal('Getting Validation data...');
+								modalFactory.openWaitModal('Getting Validation data...');
 								var promises = [];
 
 								var csvflow = new Flow({
@@ -165,7 +166,7 @@ app
 
 											var newData = "SPACES_FILE";
 											var dbData = "SPACES_DATABASE";
-											ModalFactory.closeWaitModal();
+											modalFactory.closeWaitModal();
 											MatcherFactory.openMatcherModal("space", "spaces",
 													dxfData[newData], dxfData[dbData]).result.then(
 													function(spaces_message) {
@@ -179,25 +180,25 @@ app
 																spaces : spaces_message,
 															}
 														};
-														ModalFactory.openWaitModal('Storing...');
+														modalFactory.openWaitModal('Storing...');
 														HTTPFactory.backendPost("StoreDepthmap", data)
 																.then(function(response) {
-																	ModalFactory.modifyWaitMessage("Success!");
+																	modalFactory.modifyWaitMessage("Success!");
 																	setTimeout(function() {
-																		ModalFactory.closeWaitModal();
+																		modalFactory.closeWaitModal();
 																		$modalInstance.close();
 																	}, 2000);
 																}, function(error) {
-																	ModalFactory.closeWaitModal();
-																	ModalFactory.openErrorModal(error.data);
+																	modalFactory.closeWaitModal();
+																	modalFactory.openErrorModal(error.data);
 																	console.log(error);
 																});
 													}, function(error) {
 													});
 
 										}, function(error) {
-											ModalFactory.closeWaitModal();
-											ModalFactory.openErrorModal(error);
+											modalFactory.closeWaitModal();
+											modalFactory.openErrorModal(error);
 											console.log(error);
 										});
 							};

@@ -1,4 +1,5 @@
-app
+angular
+		.module('app.core')
 		.controller(
 				'addStaffSurveyInstance',
 				[
@@ -12,11 +13,11 @@ app
 						'PlanFactory',
 						'HTTPFactory',
 						'MatcherFactory',
-						'ModalFactory',
-						'TextFactory',
+						'modalFactory',
+						'textParserService',
 						function($scope, $modalInstance, $http, $modal, $q, study,
 								FileUploader, PlanFactory, HTTPFactory, MatcherFactory,
-								ModalFactory, TextFactory) {
+								modalFactory, textParserService) {
 							"use strict";
 							$scope.study = study;
 							$scope.predicate = 'building';
@@ -47,7 +48,7 @@ app
 										alert("oi! that's not a VNA!");
 										return;
 									}
-									var vna = TextFactory.getVNAData(e.target.result);
+									var vna = textParserService.getVNAData(e.target.result);
 									processVNAData(vna, false);
 
 								};
@@ -237,7 +238,7 @@ app
 										reader.readAsText(theFile);
 										reader.onload = function(e) {
 											var vna = e.target.result;
-											var newFileData = processVNAData(TextFactory
+											var newFileData = processVNAData(textParserService
 													.getVNAData(vna), true);
 											deferred.resolve(newFileData);
 										};
@@ -247,7 +248,7 @@ app
 								return deferred.promise;
 							};
 							$scope.attach = function(study) {
-								ModalFactory.openWaitModal('Getting Validation data...');
+								modalFactory.openWaitModal('Getting Validation data...');
 								vnauploader.queue[0].formData.push({
 									studyid : study.id
 								});
@@ -272,13 +273,13 @@ app
 							}
 							vnauploader.onErrorItem = function(item, response, status,
 									headers) {
-								ModalFactory.closeWaitModal();
+								modalFactory.closeWaitModal();
 								// TODO pop error dialog
 							};
 							vnauploader.onCompleteItem = function(item, response, status,
 									headers) {
 								console.log(response);
-								ModalFactory.closeWaitModal();
+								modalFactory.closeWaitModal();
 								var newData = "QUESTION_LIST";
 								var dbData = "DATABASE_QUESTIONS";
 								if (!(newData in response) || !(dbData in response))
@@ -309,7 +310,7 @@ app
 												// ]
 												// }
 												).result.then(function(floors_message) {
-													ModalFactory.openWaitModal("Storing to database...");
+													modalFactory.openWaitModal("Storing to database...");
 													var data = {
 														studyid : study.id,
 														fileid : response.fileid,
@@ -335,7 +336,7 @@ app
 																		function(response) {
 																			if (response.status === 202 &&
 																					depth < breakPoint && response.data) {
-																				ModalFactory.modifyWaitMessage(
+																				modalFactory.modifyWaitMessage(
 																						response.data.text,
 																						response.data.progress);
 																				sleep(updateInterval);
@@ -350,7 +351,7 @@ app
 													}, updateInterval * 0.5);
 													promise.then(function(response) {
 														console.log(response);
-														ModalFactory.closeWaitModal();
+														modalFactory.closeWaitModal();
 														var modalInstance = $modal.open({
 															templateUrl : //
 															'studies/afterStaffSurveyUpload.html',
