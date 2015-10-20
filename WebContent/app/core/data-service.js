@@ -26,7 +26,11 @@
 			getSpaceTeamPolygons : getSpaceTeamPolygons,
 			getDepthmapMeasureRaster : getDepthmapMeasureRaster,
 			getSnapshotData : getSnapshotData,
-			getPlanImageURL : getPlanImageURL
+			getPlanImageURL : getPlanImageURL,
+			convertSVGtoEMF : convertSVGtoEMF,
+			storeIssue : storeIssue,
+			storeFunction : storeFunction,
+			resolveProc : resolveProc
 		};
 		return service;
 		function getDevices() {
@@ -53,8 +57,21 @@
 		function getMetricsProperties(properties) {
 			return $http.get(backend + 'Metrics?filter=' + properties.join(', '));
 		}
-		function storeMetric(project) {
-			return $http.post(backend + 'StoreMetric', project);
+		function storeMetric(metric) {
+			return $http.post(backend + 'StoreMetric', metric);
+		}
+		function storeIssue(issue) {
+			return $http.post(backend + "StoreIssue", {
+				issue : issue
+			});
+		}
+		function resolveProc(proc, paramString) {
+			return $http.get(backend + 'Occupancy?t=' + proc + paramString);
+		}
+		function storeFunction(func) {
+			return $http.post(backend + "StoreFunction", {
+				func : func
+			});
 		}
 		function removeMetricFromIssue(issueID, metricID) {
 			var data = {
@@ -109,6 +126,18 @@
 		}
 		function getPlanImageURL(planImg) {
 			return backend + "data/plans/" + planImg;
+		}
+		function convertSVGtoEMF(svgData) {
+			return $http.post(backend + "ConvertSVGToEMF", {
+				data : svgData
+			}, {
+				headers : {
+					'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8'
+				},
+				transformRequest : function(data) {
+					return $.param(data);
+				}
+			});
 		}
 	}
 })();

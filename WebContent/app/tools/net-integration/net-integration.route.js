@@ -14,7 +14,7 @@
 	function getStates() {
 		return [
 			{
-				state : 'tools/netIntegration',
+				state : 'tools-netIntegration',
 				config : {
 					url : '/tools/netIntegration',
 					templateUrl : 'app/tools/net-integration/net-integration.html',

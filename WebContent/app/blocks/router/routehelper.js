@@ -9,6 +9,9 @@
 	];
 	function routerHelperProvider($locationProvider, $stateProvider,
 			$urlRouterProvider) {
+		// by default redirect to /projects
+		$urlRouterProvider.when('/', '/projects');
+
 		/* jshint validthis:true */
 		var config = {
 			docTitle : undefined,

@@ -10,7 +10,6 @@
 				polydata : '='
 			},
 			link : function(scope, element, attrs) {
-				console.log(scope);
 				var m = [
 						80, 80, 80, 80
 				];

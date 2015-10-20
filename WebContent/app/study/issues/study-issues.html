@@ -3,18 +3,18 @@
 
   <div class="row">
     <div class="col-lg-12 text-center">
-      <h3>{{pageTitle}}</h3>
-      <span ng-repeat="wm in issueNames"> <a
-          href="#/studies/issue/{{wm.id}}/{{study.id}}"
+      <h3>{{vm.pageTitle}}</h3>
+      <span ng-repeat="wm in vm.issueNames"> <a
+          href="#/study/issues/{{vm.study.id}}/{{wm.id}}"
           tooltip="{{wm.title}}">{{wm.id}}</a> &nbsp;
-      </span> <span> <a href="#/studies/issue/all/{{study.id}}">all</a>
+      </span> <span> <a href="#/study/issues/{{vm.study.id}}/all">all</a>
         &nbsp;
       </span>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-12">
-      <div class="widget" ng-repeat="issue in wantedMetrics">
+      <div class="widget" ng-repeat="issue in vm.wantedMetrics">
         <div class="widget-title">{{issue.id}} : {{issue.title}}</div>
         <div class="widget-body no-padding">
           <div class="table-responsive">
@@ -32,12 +32,12 @@
               <tbody ng-repeat="metric in issue.metrics">
                 <tr>
                   <td colspan="2"
-                    ng-mouseover="hoverIn(study[metric.alias])"
-                    ng-mouseleave="hoverOut(study[metric.alias])"><span
-                    tooltip="{{study[metric.alias].description}}">{{study[metric.alias].title}}
+                    ng-mouseover="vm.hoverIn(vm.study[metric.alias])"
+                    ng-mouseleave="vm.hoverOut(vm.study[metric.alias])"><span
+                    tooltip="{{vm.study[metric.alias].description}}">{{vm.study[metric.alias].title}}
                       <span class="dropdown"
-                      ng-show="isHovered(study[metric.alias])"> <a
-                          href="#">
+                      ng-show="vm.isHovered(vm.study[metric.alias])">
+                        <a href="#">
                           <i class="fa fa-cog dropdown-toggle"
                             data-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="true" id="dropdownMenu1">
@@ -47,101 +47,101 @@
                           aria-labelledby="dropdownMenu1">
                           <li>
                             <a href=""
-                              ng-click="toggle_no_of_decimals(study[metric.alias])">Show
+                              ng-click="vm.toggle_no_of_decimals(vm.study[metric.alias])">Show
                               all decimals</a>
                           </li>
                         </ul>
                     </span>
                   </span></td>
                   <td><any
-                      ng-switch="study[metric.alias].solution.type">
+                      ng-switch="vm.study[metric.alias].solution.type">
                     <!--  --> <any ng-switch-when="table"> <any
-                      ng-switch="study[metric.alias].view"> <any
+                      ng-switch="vm.study[metric.alias].view"> <any
                       ng-switch-when="chart"> <doughnut-chart-er
-                      id="{{toAliasString(metric.alias)}}"
-                      data="study[metric.alias].solution.content"
+                      id="{{vm.toAliasString(metric.alias)}}"
+                      data="vm.study[metric.alias].solution.content"
                       show-text="true" show-legend="true"
-                      title="study[metric.alias].title"
-                      no-of-decimals="study[metric.alias].no_of_decimals"
-                      units="study[metric.alias].units ? study[metric.alias].units :
-                    study[metric.alias].solution.units"></doughnut-chart-er>
+                      title="vm.study[metric.alias].title"
+                      no-of-decimals="vm.study[metric.alias].no_of_decimals"
+                      units="vm.study[metric.alias].units ? vm.study[metric.alias].units :
+                    vm.study[metric.alias].solution.units"></doughnut-chart-er>
                     <div style="width: 100%">
 
                       <div class="btn btn-default pull-right"
-                        ng-click="study[metric.alias].view = 'table'">Table</div>
+                        ng-click="vm.study[metric.alias].view = 'table'">Table</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadSVG(metric.alias)">Download
+                        ng-click="vm.downloadSVG(metric.alias)">Download
                         SVG</div>
                       <div class="btn btn-default pull-right"
-                        ng-click="downloadEMF(metric.alias)">Download
+                        ng-click="vm.downloadEMF(metric.alias)">Download
                         EMF</div>
                     </div>
                     </any> <any ng-switch-default>
-                    <div id="{{toAliasString(metric.alias)}}">
+                    <div id="{{vm.toAliasString(metric.alias)}}">
                       <table class="table-internal">
                         <thead>
                           <tr>
-                            <th>{{study[metric.alias].solution.content.keyType}}</th>
+                            <th>{{vm.study[metric.alias].solution.content.keyType}}</th>
                             <th
-                              ng-repeat="property in study[metric.alias].solution.content.properties | orderBy:getSorterOrNameOrAlias">
-                              {{getNameOrAlias(property)}}</th>
+                              ng-repeat="property in vm.study[metric.alias].solution.content.properties | orderBy:vm.getSorterOrNameOrAlias">
+                              {{vm.getNameOrAlias(property)}}</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr
-                            ng-repeat="key in study[metric.alias].solution.content.keys | orderBy:getSorterOrNameOrAlias"
+                            ng-repeat="key in vm.study[metric.alias].solution.content.keys | orderBy:vm.getSorterOrNameOrAlias"
                             ng-class="{'even':$even,'odd':$odd}">
-                            <td>{{getNameOrAlias(key)}}</td>
+                            <td>{{vm.getNameOrAlias(key)}}</td>
                             <td
-                              ng-repeat="property in study[metric.alias].solution.content.properties | orderBy:getSorterOrNameOrAlias">
-                              {{getCellContent(study[metric.alias],key,property)}}</td>
+                              ng-repeat="property in vm.study[metric.alias].solution.content.properties | orderBy:vm.getSorterOrNameOrAlias">
+                              {{vm.getCellContent(vm.study[metric.alias],key,property)}}</td>
                           </tr>
                         </tbody>
                       </table>
                       <div style="width: 100%">
                         <div class="btn btn-default pull-right"
-                          ng-click="study[metric.alias].view = 'chart'">Chart</div>
+                          ng-click="vm.study[metric.alias].view = 'chart'">Chart</div>
                         <div class="btn btn-default pull-right"
-                          ng-click="copyToClipboard(study[metric.alias],metric)">Copy
+                          ng-click="vm.copyToClipboard(vm.study[metric.alias],metric)">Copy
                           to clipboard</div>
                       </div>
                     </div>
                     </any></any> </any> <any ng-switch-when="list"> <!-- <span
-                      ng-hide="study[metric.alias].solution.content">fetching...</span> -->
+                      ng-hide="vm.study[metric.alias].solution.content">fetching...</span> -->
                     <!-- <div id="{{toAliasString(metric.alias)}}"
-                      ng-show="study[metric.alias].solution.content"> -->
-                    <div id="{{toAliasString(metric.alias)}}">
+                      ng-show="vm.study[metric.alias].solution.content"> -->
+                    <div id="{{vm.toAliasString(metric.alias)}}">
                       <table class="table-internal">
                         <thead>
                           <tr>
-                            <th>{{study[metric.alias].title}}</th>
+                            <th>{{vm.study[metric.alias].title}}</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr
-                            ng-repeat="element in study[metric.alias].solution.content | orderBy:getNameOrAlias"
+                            ng-repeat="element in vm.study[metric.alias].solution.content | orderBy:vm.getNameOrAlias"
                             ng-class="{'even':$even,'odd':$odd}">
-                            <td>{{getNameOrAlias(element)}}</td>
+                            <td>{{vm.getNameOrAlias(element)}}</td>
                           </tr>
 
                         </tbody>
                       </table>
                       <div style="width: 100%">
                         <div class="btn btn-default pull-right"
-                          ng-click="copyToClipboard(study[metric.alias],metric)">Copy
+                          ng-click="vm.copyToClipboard(vm.study[metric.alias],metric)">Copy
                           to clipboard</div>
                       </div>
                     </div>
                     </any> <any ng-switch-default> <span
-                      ng-class="study[metric.alias].solution.type == 'error' ? 'text-danger':''"
-                      tooltip="{{study[metric.alias].name}}">{{getContent(study[metric.alias])}}</span></any>
+                      ng-class="vm.study[metric.alias].solution.type == 'error' ? 'text-danger':''"
+                      tooltip="{{vm.study[metric.alias].name}}">{{vm.getContent(vm.study[metric.alias])}}</span></any>
                     </any></td>
-                  <td>{{study[metric.alias].units ?
-                    study[metric.alias].units :
-                    study[metric.alias].solution.units}}</td>
-                  <td>{{study[metric.alias].other ?
-                    study[metric.alias].other :
-                    study[metric.alias].solution.other}}</td>
+                  <td>{{vm.study[metric.alias].units ?
+                    vm.study[metric.alias].units :
+                    vm.study[metric.alias].solution.units}}</td>
+                  <td>{{vm.study[metric.alias].other ?
+                    vm.study[metric.alias].other :
+                    vm.study[metric.alias].solution.other}}</td>
                 </tr>
               </tbody>
             </table>

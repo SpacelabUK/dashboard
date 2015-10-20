@@ -1,6 +1,6 @@
 (function() {
 	"use strict";
-	angular.module('app.study').controller('ViewStudyController',
+	angular.module('app.study.view').controller('ViewStudyController',
 			ViewStudyController);
 	ViewStudyController.$inject = [
 			'$stateParams', 'dataService', '$modal'

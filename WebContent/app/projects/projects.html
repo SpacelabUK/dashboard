@@ -86,7 +86,7 @@
                 style="display: inline-block; padding: 6px 0"
                 id="simple-dropdown" dropdown-toggle>
                 {{study.created | date:'MMMM yyyy'}} <span
-                  ng-if="study.type && study.type ==='post'">({{study.type}})</span><span
+                  ng-if="study-type && study.type ==='post'">({{study.type}})</span><span
                   class="caret"></span>
               </a>
               <ul class="dropdown-menu"
@@ -98,8 +98,8 @@
                   <a href="">Open study</a>
                 </li>
                 <li>
-                  <a ui-sref="study({studyid:study.id})">View study
-                    details</a>
+                  <a ui-sref="study.view({studyid:study.id})">View
+                    study details</a>
                 </li>
               </ul>
             </span>
@@ -134,7 +134,7 @@
               </ul>
             </div>
             <a class="btn pull-right"
-              ui-sref="allstudyissues({studyid:study.id})">Issues</a>
+              ui-sref="study-issues({studyid:study.id})">Issues</a>
           </div>
           <!-- <a class="pull-right" style="clear: both;"
             tooltip="Add a new study to this project">

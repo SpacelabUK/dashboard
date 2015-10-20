@@ -14,10 +14,10 @@
 	function getStates() {
 		return [
 			{
-				state : 'study',
+				state : 'study-view',
 				config : {
-					url : '/study/:studyid',
-					templateUrl : 'app/study/study.html',
+					url : '/study/view/:studyid',
+					templateUrl : 'app/study/view/study-view.html',
 					controller : 'ViewStudyController',
 					controllerAs : 'vm',
 					title : 'Study',

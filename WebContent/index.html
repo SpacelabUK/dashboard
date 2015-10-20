@@ -77,13 +77,21 @@
 <script src="app/projects/projects.js" defer></script>
 <script src="app/projects/add-project.modal.js" defer></script>
 
-<!-- Projects -->
+<!-- Study -->
 <script src="app/study/study.module.js" defer></script>
-<script src="app/study/study.route.js" defer></script>
-<script src="app/study/study.js" defer></script>
 <script src="app/study/snapshot-view.modal.js" defer></script>
 <script src="app/study/polygon-view.modal.js" defer></script>
 <script src="app/study/depthmap-view.modal.js" defer></script>
+
+<!-- View Study -->
+<script src="app/study/view/study-view.module.js" defer></script>
+<script src="app/study/view/study-view.route.js" defer></script>
+<script src="app/study/view/study-view.js" defer></script>
+
+<!-- Study Issues -->
+<script src="app/study/issues/study-issues.module.js" defer></script>
+<script src="app/study/issues/study-issues.route.js" defer></script>
+<script src="app/study/issues/study-issues.js" defer></script>
 
 <!-- Devices -->
 <script src="app/devices/devices.module.js" defer></script>
@@ -188,7 +196,7 @@
           <span>Tools</span>
         </li>
         <li class="sidebar-list">
-          <a ui-sref="tools/netIntegration">
+          <a ui-sref="tools-netIntegration">
             Net-Integration<span class="menu-icon fa fa-external-link"></span>
           </a>
         </li>
