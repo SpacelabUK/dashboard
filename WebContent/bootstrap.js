@@ -113,31 +113,6 @@ angular.module('Dashboard').factory(
 							study.parts.push(parts[i]);
 						}
 					};
-					var pushNewStudy = function(project) {
-						if (!project.studies)
-							project.studies = [];
-						// for (var i = 0; i < project.studies.length; i++) {
-						// if (project.studies[i]['id'] >= largestID)
-						// largestID = project.studies[i]['id'] + 1;
-						// }
-
-						var data = {
-							'project_id' : project.id,
-							'status' : 'open'
-						};
-						var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
-								.getBackend() +
-								'Insert?t=study', data);
-
-						httpPromise.then(function(response) {
-							// console.log(response);
-							deferred.resolve(response);
-						}, function(error) {
-							console.error(error);
-						});
-
-						return deferred.promise;
-					};
 					var pushNewStudyPart = function(study, type) {
 						if (!study.parts)
 							study.parts = [];
@@ -157,107 +132,7 @@ angular.module('Dashboard').factory(
 						return deferred.promise;
 					};
 					var pub = {
-						fetchProjects : function() {
-							return fetch(HTTPFactory.getBackend() + 'GetAll?t=projects');
-						},
-						refreshProjects : function() {
-							fetch(HTTPFactory.getBackend() + 'GetAll?t=projects').then(
-									function(response) {
-										var result = response.data;
-										if (result) {
-											while (projects.length > 0)
-												projects.pop();
-											for (var i = 0; i < result.length; i++) {
-												projects.push(result[i]);
-												pub.refreshStudies(result[i]);
-											}
-										}
-									}, function(error) {
-										console.error(error);
-									});
-						},
-						refreshSpatialFunctions : function() {
-						},
-						refreshStudies : function(project) {
-							fetch(
-									HTTPFactory.getBackend() + 'GetAll?t=studies&projectid=' +
-											project.id).then(function(response) {
-								if (response.data)
-									updateStudies(project, response.data);
-							}, function(error) {
-								console.error(error);
-							});
-						},
-						refreshStudyParts : function(study) {
-							var promise = fetch(HTTPFactory.getBackend() +
-									'GetAll?t=study_parts&studyid=' + study.id);
-							promise.then(function(response) {
-								if (response.data)
-									updateStudyParts(study, response.data);
-							}, function(error) {
-								console.error(error);
-							});
-							return promise;
-						},
-						getProjects : function() {
-							return projects;
-						},
-						getOpenStudies : function() {
-							return openStudies;
-						},
-						addProject : function(id, name) {
-							var data = {
-								'id' : id,
-								'name' : name
-							};
-							var deferred = $q.defer(), httpPromise = $http.post(HTTPFactory
-									.getBackend() +
-									'Insert?t=project', data);
-
-							httpPromise.then(function(response) {
-								deferred.resolve(response);
-							}, function(error) {
-								console.error(error);
-							});
-
-							return deferred.promise;
-						},
 						
-						addStudy : function(project) {
-							fetch(
-									HTTPFactory.getBackend() + 'GetAll?t=studies&projectid=' +
-											project.id).then(function(response) {
-								if (response.data) {
-									// updateStudies(project, response.data);
-									pushNewStudy(project).then(function(response) {
-										console.log(response);
-										pub.refreshStudies(project);
-									}, function(error) {
-										console.error(error);
-									});
-								}
-							}, function(error) {
-								console.error(error);
-							});
-						},
-						addStudyPart : function(study, type) {
-							console.log(type);
-							fetch(
-									HTTPFactory.getBackend() + 'GetAll?t=study_parts&studyid=' +
-											study.id).then(function(response) {
-								if (response) {
-									console.log(study);
-									// updateStudyParts(study, response.data);
-									pushNewStudyPart(study, type).then(function(response) {
-										pub.refreshStudyParts(study);
-									}, function(error) {
-										console.error(error);
-									});
-								}
-							}, function(error) {
-								console.error(error);
-							});
-						}
 					};
 					return pub;
 				}

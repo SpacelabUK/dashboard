@@ -31,9 +31,9 @@
 			});
 		};
 		vm.addStudy = function(project) {
-			console.log(project);
-			projectFactory.addStudy(project);
-			vm.fetchInitialData();
+			dataService.createNewOpenStudy(project.id).then(function() {
+				fetchInitialData();
+			});
 		};
 
 		// =========

@@ -30,7 +30,8 @@
 			convertSVGtoEMF : convertSVGtoEMF,
 			storeIssue : storeIssue,
 			storeFunction : storeFunction,
-			resolveProc : resolveProc
+			resolveProc : resolveProc,
+			createNewOpenStudy : createNewOpenStudy
 		};
 		return service;
 		function getDevices() {
@@ -138,6 +139,13 @@
 					return $.param(data);
 				}
 			});
+		}
+		function createNewOpenStudy(projectID) {
+			var data = {
+				'project_id' : projectID,
+				'status' : 'open'
+			};
+			return $http.post(backend + 'Insert?t=study', data);
 		}
 	}
 })();
