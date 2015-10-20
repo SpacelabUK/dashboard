@@ -18,7 +18,7 @@
 		vm.getFuncs = function(space) {
 			dataService.getSpaceFunctionPolygons(space.id).then(function(response) {
 				var promise = $modal.open({
-					templateUrl : 'app/study/polygonViewModal.html',
+					templateUrl : 'app/study/polygon-view-modal.html',
 					controller : 'PolygonViewModal',
 					controllerAs : 'vm',
 					windowClass : 'planView',
@@ -42,7 +42,7 @@
 			dataService.getDepthmapMeasureRaster(space.id, measureid).then(
 					function(response) {
 						var promise = $modal.open({
-							templateUrl : 'app/study/depthmapViewModal.html',
+							templateUrl : 'app/study/depthmap-view-modal.html',
 							controller : 'DepthmapViewModal',
 							controllerAs : 'vm',
 							windowClass : 'planView',
@@ -67,11 +67,11 @@
 
 		};
 		vm.showSnapshot = function(space, snapshot) {
-			dataService.getSnaphsotData(snapshot.snapshot_id).then(
+			dataService.getSnapshotData(snapshot.snapshot_id).then(
 					function(response) {
 						var promise = $modal.open({
-							templateUrl : 'app/study/planViewModal.html',
-							controller : 'PlanViewModal',
+							templateUrl : 'app/study/snapshot-view-modal.html',
+							controller : 'SnapshotViewModal',
 							controllerAs : 'vm',
 							windowClass : 'planView',
 							resolve : {

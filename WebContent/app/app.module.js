@@ -8,7 +8,7 @@
 			 */
 			'app.core',
 			// 'app.widgets',
-
+			'app.diagrams',
 			/*
 			 * Feature areas
 			 */

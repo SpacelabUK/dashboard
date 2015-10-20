@@ -12,59 +12,35 @@
 <link rel="stylesheet" type="text/css" href="css/select.min.css">
 <link rel="stylesheet" type="text/css" href="css/dashboard.css">
 <link rel="stylesheet" type="text/css" href="css/white.css">
-<link rel="stylesheet" type="text/css" href="css/toastr.min.css" defer>
-</script>
-<!-- <link rel="stylesheet" type="text/css"
-  href="css/angular-gridster.min.css"> -->
-<style type="text/css">
-/* .btn-outline {
-	background-color: transparent;
-	color: inherit;
-} */
-</style>
-<!--
-  <link rel="stylesheet" type="text/css" href="css/themes/green.css">
-  <link rel="stylesheet" type="text/css" href="css/themes/red.css">
-  -->
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
 
-<!--<script type="text/javascript" src="lib/flow.min.js" defer></script>-->
-<script type="text/javascript" src="lib/d3.min.js" defer></script>
-<script type="text/javascript" src="lib/d3.layout.cloud.js" defer></script>
-<script type="text/javascript" src="lib/angular.min.js"></script>
-<script type="text/javascript" src="lib/angular-sanitize.min.js"></script>
-<script type="text/javascript" src="lib/angular-cookies.js" defer></script>
-<script type="text/javascript" src="lib/angular-ui-router.min.js" defer></script>
-<script type="text/javascript" src="lib/angular-file-upload.min.js"
-  defer></script>
-<script type="text/javascript" src="lib/angular-d3.js" defer></script>
-<script type="text/javascript" src="lib/ng-flow-standalone.min.js" defer></script>
-<script type="text/javascript" src="lib/ng-bootstrap-tpls.min.js" defer></script>
-<script type="text/javascript" src="lib/jquery.min.js" defer></script>
-<script type="text/javascript" src="lib/FileSaver.min.js" defer></script>
-<script type="text/javascript" src="lib/xlsx.full.min.js" defer></script>
-<script type="text/javascript" src="lib/toastr.min.js" defer></script>
-<!-- <script type="text/javascript" src="lib/angular-gridster.min.js" defer></script> -->
-<script type="text/javascript" src="lib/select.min.js" defer></script>
-<script type="text/javascript" src="bootstrap.js" defer></script>
-<script type="text/javascript" src="app/services/HTTPFactory.js" defer></script>
-<script type="text/javascript" src="app/services/PlanFactory.js" defer></script>
-<script type="text/javascript"
-  src="studies/observation/setRoundModel.js" defer></script>
-<script type="text/javascript" src="studies/observation/observation.js"
-  defer></script>
-<script type="text/javascript" src="studies/study.compare.js" defer></script>
-<script type="text/javascript" src="app/import/plans/addPlans.js" defer></script>
-<!-- <script type="text/javascript" src="import/addPolygons.js" defer></script> -->
-<script type="text/javascript" src="app/import/depthmap/addDepthmap.js"
-  defer></script>
-<script type="text/javascript"
-  src="app/import/staffsurvey/addStaffSurvey.js" defer></script>
-<script type="text/javascript"
-  src="app/import/stakeholders/addStakeholders.js" defer></script>
-<script type="text/javascript"
-  src="app/import/observation/addObservationData.js" defer></script>
-<!--  <script type="text/javascript" src="lib/d3-wordcloud-decorator.js" defer></script>
-<script type="text/javascript" src="lib/wordcloud-directive.js" defer></script> -->
+<script src="lib/d3.min.js" defer></script>
+<script src="lib/d3.layout.cloud.js" defer></script>
+<script src="lib/angular.min.js"></script>
+<script src="lib/angular-sanitize.min.js"></script>
+<script src="lib/angular-cookies.js" defer></script>
+<script src="lib/angular-ui-router.min.js" defer></script>
+<script src="lib/angular-file-upload.min.js" defer></script>
+<script src="lib/angular-d3.js" defer></script>
+<script src="lib/ng-flow-standalone.min.js" defer></script>
+<script src="lib/ng-bootstrap-tpls.min.js" defer></script>
+<script src="lib/jquery.min.js" defer></script>
+<script src="lib/FileSaver.min.js" defer></script>
+<script src="lib/xlsx.full.min.js" defer></script>
+<script src="lib/toastr.min.js" defer></script>
+<script src="lib/select.min.js" defer></script>
+<script src="bootstrap.js" defer></script>
+<script src="app/services/HTTPFactory.js" defer></script>
+<script src="app/services/PlanFactory.js" defer></script>
+<script src="studies/observation/setRoundModel.js" defer></script>
+<script src="studies/study.compare.js" defer></script>
+
+
+<script src="app/import/plans/addPlans.js" defer></script>
+<script src="app/import/depthmap/addDepthmap.js" defer></script>
+<script src="app/import/staffsurvey/addStaffSurvey.js" defer></script>
+<script src="app/import/stakeholders/addStakeholders.js" defer></script>
+<script src="app/import/observation/addObservationData.js" defer></script>
 
 
 <!-- Bootstrapping -->
@@ -86,7 +62,14 @@
 
 <script src="app/services/modal.factory.js" defer></script>
 <script src="app/services/textParser.service.js" defer></script>
-<script src="app/charts/charts.js" defer></script>
+
+<!-- Diagrams -->
+<script src="app/diagrams/diagrams.module.js" defer></script>
+<script src="app/diagrams/polygon-view.directive.js" defer></script>
+<script src="app/diagrams/snapshot-view.directive.js" defer></script>
+<script src="app/diagrams/depthmap-view.directive.js" defer></script>
+<script src="app/diagrams/net-integration.directive.js" defer></script>
+<script src="app/diagrams/charts.js" defer></script>
 
 <!-- Projects -->
 <script src="app/projects/projects.module.js" defer></script>
@@ -98,9 +81,9 @@
 <script src="app/study/study.module.js" defer></script>
 <script src="app/study/study.route.js" defer></script>
 <script src="app/study/study.js" defer></script>
-<script src="app/study/planViewModal.js" defer></script>
-<script src="app/study/polygonViewModal.js" defer></script>
-<script src="app/study/depthmapViewModal.js" defer></script>
+<script src="app/study/snapshot-view-modal.js" defer></script>
+<script src="app/study/polygon-view-modal.js" defer></script>
+<script src="app/study/depthmap-view-modal.js" defer></script>
 
 <!-- Devices -->
 <script src="app/devices/devices.module.js" defer></script>
