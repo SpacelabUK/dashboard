@@ -1,12 +1,13 @@
 (function() {
 	"use strict";
-	angular.module('app.metrics').controller('Metrics', metricsController);
-	metricsController.$inject = [
+	angular.module('app.metrics').controller('MetricsController',
+			MetricsController);
+	MetricsController.$inject = [
 			'$modal', 'dataService',
 	// 'RoundModelFactory', 'fetching'
 	];
 
-	function metricsController($modal, dataService) {
+	function MetricsController($modal, dataService) {
 		var vm = this;
 		vm.predicate = 'id';
 		dataService.getMetrics().then(function(response) {
@@ -21,7 +22,7 @@
 		vm.addMetric = function() {
 			$modal.open({
 				size : 'lg',
-				templateUrl : 'app/metrics/addMetricModal.html',
+				templateUrl : 'app/metrics/add-metric.modal.html',
 				controller : 'addMetric',
 				controllerAs : 'vm',
 				resolve : {}
@@ -30,7 +31,7 @@
 		vm.viewMetricDetails = function(metric) {
 			$modal.open({
 				size : 'lg',
-				templateUrl : 'app/metrics/viewMetricDetailsModal.html',
+				templateUrl : 'app/metrics/view-metric-details.modal.html',
 				controller : 'viewMetricDetails',
 				controllerAs : 'vm',
 				resolve : {
@@ -42,7 +43,7 @@
 		}
 		vm.editMetric = function(metric) {
 			$modal.open({
-				templateUrl : 'app/metrics/editMetricModal.html',
+				templateUrl : 'app/metrics/edit-metric.modal.html',
 				controller : 'editMetric',
 				controllerAs : 'vm',
 				resolve : {

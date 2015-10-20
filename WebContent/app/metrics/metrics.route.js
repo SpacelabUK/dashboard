@@ -18,7 +18,7 @@
 				config : {
 					url : '/metrics',
 					templateUrl : 'app/metrics/metrics.html',
-					controller : 'Metrics',
+					controller : 'MetricsController',
 					controllerAs : 'vm',
 					title : 'Metrics',
 					settings : {

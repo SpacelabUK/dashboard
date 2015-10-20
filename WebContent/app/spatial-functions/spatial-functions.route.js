@@ -17,7 +17,7 @@
 				state : 'spatialFunctions',
 				config : {
 					url : '/spatialFunctions',
-					templateUrl : 'app/spatialFunctions/spatialFunctions.html',
+					templateUrl : 'app/spatial-functions/spatial-functions.html',
 					controller : 'SpatialFunctionsController',
 					controllerAs : 'vm',
 					title : 'Spatial Functions',

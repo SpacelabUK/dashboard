@@ -17,7 +17,7 @@
 				state : 'tools/netIntegration',
 				config : {
 					url : '/tools/netIntegration',
-					templateUrl : 'app/tools/netIntegration/netIntegration.html',
+					templateUrl : 'app/tools/net-integration/net-integration.html',
 					controller : 'NetIntegration',
 					controllerAs : 'vm',
 					title : 'NetIntegration',

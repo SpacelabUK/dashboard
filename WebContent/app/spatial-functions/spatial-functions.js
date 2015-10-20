@@ -19,7 +19,7 @@
 		vm.predicate = 'id';
 		vm.add = function() {
 			$modal.open({
-				templateUrl : 'app/spatialFunctions/addSpatialFunction.html',
+				templateUrl : 'app/spatial-functions/add-spatial-function.modal.html',
 				controller : 'AddSpatialFunctionModal',
 				controllerAs : 'vm'
 			});

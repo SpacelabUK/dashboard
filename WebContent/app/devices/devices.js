@@ -23,7 +23,7 @@
 		vm.predicate = 'id';
 		vm.addDevice = function() {
 			$modal.open({
-				templateUrl : 'app/devices/addDeviceModal.html',
+				templateUrl : 'app/devices/add-device.modal.html',
 				controller : 'addDevice'
 			});
 		};

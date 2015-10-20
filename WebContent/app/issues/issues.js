@@ -27,7 +27,7 @@
 		}
 		vm.addMetricToIssue = function(issue, okText) {
 			var modalInstance = $modal.open({
-				templateUrl : 'app/issues/selectMetricModal.html',
+				templateUrl : 'app/issues/select-metric.modal.html',
 				controller : 'SelectMetricModal',
 				controllerAs : 'vm',
 				resolve : {
