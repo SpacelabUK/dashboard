@@ -26,14 +26,13 @@
   <!-- End Header Bar -->
   <div class="row">
     <div class="col-lg-12">
-      <polygon-viewer image="imagesource" polydata="polyData">
-      </polygon-viewer>
+      <snapshot-viewer image="vm.imagesource" entitydata="vm.entityData"></snapshot-viewer>
     </div>
   </div>
   <div class="row">
     <div class="col-lg-12">
-      <button class="btn btn-sm btn-info pull-right" ng-click="close()"
-        ng-disabled="dataInvalid()">Close</button>
+      <button class="btn btn-sm btn-info pull-right"
+        ng-click="vm.close()" ng-disabled="vm.dataInvalid()">Close</button>
 
     </div>
   </div>

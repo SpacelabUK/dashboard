@@ -13,7 +13,7 @@
 			 * Feature areas
 			 */
 			'app.devices', 'app.projects', 'app.metrics', 'app.issues',
-			'app.spatialFunctions',
+			'app.spatialFunctions', 'app.study',
 
 			/*
 			 * Standalone tools

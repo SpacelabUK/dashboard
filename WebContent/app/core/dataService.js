@@ -20,7 +20,13 @@
 			addMetricToIssue : addMetricToIssue,
 			switchIssueMetricOrder : switchIssueMetricOrder,
 			getSpatialFunctions : getSpatialFunctions,
-			addSpatialFunction : addSpatialFunction
+			addSpatialFunction : addSpatialFunction,
+			getOccupancyPerSpaceAndRound : getOccupancyPerSpaceAndRound,
+			getSpaceFunctionPolygons : getSpaceFunctionPolygons,
+			getSpaceTeamPolygons : getSpaceTeamPolygons,
+			getDepthmapMeasureRaster : getDepthmapMeasureRaster,
+			getSnapshotData : getSnapshotData,
+			getPlanImageURL : getPlanImageURL
 		};
 		return service;
 		function getDevices() {
@@ -81,6 +87,28 @@
 				'name' : name
 			};
 			return $http.post(backend + 'Insert?t=spatial_function', data);
+		}
+		function getOccupancyPerSpaceAndRound(studyID) {
+			return $http.get(backend +
+					'Occupancy?t=occ_per_space_and_round_prc&studyid=' + studyID);
+		}
+		function getSpaceFunctionPolygons(spaceID) {
+			return $http.get(backend + "GetSpaceData?spaceid=" + spaceID +
+					"&functeam=func");
+		}
+		function getSpaceTeamPolygons(spaceID) {
+			return $http.get(backend + "GetSpaceData?spaceid=" + spaceID +
+					"&functeam=team");
+		}
+		function getDepthmapMeasureRaster(spaceID, measureID) {
+			return $http.get(backend + "GetDepthmapData?spaceid=" + spaceID +
+					"&measure=" + measureID + "&analysis_type=" + 'Accessibility');
+		}
+		function getSnapshotData(snapshotID) {
+			return $http.get(backend + "GetObservationData?snapshotid=" + snapshotID);
+		}
+		function getPlanImageURL(planImg) {
+			return backend + "data/plans/" + planImg;
 		}
 	}
 })();
