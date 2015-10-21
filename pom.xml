@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>Database</groupId>
-	<artifactId>Database</artifactId>
+	<groupId>dashboard</groupId>
+	<artifactId>dasboard</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<properties>
@@ -110,7 +110,7 @@
 	</dependencies>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
-		<finalName>Database</finalName>
+		<finalName>dashboard</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>

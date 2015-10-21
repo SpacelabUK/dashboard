@@ -4,7 +4,7 @@
 	dataService.$inject = [
 		'$http'
 	];
-	var backend = "/Database/";
+	var backend = "/dashboard/";
 	function dataService($http) {
 		var service = {
 			getDevices : getDevices,

@@ -1,6 +1,6 @@
 angular.module('app.core').factory('HTTPFactory', [
 		'$http', '$q', function($http, $q) {
-			var backend = "/Database/";
+			var backend = "/dashboard/";
 			var pub = {
 				backendGet : function(url) {
 					return $http.get(backend + url);
