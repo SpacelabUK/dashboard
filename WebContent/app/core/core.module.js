@@ -13,7 +13,8 @@
 			/*
 			 * 3rd Party modules
 			 */
-			'angularFileUpload', 'flow', 'ui.bootstrap', 'ui.select', 'ui.router'
+			'angularFileUpload', 'flow', 'ui.bootstrap', 'ui.select', 'ui.router',
+			'colorpicker.module'
 
 	]);
 	angular.module('app.core').filter('capitalize', capitalize);
@@ -24,6 +25,19 @@
 			}) : '';
 		}
 	}
+
+	angular.module('app.core').directive('autoFocus', [
+			'$timeout', function($timeout) {
+				return {
+					restrict : 'AC',
+					link : function(_scope, _element) {
+						$timeout(function() {
+							_element[0].focus();
+						}, 0);
+					}
+				};
+			}
+	]);
 	/**
 	 * Filter to search whether all the words in a search field match the relevant
 	 * property

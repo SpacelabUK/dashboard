@@ -19,7 +19,7 @@
 						}, function(error) {
 							console.error(error);
 						});
-				$modalInstance.close();
+				$modalInstance.close(vm.func);
 			}
 		};
 

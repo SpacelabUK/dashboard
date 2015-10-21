@@ -1,66 +1,29 @@
 
 <div class="main-container">
-
-  <!-- Header Bar -->
   <br>
   <div class="row">
     <div class="col-xs-12">
       <div class="meta text-center">
         <h4 class="text-center">Projects</h4>
-        <!-- <div class="breadcrumb-links">Home / Projects / Open
-          Studies</div> -->
       </div>
-      <!-- <div class="user pull-right">
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle"> </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Joe Bloggs</li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Profile </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Logout </a>
-            </li>
-          </ul>
-        </div>
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle">
-            <i class="fa fa-bell-o"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Notifications</li>
-            <li class="divider"></li>
-            <li>
-              <a href="#">Server Down!</a>
-            </li>
-          </ul>
-        </div>
-      </div> -->
     </div>
   </div>
-
-
   <div class="row">
     <div class="col-lg-12">
       <div class="list-group">
         <div class="list-group-item" style="background-color: #F6F6F6;">
 
-          <input ng-model="search" placeholder="Filter..." auto-focus />
+          <input class="form-control input-sm" ng-model="vm.search"
+            style="width: inherit; float: left" placeholder="Filter..."
+            auto-focus />
           <a class="pull-right" ng-click="vm.addProject()" href=""
             tooltip="Create a new project">
             <i class="fa fa-plus"></i> New Project
           </a>
+          <div class="clearfix"></div>
         </div>
         <div class="project-info list-group-item"
-          ng-repeat="project in vm.projects | filter:search">
+          ng-repeat="project in vm.projects | filter:vm.search">
           <div>
             <h4>
               {{project.name}} <span dropdown on-toggle="toggled(open)">
@@ -98,7 +61,7 @@
                   <a href="">Open study</a>
                 </li>
                 <li>
-                  <a ui-sref="study.view({studyid:study.id})">View
+                  <a ui-sref="study-view({studyid:study.id})">View
                     study details</a>
                 </li>
               </ul>
@@ -122,7 +85,6 @@
                 <li role="menuitem" style="text-align: right;">
                   <a href="" ng-click="vm.addDepthmap(study)">Depthmap</a>
                 </li>
-                <!-- <li class="divider"></li> -->
                 <li role="menuitem" style="text-align: right;">
                   <a href="" ng-click="vm.addStaffSurvey(study)">Staff
                     survey</a>
@@ -136,52 +98,8 @@
             <a class="btn pull-right"
               ui-sref="study-issues({studyid:study.id})">Issues</a>
           </div>
-          <!-- <a class="pull-right" style="clear: both;"
-            tooltip="Add a new study to this project">
-            <small>New Study <i class="fa fa-plus"></i></small>
-          </a> -->
         </div>
       </div>
-      <!-- <tbody>
-          <tr ng-repeat-start="project in studies">
-            <td class="text-center"
-            rowspan="{{project.studies.length}}">{{project.studies[0].project_id}}</td>
-            <td>{{study.id}}</td>
-            <td>{{project.studies[0].type}}</td>
-            <td>{{project.studies[0].status}}</td>
-            <td class="text-center"><a
-                ui-sref="allstudyissues({studyid:project.studies[0].id})">P&S
-                Issues</a>&nbsp;|&nbsp;<a
-                ng-click="addObservationData(project.studies[0])"
-                href="">Add Gathered data</a>&nbsp;|&nbsp;<a
-                ng-click="addPlans(project.studies[0])" href="">Add
-                Plans/Polygons</a>&nbsp;|&nbsp;<a
-                ng-click="addDepthmap(project.studies[0])" href="">Add
-                Depthmap</a>&nbsp;|&nbsp;<a
-                ng-click="addStaffSurvey(project.studies[0])" href="">Add
-                Staff Survey</a>&nbsp;|&nbsp;<a
-                ng-click="addStakeholders(project.studies[0])" href="">Add
-                Stakeholders</a></td>
-          </tr>
-          <tr ng-repeat-end ng-if="project.studies.length > 1 && study.id != project.studies[0].id"
-            ng-repeat="study in project.studies | orderBy:predicate:reverse | filter:search">
-            <td class="text-center">{{study.project_id}}</td>
-            <td>{{study.id}}</td>
-            <td>{{study.type}}</td>
-            <td>{{study.status}}</td>
-            <td class="text-center"><a
-                ui-sref="allstudyissues({studyid:study.id})">P&S
-                Issues</a>&nbsp;|&nbsp;<a
-                ng-click="addObservationData(study)" href="">Add
-                Gathered data</a>&nbsp;|&nbsp;<a ng-click="addPlans(study)"
-                href="">Add Plans/Polygons</a>&nbsp;|&nbsp;<a
-                ng-click="addDepthmap(study)" href="">Add Depthmap</a>&nbsp;|&nbsp;<a
-                ng-click="addStaffSurvey(study)" href="">Add Staff
-                Survey</a>&nbsp;|&nbsp;<a ng-click="addStakeholders(study)"
-                href="">Add Stakeholders</a></td>
-          </tr>
-        </tbody> -->
-      <!-- </table>-->
     </div>
   </div>
 

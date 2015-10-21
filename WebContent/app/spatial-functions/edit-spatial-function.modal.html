@@ -1,27 +1,36 @@
 <div class="main-container">
   <div class="row header">
     <div class="col-xs-12 meta">
-      <div class="page text-center">Add spatial function</div>
+      <div class="page text-center">Editing spatial function
+        {{vm.func.name}}</div>
     </div>
   </div>
-  <form class="form-horizontal" role="form" ng-submit="vm.add();">
+  <form class="form-horizontal" role="form" ng-submit="vm.ok();">
     <div class="row">
-      <div class="col-lg-12">
+      <div class="col-xs-12">
         <div class="row has-feedback">
           <label for="label" class="col-xs-2 control-label"
-            tooltip="The abbreviated alias used in the DXF (i.e MTG-BKB)">ID</label>
+            tooltip="A unique identifier for this function">ID</label>
           <div class="col-xs-10">
             <input type="text" class="form-control"
-              ng-model="vm.func.alias" required /> <span
+              ng-model="vm.func.alias" /> <span
               class="fa form-control-feedback"></span>
           </div>
         </div>
         <div class="row has-feedback">
           <label for="label" class="col-xs-2 control-label"
-            tooltip="The full name of the spatial function (i.e Bookable Meeting Space)">Name</label>
+            tooltip="The title of the function">Name</label>
           <div class="col-xs-10">
             <input type="text" class="form-control"
-              ng-model="vm.func.name" required /> <span
+              ng-model="vm.func.name" /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label">Description</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.func.description" /> <span
               class="fa form-control-feedback"></span>
           </div>
         </div>
@@ -42,7 +51,8 @@
             <div class="pull-right">
               <button type="button" ng-click="vm.cancel();"
                 class="btn btn-default">Cancel</button>
-              <input type="submit" class=" btn btn-info" value="Create" />
+              <input type="submit" class=" btn btn-info"
+                value="Save (not implemented)" disabled />
             </div>
             <div class="clearfix"></div>
           </div>

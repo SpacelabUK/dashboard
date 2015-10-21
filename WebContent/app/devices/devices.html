@@ -1,95 +1,31 @@
 
 <div class="main-container">
-
-  <div class="row header">
+  <br>
+  <div class="row">
     <div class="col-xs-12">
-      <div class="meta pull-left">
-        <div class="page">Devices</div>
-        <div class="breadcrumb-links">Home / Devices</div>
-      </div>
-      <div class="user pull-right">
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle"> </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Joe Bloggs</li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Profile </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="link">
-              <a href="#"> Menu Item </a>
-            </li>
-            <li class="divider"></li>
-            <li class="link">
-              <a href="#"> Logout </a>
-            </li>
-          </ul>
-        </div>
-        <div class="item dropdown">
-          <a href="#" class="dropdown-toggle">
-            <i class="fa fa-bell-o"></i>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-right">
-            <li class="dropdown-header">Notifications</li>
-            <li class="divider"></li>
-            <li>
-              <a href="#">Server Down!</a>
-            </li>
-          </ul>
-        </div>
+      <div class="meta text-center">
+        <h4 class="text-center">Devices</h4>
       </div>
     </div>
   </div>
 
   <div class="row">
     <div class="col-lg-12">
-      <div class="widget">
-        <div class="widget-title">
-          <i class="fa fa-users"></i> Devices <input type="text"
-            placeholder="Search"
-            class="form-control input-sm pull-right"
-            ng-model="vm.search" />
-        </div>
-        <div class="widget-body medium no-padding">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th class="text-center"><a href=""
-                      ng-click="vm.predicate = 'id'; reverse=false">ID</a>
-                    <a href=""
-                      ng-click="vm.predicate = '-id'; reverse=false">^</a></th>
-                  <th><a href=""
-                      ng-click="vm.predicate = 'name'; reverse=false">Name</a>
-                    <a href=""
-                      ng-click="vm.predicate = '-name'; reverse=false">^</a></th>
-                  <th class="text-center">Status</th>
-                  <th class="text-center">Studies</th>
-                </tr>
-              </thead>
-              <tbody
-                ng-repeat="device in vm.devices | orderBy:vm.predicate:reverse | filter:search">
-                <tr>
-                  <td class="text-center">aa</td>
-                  <td>{{device.name}}</td>
-                  <td class="text-center"><span
-                    tooltip="Server Down!" class="text-danger"><i
-                      class="fa fa-warning"></i></span></td>
-                  <td class="text-center"><span>&nbsp;|&nbsp;</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div style="padding: 5px 15px;">
-          <a ng-click="vm.addDevice()" href="#" onclick="return false;"
-            class="pull-right">Add Device</a>
+      <div class="list-group">
+        <div class="list-group-item" style="background-color: #F6F6F6;">
+
+          <input class="form-control input-sm" ng-model="vm.search"
+            style="width: inherit; float: left" placeholder="Filter..."
+            auto-focus />
+          <a class="pull-right" ng-click="vm.addDevice()" href=""
+            tooltip="Create a new project">
+            <i class="fa fa-plus"></i> New Device
+          </a>
           <div class="clearfix"></div>
         </div>
+        <div class="list-group-item"
+          ng-repeat="device in vm.devices | filter:vm.search">
+          {{device.name}}</div>
       </div>
     </div>
   </div>

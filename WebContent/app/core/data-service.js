@@ -44,7 +44,7 @@
 			return $http.get(backend + 'GetAll?t=allstudies');
 		}
 		function addProject(project) {
-			return $http.post(backend + 'Insert?t=device', project);
+			return $http.post(backend + 'Insert?t=project', project);
 		}
 		function getMetricsDetails(request) {
 			return $http.post(backend + 'Metrics', request);
@@ -102,7 +102,8 @@
 		function addSpatialFunction(alias, name) {
 			var data = {
 				'alias' : alias,
-				'name' : name
+				'name' : name,
+				'type_group' : 'func'
 			};
 			return $http.post(backend + 'Insert?t=spatial_function', data);
 		}

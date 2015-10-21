@@ -1,8 +1,4 @@
-
 <div class="main-container">
-
-  <!-- Header Bar -->
-
   <div class="row">
     <div class="col-xs-12">
       <div class="meta text-center">
@@ -10,65 +6,63 @@
       </div>
     </div>
   </div>
-
-  <!-- End Header Bar -->
-
   <div class="row">
     <div class="col-lg-12">
-      <div class="widget">
-        <div class="widget-title">
-          <i class="fa fa-users"></i> Metrics <input type="text"
-            placeholder="Filter..."
-            class="form-control input-sm pull-right"
-            ng-model="vm.search" />
-        </div>
-        <div class="widget-body medium no-padding" style="height: 100%">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th><a href=""
-                      ng-click="vm.predicate = 'title'; reverse=false">Name</a>
-                    <a href=""
-                      ng-click="vm.predicate = '-title'; reverse=false">^</a></th>
-                  <th class="text-center">Description</th>
-                  <th class="text-center">No. of decimals</th>
-                  <th class="text-center">Units</th>
-                  <th class="text-center">In Groups</th>
-                  <th class="text-center">Edit</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  ng-repeat="metric in vm.metrics | orderBy:vm.predicate:reverse | anyWordFilter: {title:vm.search, in_groups:vm.search, alias:vm.search, units:vm.search,units_full:vm.search}">
-                  <td style="width: 20%;">{{metric.title}}<br
-                    ng-if="metric.title")> <span
-                    style="color: gray"><small>({{metric.alias}})</small></span>
-                  </td>
-                  <td style="width: 20%;">{{metric.description}}</td>
-                  <td class="text-center">{{metric.no_of_decimals}}</td>
-                  <td class="text-center">{{metric.units}} <span
-                    ng-if="metric.units_full">({{metric.units_full}})</span></td>
-                  <td class="text-center"><a href=""
-                      ng-click="vm.setSearch(group)"
-                      ng-repeat="group in metric.in_groups">{{group}}
-                    </a></td>
-                  <td><a href=""
-                      ng-click="vm.editMetric(metric,$index)">
-                      <i class="fa fa-pencil la-lg" tooltip="Edit"></i>
-                    </a> <a href=""
-                      ng-click="vm.viewMetricDetails(metric,$index)">
-                      <i class="fa fa-code-fork la-lg" tooltip="Details"></i>
-                    </a></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div style="padding: 5px 15px;">
-          <a ng-click="vm.addMetric()" href="#" onclick="return false;"
-            class="pull-right">Create new Metric</a>
+
+      <div class="list-group">
+        <div class="list-group-item" style="background-color: #F6F6F6;">
+
+          <input class="form-control input-sm" ng-model="vm.search"
+            style="width: inherit; float: left" placeholder="Filter..."
+            auto-focus />
+          <a class="pull-right" ng-click="vm.addMetric()" href=""
+            tooltip="Create a new metric">
+            <i class="fa fa-plus"></i> New Metric
+          </a>
           <div class="clearfix"></div>
+        </div>
+
+      </div>
+      <div class="widget-body medium no-padding" style="height: 100%">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th><a href=""
+                    ng-click="vm.predicate = 'title'; reverse=false">Name</a>
+                  <a href=""
+                    ng-click="vm.predicate = '-title'; reverse=false">^</a></th>
+                <th class="text-center">Description</th>
+                <th class="text-center">No. of decimals</th>
+                <th class="text-center">Units</th>
+                <th class="text-center">In Groups</th>
+                <th class="text-center">Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="metric in vm.metrics | orderBy:vm.predicate:reverse | anyWordFilter: {title:vm.search, in_groups:vm.search, alias:vm.search, units:vm.search,units_full:vm.search}">
+                <td style="width: 20%;">{{metric.title}}<br
+                  ng-if="metric.title")> <span style="color: gray"><small>({{metric.alias}})</small></span>
+                </td>
+                <td style="width: 20%;">{{metric.description}}</td>
+                <td class="text-center">{{metric.no_of_decimals}}</td>
+                <td class="text-center">{{metric.units}} <span
+                  ng-if="metric.units_full">({{metric.units_full}})</span></td>
+                <td class="text-center"><a href=""
+                    ng-click="vm.setSearch(group)"
+                    ng-repeat="group in metric.in_groups">{{group}}
+                  </a></td>
+                <td><a href=""
+                    ng-click="vm.editMetric(metric,$index)">
+                    <i class="fa fa-pencil la-lg" tooltip="Edit"></i>
+                  </a> <a href=""
+                    ng-click="vm.viewMetricDetails(metric,$index)">
+                    <i class="fa fa-code-fork la-lg" tooltip="Details"></i>
+                  </a></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -1,56 +1,49 @@
-
 <div class="main-container">
-
-  <!-- Header Bar -->
-
   <div class="row header">
-    <div class="col-xs-12">
-      <div class="meta pull-left">
-        <div class="page">Add Project</div>
-      </div>
+    <div class="col-xs-12 meta">
+      <div class="page text-center">Add Project</div>
     </div>
   </div>
-
-  <!-- End Header Bar -->
-
-  <!-- Main Content -->
-
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="widget">
-        <div class="widget-body">
-          <form class="form-horizontal" role="form" ng-submit="add();">
-            <div class="form-group ">
-              <div class="row has-feedback">
-                <label for="label" class="col-sm-2 control-label"
-                  tooltip="The ID of the project (i.e. 1433)">ID</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control"
-                    ng-model="project.id" required />
-                  <!--  ng-minlength=4 -->
-                  <span class="fa form-control-feedback"></span>
-                </div>
-              </div>
-              <div class="row has-feedback">
-                <label for="label" class="col-sm-2 control-label"
-                  tooltip="The name of the project">Name</label>
-                <div class="col-sm-8">
-                  <input type="text" class="form-control"
-                    ng-model="project.name" required /> <span
-                    class="fa form-control-feedback"></span>
-                </div>
-              </div>
+  <form class="form-horizontal" role="form" ng-submit="vm.add();">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label"
+            tooltip="The ID of the project (i.e. 1433)">ID</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.project.id" required auto-focus /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label"
+            tooltip="The name of the project">Name</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.project.name" required /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row">
+          <label for="label"
+            class="col-xs-offset-7 col-xs-5 control-label"
+            tooltip="A project can have multiple studies, keep this checked to create a default one with this project">
+            Also create a study&nbsp;&nbsp;<input type="checkbox"
+            ng-model="vm.project.alsoCreateStudy">
+          </label>
+        </div>
+        <br />
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="pull-right">
+              <button type="button" ng-click="vm.cancel();"
+                class="btn btn-default">Cancel</button>
+              <input type="submit" class="btn btn-info" value="Create" />
             </div>
-            <hr />
-            <input type="submit" class=" btn btn-info" value="Create" />
-            <button type="button" ng-click="cancel();"
-              class="btn btn-sm pull-right">Cancel</button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- End Main Content -->
-
+  </form>
 </div>

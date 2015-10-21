@@ -22,10 +22,9 @@
 		vm.addProject = function() {
 			$modal.open({
 				templateUrl : 'app/projects/add-project.modal.html',
-				controller : 'addProject',
+				controller : 'AddProjectModal',
 				controllerAs : 'vm'
 			}).result.then(function(response) {
-				console.log(response);
 				vm.search = response.name;
 				fetchInitialData();
 			});
@@ -495,15 +494,3 @@ angular.module('app.projects').controller(
 // }
 // ]);
 
-app.directive('autoFocus', [
-		'$timeout', function($timeout) {
-			return {
-				restrict : 'AC',
-				link : function(_scope, _element) {
-					$timeout(function() {
-						_element[0].focus();
-					}, 0);
-				}
-			};
-		}
-]);

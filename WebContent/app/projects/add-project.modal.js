@@ -1,22 +1,25 @@
 (function() {
 	"use strict";
-	angular.module('app.projects').controller("addProject", addProject);
-	addProject.$inject = [
-			'$modalInstance', 'dataService'
+	angular.module('app.projects').controller("AddProjectModal", AddProjectModal);
+	AddProjectModal.$inject = [
+			'$modalInstance', 'dataService', 'modalFactory'
 	];
-	function addProject($modalInstance, dataService) {
+	function AddProjectModal($modalInstance, dataService, modalFactory) {
 		var vm = this;
-		vm.data = {
-			name : ''
+		vm.project = {
+			name : '',
+			alsoCreateStudy : true
 		};
 		vm.add = function() {
-			if (vm.data.name.length > 0) {
-				dataService.addProject(vm.data).then(function(response) {
-				}, function(error) {
-					console.error(error);
-				});
-				$modalInstance.close();
+			var data = {
+				name : vm.project.name,
+				id : vm.project.id
 			}
+			dataService.addProject(data).then(function(response) {
+				$modalInstance.close(vm.project);
+			}, function(error) {
+				modalFactory.openErrorModal(error);
+			});
 		};
 
 		vm.validateID = function(value) {

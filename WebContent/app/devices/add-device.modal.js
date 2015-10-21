@@ -1,26 +1,23 @@
 (function() {
 	"use strict";
-	angular.module('app.devices').controller("addDevice", addDevice);
-	addDevice.$inject = [
-			'$modalInstance', 'dataService'
+	angular.module('app.devices').controller("AddDeviceModal", AddDeviceModal);
+	AddDeviceModal.$inject = [
+			'$modalInstance', 'dataService', 'modalFactory'
 	];
-	function addDevice($modalInstance, dataService) {
+	function AddDeviceModal($modalInstance, dataService, modalFactory) {
 		var vm = this;
-		vm.data = {
+		vm.device = {
 			name : ''
-		};
+		}
 		vm.add = function() {
-			if (vm.data.name.length > 0) {
-				dataService.addDevice(vm.data).then(function(response) {
-				}, function(error) {
-					console.error(error);
-				});
-				$modalInstance.close();
-			}
-		};
-
-		vm.validateID = function(value) {
-			return value.length > 3;
+			var data = {
+				name : vm.device.name
+			};
+			dataService.addDevice(data).then(function(response) {
+				$modalInstance.close(vm.device);
+			}, function(error) {
+				modalFactory.openErrorModal(error);
+			});
 		};
 		vm.cancel = function() {
 			$modalInstance.dismiss('cancel');
