@@ -23,7 +23,7 @@
             org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;
             org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer"
           username="petrox"
-          password="x"
+          password="5jCEwHWs"
           driverClassName="org.postgresql.Driver"
           url="jdbc:postgresql://localhost:5432/spacelab"/>
 </Context>
