@@ -158,14 +158,7 @@ public class StaffSurveyReader {
 			this.alias = alias;
 		}
 	}
-	/**
-	 * 
-	 * @author petros
-	 * @param choiceScale
-	 *            a map of choices where the key is the id(alias) of the choice
-	 *            and the value a numberical value if the questions are part of
-	 *            a scale
-	 */
+
 	class ChoiceQuestion extends Question {
 		// Set<String> choices;
 		Map<String, Float> choiceScale;
@@ -1161,11 +1154,11 @@ public class StaffSurveyReader {
 		JSONArray databaseFloors =
 				Database.selectAllFromTableWhere("spaces", "study_id=?",
 						studyID);
-		// JSONArray databaseQuestions = new JSONArray();
 		JSONArray databaseQuestions =
 				Database.customQuery(
 						"SELECT * FROM splab_get_staff_survey_questions()");
-		if (databaseQuestions.length() > 0) {
+		if (databaseQuestions.length() > 0
+				&& databaseQuestions.getJSONObject(0).has("splab_get_staff_survey_questions")) {
 			databaseQuestions =
 					new JSONArray(
 							databaseQuestions.getJSONObject(0).getString(
@@ -1183,15 +1176,10 @@ public class StaffSurveyReader {
 				}
 			}
 		}
-		// Database.customQuery("SELECT
-		// interview_questions.id,interview_questions.alias,interview_questions.parent_id,"
-		// + "(SELECT alias FROM interview_questions "
-		// +
-		// "WHERE interview_questions.id=parent_questions.parent_id) AS parent
-		// FROM interview_questions JOIN "
-		// +
-		// "interview_questions AS parent_questions ON
-		// interview_questions.id=parent_questions.id;");
+		else{
+			databaseQuestions =
+					new JSONArray();
+		}
 
 		JSONObject out = new JSONObject();
 		for (String key : staticData.keySet()) {

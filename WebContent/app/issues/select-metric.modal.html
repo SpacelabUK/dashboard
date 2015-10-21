@@ -1,0 +1,31 @@
+<div class="main-container">
+  <div class="row header">
+    <div class="col-xs-12">
+      <div class="meta pull-left">
+        <div class="page">Select Metric</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12">
+      <ui-select ng-model="vm.metricSelector.selected" autofocus
+        theme="bootstrap" reset-search-input="false"
+        style="width: 100%;"> <ui-select-match
+        placeholder="Select metric...">{{$select.selected.title}}</ui-select-match>
+      <ui-select-choices
+        repeat="metric in vm.availableMetrics | orderBy: 'title' | anyWordFilter: {title:$select.search}"
+        refresh="vm.refreshMetrics($select.search)" refresh-delay="0"
+        ui-disable-choice="metric.disabled">
+      <div ng-bind-html="metric.title | highlight: $select.search"></div>
+      </ui-select-choices> </ui-select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12">
+      <span class="pull-right"><button class="btn btn-default"
+          ng-click="vm.dismiss()">Cancel</button>
+        <button ng-disabled="!vm.metricSelector.selected"
+          class="btn btn-primary" ng-click="ok()">{{vm.okText}}</button></span>
+    </div>
+  </div>
+</div>

@@ -27,7 +27,7 @@ public class DXFReader {
 		layr = getDXFEntities(stringz, "TABLES");
 	}
 	public class dxfEntity {
-		String [][] p;
+		String [] [] p;
 
 		dxfEntity(List<String []> properties) {
 			p = new String [properties.size()] [2];
@@ -43,37 +43,40 @@ public class DXFReader {
 		int startEntities = -1;
 		ArrayList<String []> newObjectList = new ArrayList<String []>();
 		for (int i = 0; i < ent.size(); i++) {
+			String key = ent.get(i).trim();
+			String value = ent.get(i + 1).trim();
 			if (startEntities != -1) {
-				if (ent.get(i).equalsIgnoreCase("ENDSEC")
-						|| ent.get(i + 1).trim().equalsIgnoreCase("ENDSEC")) {
+				if (key.equalsIgnoreCase("ENDSEC")
+						|| value.equalsIgnoreCase("ENDSEC")) {
 					entities.add(new dxfEntity(newObjectList));
 					newObjectList.clear();
 					break;
 				} else {
-					if (i - startEntities > 0 && (i - startEntities) % 2 == 1) {
-						if (ent.get(i).equals("0")) {
+					if ("ENTITIES".equals(section))
+						if (i - startEntities > 0
+								&& (i - startEntities) % 2 == 1) {
+						if (key.equals("0")) {
 							if (newObjectList.size() > 1) {
 								entities.add(new dxfEntity(newObjectList));
 								newObjectList.clear();
-								newObjectList.add(new String [] {"0",
-										ent.get(i + 1)});
+								newObjectList.add(new String [] {"0", value});
 								i++;
 							}
 						} else {
-							newObjectList.add(new String [] {ent.get(i),
-									ent.get(i + 1)});
+							newObjectList.add(new String [] {key, value});
 							i++;
 						}
 					}
 				}
 			}
-			if (startEntities == -1 && ent.get(i).equalsIgnoreCase(section)) {
+			if (startEntities == -1 && key.equalsIgnoreCase(section)) {
 				startEntities = i;
 				if (startEntities + 2 > ent.size() - 1) { // throw exception
 				} else {
-					if (!ent.get(i + 1).equals("0")) { // throw exception
+					if (!value.equals("0")) { // throw exception
 					} else {
-						newObjectList.add(new String [] {"0", ent.get(i + 2)});
+						newObjectList.add(
+								new String [] {"0", ent.get(i + 2).trim()});
 					}
 				}
 			}
@@ -117,7 +120,7 @@ public class DXFReader {
 		}
 		return stringEntities;
 	}
-	String [] extractDXFLine(String [][] prop) {
+	String [] extractDXFLine(String [] [] prop) {
 		String [] p = new String [8];
 		p[0] = "LINE";
 		// [1] layer
@@ -139,7 +142,7 @@ public class DXFReader {
 		}
 		return p;
 	}
-	String [] extractDXFLayer(String [][] prop) {
+	String [] extractDXFLayer(String [] [] prop) {
 		String [] p = new String [5];
 		p[0] = "LAYER";
 		// [1] name
@@ -177,7 +180,7 @@ public class DXFReader {
 	 * 
 	 * [8] (41) Reference rectangle width
 	 */
-	String [] extractDXFMText(String [][] prop) {
+	String [] extractDXFMText(String [] [] prop) {
 		/*
 		 * Maybe make it into map? Map<Integer,String> extractDXFMText(String
 		 * [][] prop) { Map<Integer,String> p = new HashMap<Integer,String>();
@@ -203,7 +206,7 @@ public class DXFReader {
 		}
 		return p;
 	}
-	String [] extractDXFBlock(String [][] prop) {
+	String [] extractDXFBlock(String [] [] prop) {
 		String [] p = new String [5];
 		p[0] = "BLOCK";
 		// [1] name
@@ -220,10 +223,10 @@ public class DXFReader {
 		}
 		return p;
 	}
-	String [] extractDXFEndBlock(String [][] prop) {
+	String [] extractDXFEndBlock(String [] [] prop) {
 		return new String [] {"ENDBLK"};
 	}
-	String [] extractDXFPolyline(String [][] prop) {
+	String [] extractDXFPolyline(String [] [] prop) {
 		String [] p = new String [7];
 		p[0] = "POLYLINE";
 		// [1] layer
@@ -242,7 +245,7 @@ public class DXFReader {
 		}
 		return p;
 	}
-	String [] extractDXFVertex(String [][] prop) {
+	String [] extractDXFVertex(String [] [] prop) {
 		String [] p = new String [4];
 		p[0] = "VERTEX";
 		// [1-3] cF
@@ -254,10 +257,10 @@ public class DXFReader {
 		}
 		return p;
 	}
-	String [] extractDXFSeqend(String [][] prop) {
+	String [] extractDXFSeqend(String [] [] prop) {
 		return new String [] {"SEQEND"};
 	}
-	private List<String []> extractDXFLwPolyline(String [][] prop) {
+	private List<String []> extractDXFLwPolyline(String [] [] prop) {
 		List<String []> entities = new ArrayList<String []>();
 		String [] p = new String [7];
 		// essentially disguise a lwpolyline to a typical polyline
@@ -291,7 +294,7 @@ public class DXFReader {
 		entities.add(entities.size(), new String [] {"SEQEND"});
 		return entities;
 	}
-	private List<String []> extractDXFHatchBoundary(String [][] prop) {
+	private List<String []> extractDXFHatchBoundary(String [] [] prop) {
 		List<String []> entities = new ArrayList<String []>();
 		String [] p = new String [7];
 		// essentially disguise a lwpolyline to a typical polyline
@@ -333,7 +336,7 @@ public class DXFReader {
 		entities.add(entities.size(), new String [] {"SEQEND"});
 		return entities;
 	}
-	String [] extractDXFReference(String [][] prop) {
+	String [] extractDXFReference(String [] [] prop) {
 
 		String [] p = new String [10];
 		p[0] = "INSERT";
@@ -359,7 +362,7 @@ public class DXFReader {
 
 		return p;
 	}
-	String [] extractDXFArc(String [][] prop, boolean circle) {
+	String [] extractDXFArc(String [] [] prop, boolean circle) {
 		String [] p = new String [9];
 		if (circle) {
 			p[7] = "0";

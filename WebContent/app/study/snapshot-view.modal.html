@@ -1,0 +1,39 @@
+
+<head>
+<style>
+.highlight {
+	background-color: #F4A460;
+}
+
+.disabled {
+	background-color: #eee;
+	color: #ccc;
+}
+</style>
+</head>
+<body>
+
+  <!-- Header Bar -->
+
+  <div class="row header">
+    <div class="col-xs-12">
+      <div class="meta pull-left">
+        <div class="page">Plan view: Snapshot</div>
+        <div class="breadcrumb-links">Home / Plan data handling</div>
+      </div>
+    </div>
+  </div>
+  <!-- End Header Bar -->
+  <div class="row">
+    <div class="col-lg-12">
+      <snapshot-view image="vm.imagesource" entitydata="vm.entityData"></snapshot-view>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-12">
+      <button class="btn btn-sm btn-info pull-right"
+        ng-click="vm.close()" ng-disabled="vm.dataInvalid()">Close</button>
+
+    </div>
+  </div>
+</body>

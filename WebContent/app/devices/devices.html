@@ -1,0 +1,32 @@
+
+<div class="main-container">
+  <br>
+  <div class="row">
+    <div class="col-xs-12">
+      <div class="meta text-center">
+        <h4 class="text-center">Devices</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="list-group">
+        <div class="list-group-item" style="background-color: #F6F6F6;">
+
+          <input class="form-control input-sm" ng-model="vm.search"
+            style="width: inherit; float: left" placeholder="Filter..."
+            auto-focus />
+          <a class="pull-right" ng-click="vm.addDevice()" href=""
+            tooltip="Create a new project">
+            <i class="fa fa-plus"></i> New Device
+          </a>
+          <div class="clearfix"></div>
+        </div>
+        <div class="list-group-item"
+          ng-repeat="device in vm.devices | filter:vm.search">
+          {{device.name}}</div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="main-container">
+  <div class="row header">
+    <div class="col-xs-12 meta">
+      <div class="page text-center">Add Device</div>
+    </div>
+  </div>
+  <form class="form-horizontal" role="form" ng-submit="vm.add();">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label"
+            tooltip="The name of the device">Name</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.device.name" required auto-focus /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <br />
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="pull-right">
+              <button type="button" ng-click="vm.cancel();"
+                class="btn btn-default">Cancel</button>
+              <input type="submit" class=" btn btn-info" value="Create" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

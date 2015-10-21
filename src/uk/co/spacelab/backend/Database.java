@@ -39,7 +39,7 @@ public class Database {
 	private static String dbDataSource =
 			"org.postgresql.ds.PGPoolingDataSource";
 	private static String user = "petrox";
-	private static String pass = "x";
+	private static String pass = "5jCEwHWs";
 	public static final String TABLE_OBSERVATION_ROUNDS = "observation_rounds",
 			TABLE_OBSERVATION_SNAPSHOTS = "observation_snapshots",
 			TABLE_METRICS = "metrics", //

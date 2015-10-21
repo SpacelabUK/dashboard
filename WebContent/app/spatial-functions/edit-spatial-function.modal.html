@@ -1,0 +1,63 @@
+<div class="main-container">
+  <div class="row header">
+    <div class="col-xs-12 meta">
+      <div class="page text-center">Editing spatial function
+        {{vm.func.name}}</div>
+    </div>
+  </div>
+  <form class="form-horizontal" role="form" ng-submit="vm.ok();">
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label"
+            tooltip="A unique identifier for this function">ID</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.func.alias" /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label"
+            tooltip="The title of the function">Name</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.func.name" /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label">Description</label>
+          <div class="col-xs-10">
+            <input type="text" class="form-control"
+              ng-model="vm.func.description" /> <span
+              class="fa form-control-feedback"></span>
+          </div>
+        </div>
+        <div class="row has-feedback">
+          <label for="label" class="col-xs-2 control-label">Colour</label>
+          <div class="col-xs-7">
+            <input class="form-control" colorpicker type="text"
+              ng-model="vm.func.colour" />
+          </div>
+          <div class="col-xs-3">
+            <div class="col-xs-12"
+              style="height: 34px; background-color: {{;vm.func.colour}}">&nbsp;</div>
+          </div>
+        </div>
+        <br />
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="pull-right">
+              <button type="button" ng-click="vm.cancel();"
+                class="btn btn-default">Cancel</button>
+              <input type="submit" class=" btn btn-info"
+                value="Save (not implemented)" disabled />
+            </div>
+            <div class="clearfix"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

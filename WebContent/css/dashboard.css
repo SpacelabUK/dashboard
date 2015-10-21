@@ -251,10 +251,11 @@ ul.sidebar .sidebar-list a:hover .menu-icon {
 
 .row.header .meta .page {
 	font-size: 17px;
-	padding-top: 11px;
+	padding-top: 20px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	margin: auto;
 }
 
 @media only screen and (min-width : 993px) {
