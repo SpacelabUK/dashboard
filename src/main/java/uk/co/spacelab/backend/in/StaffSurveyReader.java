@@ -1199,8 +1199,11 @@ public class StaffSurveyReader {
 						if (qDBalias.equalsIgnoreCase(groupAlias)) {
 							String qDBtype = qDB.getString("type_id");
 							if (qDBtype.equals("CHOICE")
-									&& q instanceof ChoiceQuestion)
-								dbMatch = databaseQuestions.getJSONObject(i);
+									&& q instanceof ChoiceQuestion) {
+                                dbMatch = databaseQuestions.getJSONObject(i);
+                                o.put("prematchproperty", "alias");
+                                o.put("prematch", dbMatch.getString("alias"));
+                            }
 							else if (qDBtype.equals("TIESCORE") //
 									&& q instanceof TieQuestion) {
 								o.put("prematchproperty", "alias");
