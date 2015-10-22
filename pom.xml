@@ -109,7 +109,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
 		<finalName>dashboard</finalName>
 		<plugins>
 			<plugin>
