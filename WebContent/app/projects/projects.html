@@ -1,106 +1,113 @@
-
 <div class="main-container">
-  <br>
-  <div class="row">
-    <div class="col-xs-12">
-      <div class="meta text-center">
-        <h4 class="text-center">Projects</h4>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="list-group">
-        <div class="list-group-item" style="background-color: #F6F6F6;">
+    <br>
 
-          <input class="form-control input-sm" ng-model="vm.search"
-            style="width: inherit; float: left" placeholder="Filter..."
-            auto-focus />
-          <a class="pull-right" ng-click="vm.addProject()" href=""
-            tooltip="Create a new project">
-            <i class="fa fa-plus"></i> New Project
-          </a>
-          <div class="clearfix"></div>
-        </div>
-        <div class="project-info list-group-item"
-          ng-repeat="project in vm.projects | filter:vm.search">
-          <div>
-            <h4>
-              {{project.name}} <span dropdown on-toggle="toggled(open)">
-                <a href="" style="display: inline-block; padding: 6px 0"
-                  id="simple-dropdown" dropdown-toggle>
-                  <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu"
-                  aria-labelledby="simple-dropdown">
-                  <li>
-                    <a ng-click="vm.addStudy(project)" href="">New
-                      study</a>
-                  </li>
-                </ul>
-              </span>
-            </h4>
-          </div>
-          <span
-            style="color: #ccc; position: absolute; top: 15px; right: 15px;">{{project.id}}</span>
-          <div class="study-info row"
-            ng-repeat="study in project.studies | orderBy:vm.predicate:reverse">
-            <span dropdown on-toggle="toggled(open)"> <a href=""
-                style="display: inline-block; padding: 6px 0"
-                id="simple-dropdown" dropdown-toggle>
-                {{study.created | date:'MMMM yyyy'}} <span
-                  ng-if="study-type && study.type ==='post'">({{study.type}})</span><span
-                  class="caret"></span>
-              </a>
-              <ul class="dropdown-menu"
-                aria-labelledby="simple-dropdown">
-                <li ng-if="study.status==='open'">
-                  <a href="">Close study</a>
-                </li>
-                <li ng-if="study.status==='closed'">
-                  <a href="">Open study</a>
-                </li>
-                <li>
-                  <a ui-sref="study-view({studyid:study.id})">View
-                    study details</a>
-                </li>
-              </ul>
-            </span>
-            <div ng-if="study.status==='open'"
-              class="btn-group pull-right" dropdown
-              is-open="datadropdown.isopen">
-              <a type="button" class="btn btn-default" dropdown-toggle
-                ng-disabled="disabled">
-                Add data <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu" role="menu"
-                aria-labelledby="single-button">
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addObservationData(study)">Observation</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addPlans(study)">Plans /
-                    Polygons</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addDepthmap(study)">Depthmap</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addStaffSurvey(study)">Staff
-                    survey</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addStakeholders(study)">Stakeholder
-                    Interviews</a>
-                </li>
-              </ul>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="meta text-center">
+                <h4 class="text-center">Projects</h4>
             </div>
-            <a class="btn pull-right"
-              ui-sref="study-issues({studyid:study.id})">Issues</a>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="list-group">
+                <div class="list-group-item" style="background-color: #F6F6F6;">
+                    <input class="form-control input-sm" ng-model="vm.search"
+                           style="width: inherit; float: left" placeholder="Filter..."
+                           auto-focus/>
+                    <a class="pull-right" ng-click="vm.addProject()" href=""
+                       tooltip="Create a new project">
+                        <i class="fa fa-plus"></i> New Project
+                    </a>
+
+                    <div class="clearfix"></div>
+                </div>
+                <div class="project-info list-group-item"
+                     ng-repeat="project in vm.projects | filter:vm.search">
+                    <div>
+                        <h4>
+                            {{project.name}}
+                            <div style="display:inline-block" dropdown on-toggle="toggled(open)">
+                                <a href="" style="display: inline-block; padding: 6px 0"
+                                   dropdown-toggle>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu"
+                                    aria-labelledby="simple-dropdown">
+                                    <li>
+                                        <a ng-click="vm.addStudy(project)" href="">New
+                                            study</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </h4>
+                    </div>
+                    <span style="color: #ccc; position: absolute; top: 15px; right: 15px;">
+                        {{project.id}}</span>
+
+                    <div class="study-info row"
+                         ng-repeat="study in project.studies | orderBy:vm.predicate:reverse">
+                        <div style="display:inline-block" dropdown on-toggle="toggled(open)">
+                            <a href=""
+                               style="display: inline-block; padding: 6px 0"
+                               dropdown-toggle>
+                                {{study.created | date:'MMMM yyyy'}} <span
+                                    ng-if="study-type && study.type ==='post'">({{study.type}})</span><span
+                                    class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu"
+                                aria-labelledby="simple-dropdown">
+                                <li ng-if="study.status==='open'">
+                                    <a href="">Close study</a>
+                                </li>
+                                <li ng-if="study.status==='closed'">
+                                    <a href="">Open study</a>
+                                </li>
+                                <li>
+                                    <a ui-sref="study-view({studyid:study.id})">View
+                                        study details</a>
+                                </li>
+                                <li>
+                                    <a ui-sref="observation-setup({studyid:study.id})">Kick off observation</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div ng-if="study.status==='open'"
+                             class="btn-group pull-right" dropdown
+                             is-open="datadropdown.isopen">
+                            <a type="button" class="btn btn-default" dropdown-toggle
+                               ng-disabled="disabled">
+                                Add data <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" role="menu"
+                                aria-labelledby="single-button">
+                                <li role="menuitem" style="text-align: right;">
+                                    <a href="" ng-click="vm.addObservationData(study)">Observation</a>
+                                </li>
+                                <li role="menuitem" style="text-align: right;">
+                                    <a href="" ng-click="vm.addPlans(study)">Plans /
+                                        Polygons</a>
+                                </li>
+                                <li role="menuitem" style="text-align: right;">
+                                    <a href="" ng-click="vm.addDepthmap(study)">Depthmap</a>
+                                </li>
+                                <li role="menuitem" style="text-align: right;">
+                                    <a href="" ng-click="vm.addStaffSurvey(study)">Staff
+                                        survey</a>
+                                </li>
+                                <li role="menuitem" style="text-align: right;">
+                                    <a href="" ng-click="vm.addStakeholders(study)">Stakeholder
+                                        Interviews</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <a class="btn pull-right"
+                           ui-sref="study-issues({studyid:study.id})">Issues</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>

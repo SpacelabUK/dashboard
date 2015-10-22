@@ -1,251 +1,254 @@
 <!doctype html>
 <html lang="en" ng-app="app" ng-strict-di>
 <head>
-<!-- <base href="/dashboard/"> -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <base href="/dashboard/"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Dashboard</title>
+    <title>Dashboard</title>
 
-<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
-<link rel="stylesheet" type="text/css" href="css/select.min.css">
-<link rel="stylesheet" type="text/css" href="css/dashboard.css">
-<link rel="stylesheet" type="text/css" href="css/white.css">
-<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
-<link rel="stylesheet" type="text/css" href="css/colorpicker.min.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/select.min.css">
+    <link rel="stylesheet" type="text/css" href="css/dashboard.css">
+    <link rel="stylesheet" type="text/css" href="css/white.css">
+    <link rel="stylesheet" type="text/css" href="css/toastr.min.css">
+    <link rel="stylesheet" type="text/css" href="css/colorpicker.min.css">
 
-<script src="lib/d3.min.js" defer></script>
-<script src="lib/d3.layout.cloud.js" defer></script>
-<script src="lib/angular.min.js"></script>
-<script src="lib/angular-sanitize.min.js"></script>
-<script src="lib/angular-cookies.js" defer></script>
-<script src="lib/angular-ui-router.min.js" defer></script>
-<script src="lib/angular-file-upload.min.js" defer></script>
-<script src="lib/angular-d3.js" defer></script>
-<script src="lib/ng-flow-standalone.min.js" defer></script>
-<script src="lib/ng-bootstrap-tpls.min.js" defer></script>
-<script src="lib/jquery.min.js" defer></script>
-<script src="lib/FileSaver.min.js" defer></script>
-<script src="lib/xlsx.full.min.js" defer></script>
-<script src="lib/toastr.min.js" defer></script>
-<script src="lib/select.min.js" defer></script>
-<script src="lib/bootstrap-colorpicker-module.min.js" defer></script>
-<script src="bootstrap.js" defer></script>
-<script src="studies/observation/setRoundModel.js" defer></script>
-<script src="studies/study.compare.js" defer></script>
-
-
-<!-- Bootstrapping -->
-<script src="app/app.module.js" defer></script>
+    <script src="lib/d3.min.js" defer></script>
+    <script src="lib/d3.layout.cloud.js" defer></script>
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/angular-sanitize.min.js"></script>
+    <script src="lib/angular-cookies.js" defer></script>
+    <script src="lib/angular-ui-router.min.js" defer></script>
+    <script src="lib/angular-file-upload.min.js" defer></script>
+    <script src="lib/angular-d3.js" defer></script>
+    <script src="lib/ng-flow-standalone.min.js" defer></script>
+    <script src="lib/ng-bootstrap-tpls.min.js" defer></script>
+    <script src="lib/jquery.min.js" defer></script>
+    <script src="lib/FileSaver.min.js" defer></script>
+    <script src="lib/xlsx.full.min.js" defer></script>
+    <script src="lib/toastr.min.js" defer></script>
+    <script src="lib/select.min.js" defer></script>
+    <script src="lib/bootstrap-colorpicker-module.min.js" defer></script>
+    <script src="bootstrap.js" defer></script>
+    <script src="app/observation-setup/setRoundModel.js" defer></script>
+    <script src="studies/study.compare.js" defer></script>
 
 
-
-<!-- Reusable Blocks/Modules -->
-<script src="app/blocks/exception/exception.module.js" defer></script>
-<script src="app/blocks/exception/exception-handler.provider.js" defer></script>
-<script src="app/blocks/exception/exception.js" defer></script>
-<script src="app/blocks/logger/logger.module.js" defer></script>
-<script src="app/blocks/logger/logger.js" defer></script>
-<script src="app/blocks/router/router.module.js" defer></script>
-<script src="app/blocks/router/routehelper.js" defer></script>
-
-<!-- Core -->
-<script src="app/core/core.module.js" defer></script>
-<script src="app/core/constants.js" defer></script>
-<script src="app/core/data-service.js" defer></script>
+    <!-- Bootstrapping -->
+    <script src="app/app.module.js" defer></script>
 
 
-<script src="app/services/importFactory.js" defer></script>
+    <!-- Reusable Blocks/Modules -->
+    <script src="app/blocks/exception/exception.module.js" defer></script>
+    <script src="app/blocks/exception/exception-handler.provider.js" defer></script>
+    <script src="app/blocks/exception/exception.js" defer></script>
+    <script src="app/blocks/logger/logger.module.js" defer></script>
+    <script src="app/blocks/logger/logger.js" defer></script>
+    <script src="app/blocks/router/router.module.js" defer></script>
+    <script src="app/blocks/router/routehelper.js" defer></script>
 
-<script src="app/import/plans/addPlans.js" defer></script>
-<script src="app/import/depthmap/addDepthmap.js" defer></script>
-<script src="app/import/staffsurvey/addStaffSurvey.js" defer></script>
-<script src="app/import/stakeholders/addStakeholders.js" defer></script>
-<script src="app/import/observation/addObservationData.js" defer></script>
-
-<script src="app/services/modal.factory.js" defer></script>
-<script src="app/services/textParser.service.js" defer></script>
-<script src="app/services/HTTPFactory.js" defer></script>
-<script src="app/services/PlanFactory.js" defer></script>
-
-<!-- Diagrams -->
-<script src="app/diagrams/diagrams.module.js" defer></script>
-<script src="app/diagrams/polygon-view.directive.js" defer></script>
-<script src="app/diagrams/snapshot-view.directive.js" defer></script>
-<script src="app/diagrams/depthmap-view.directive.js" defer></script>
-<script src="app/diagrams/net-integration.directive.js" defer></script>
-<script src="app/diagrams/charts.js" defer></script>
-
-<!-- Projects -->
-<script src="app/projects/projects.module.js" defer></script>
-<script src="app/projects/projects.route.js" defer></script>
-<script src="app/projects/projects.js" defer></script>
-<script src="app/projects/add-project.modal.js" defer></script>
-
-<!-- Study -->
-<script src="app/study/study.module.js" defer></script>
-<script src="app/study/snapshot-view.modal.js" defer></script>
-<script src="app/study/polygon-view.modal.js" defer></script>
-<script src="app/study/depthmap-view.modal.js" defer></script>
-
-<!-- View Study -->
-<script src="app/study/view/study-view.module.js" defer></script>
-<script src="app/study/view/study-view.route.js" defer></script>
-<script src="app/study/view/study-view.js" defer></script>
-
-<!-- Study Issues -->
-<script src="app/study/issues/study-issues.module.js" defer></script>
-<script src="app/study/issues/study-issues.route.js" defer></script>
-<script src="app/study/issues/study-issues.js" defer></script>
-
-<!-- Devices -->
-<script src="app/devices/devices.module.js" defer></script>
-<script src="app/devices/add-device.modal.js" defer></script>
-<script src="app/devices/devices.js" defer></script>
-<script src="app/devices/devices.route.js" defer></script>
-
-<!-- Metrics -->
-<script src="app/metrics/metrics.module.js" defer></script>
-<script src="app/metrics/add-metric.modal.js" defer></script>
-<script src="app/metrics/edit-metric.modal.js" defer></script>
-<script src="app/metrics/view-metric-details.modal.js" defer></script>
-<script src="app/metrics/metrics.js" defer></script>
-<script src="app/metrics/metrics.route.js" defer></script>
-
-<!-- Issues -->
-<script src="app/issues/issues.module.js" defer></script>
-<script src="app/issues/select-metric.modal.js" defer></script>
-<script src="app/issues/issues.js" defer></script>
-<script src="app/issues/issues.route.js" defer></script>
-
-<!-- Spatial Functions -->
-<script src="app/spatial-functions/spatial-functions.module.js" defer></script>
-<script src="app/spatial-functions/add-spatial-function.modal.js" defer></script>
-<script src="app/spatial-functions/edit-spatial-function.modal.js" defer></script>
-<script src="app/spatial-functions/spatial-functions.js" defer></script>
-<script src="app/spatial-functions/spatial-functions.route.js" defer></script>
-
-<!-- Tools / Net - Integration -->
-<script src="app/tools/net-integration/net-integration.module.js" defer></script>
-<script src="app/tools/net-integration/net-integration.js" defer></script>
-<script src="app/tools/net-integration/net-integration.js" defer></script>
-<script src="app/tools/net-integration/net-integration.route.js" defer></script>
+    <!-- Core -->
+    <script src="app/core/core.module.js" defer></script>
+    <script src="app/core/constants.js" defer></script>
+    <script src="app/core/data-service.js" defer></script>
 
 
+    <script src="app/services/importFactory.js" defer></script>
+
+    <script src="app/import/plans/addPlans.js" defer></script>
+    <script src="app/import/depthmap/addDepthmap.js" defer></script>
+    <script src="app/import/staffsurvey/addStaffSurvey.js" defer></script>
+    <script src="app/import/stakeholders/addStakeholders.js" defer></script>
+    <script src="app/import/observation/addObservationData.js" defer></script>
+
+    <script src="app/services/modal.factory.js" defer></script>
+    <script src="app/services/textParser.service.js" defer></script>
+    <script src="app/services/HTTPFactory.js" defer></script>
+    <script src="app/services/PlanFactory.js" defer></script>
+
+    <!-- Diagrams -->
+    <script src="app/diagrams/diagrams.module.js" defer></script>
+    <script src="app/diagrams/polygon-view.directive.js" defer></script>
+    <script src="app/diagrams/snapshot-view.directive.js" defer></script>
+    <script src="app/diagrams/depthmap-view.directive.js" defer></script>
+    <script src="app/diagrams/net-integration.directive.js" defer></script>
+    <script src="app/diagrams/charts.js" defer></script>
+
+    <!-- Projects -->
+    <script src="app/projects/projects.module.js" defer></script>
+    <script src="app/projects/projects.route.js" defer></script>
+    <script src="app/projects/projects.js" defer></script>
+    <script src="app/projects/add-project.modal.js" defer></script>
+
+    <!-- Study -->
+    <script src="app/study/study.module.js" defer></script>
+    <script src="app/study/snapshot-view.modal.js" defer></script>
+    <script src="app/study/polygon-view.modal.js" defer></script>
+    <script src="app/study/depthmap-view.modal.js" defer></script>
+
+    <!-- View Study -->
+    <script src="app/study/view/study-view.module.js" defer></script>
+    <script src="app/study/view/study-view.route.js" defer></script>
+    <script src="app/study/view/study-view.js" defer></script>
+
+    <!-- Observation Setup -->
+    <script src="app/observation-setup/observation-setup.module.js" defer></script>
+    <script src="app/observation-setup/observation-setup.route.js" defer></script>
+    <script src="app/observation-setup/observation-setup.js" defer></script>
+    <script src="app/observation-setup/setRoundModel.js" defer></script>
+
+    <!-- Study Issues -->
+    <script src="app/study/issues/study-issues.module.js" defer></script>
+    <script src="app/study/issues/study-issues.route.js" defer></script>
+    <script src="app/study/issues/study-issues.js" defer></script>
+
+    <!-- Devices -->
+    <script src="app/devices/devices.module.js" defer></script>
+    <script src="app/devices/add-device.modal.js" defer></script>
+    <script src="app/devices/devices.js" defer></script>
+    <script src="app/devices/devices.route.js" defer></script>
+
+    <!-- Metrics -->
+    <script src="app/metrics/metrics.module.js" defer></script>
+    <script src="app/metrics/add-metric.modal.js" defer></script>
+    <script src="app/metrics/edit-metric.modal.js" defer></script>
+    <script src="app/metrics/view-metric-details.modal.js" defer></script>
+    <script src="app/metrics/metrics.js" defer></script>
+    <script src="app/metrics/metrics.route.js" defer></script>
+
+    <!-- Issues -->
+    <script src="app/issues/issues.module.js" defer></script>
+    <script src="app/issues/select-metric.modal.js" defer></script>
+    <script src="app/issues/issues.js" defer></script>
+    <script src="app/issues/issues.route.js" defer></script>
+
+    <!-- Spatial Functions -->
+    <script src="app/spatial-functions/spatial-functions.module.js" defer></script>
+    <script src="app/spatial-functions/add-spatial-function.modal.js" defer></script>
+    <script src="app/spatial-functions/edit-spatial-function.modal.js" defer></script>
+    <script src="app/spatial-functions/spatial-functions.js" defer></script>
+    <script src="app/spatial-functions/spatial-functions.route.js" defer></script>
+
+    <!-- Tools / Net - Integration -->
+    <script src="app/tools/net-integration/net-integration.module.js" defer></script>
+    <script src="app/tools/net-integration/net-integration.js" defer></script>
+    <script src="app/tools/net-integration/net-integration.js" defer></script>
+    <script src="app/tools/net-integration/net-integration.route.js" defer></script>
 </head>
 <body>
-  <div id="page-wrapper" ng-class="{'active': toggle}" ng-cloak
-    ng-controller="MasterCtrl">
+<div id="page-wrapper" ng-class="{'active': toggle}" ng-cloak
+     ng-controller="MasterCtrl">
 
     <!-- Sidebar -->
 
     <div id="sidebar-wrapper" class="no-print">
-      <ul class="sidebar">
-        <li class="sidebar-main">
-          <a href="#" ng-click="toggleSidebar()">
-            Dashboard <span
-              class="menu-icon glyphicon glyphicon-transfer"></span>
-          </a>
-        </li>
-        <li class="sidebar-title separator"></li>
-        <li class="sidebar-title separator">
-          <span>PROJECTS</span>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="projects">
-            Projects<span class="menu-icon fa fa-list"></span>
-          </a>
-        </li>
-        <li class="sidebar-title separator"></li>
-        <li class="sidebar-title separator">
-          <span>Admin</span>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="devices">
-            Devices <span class="menu-icon fa fa-tablet"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="metrics">
-            Metrics <span class="menu-icon fa fa-list-alt"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="issues">
-            Issues <span class="menu-icon fa fa-sitemap"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="spatialFunctions">
-            Functions <span class="menu-icon fa fa-tasks"></span>
-          </a>
-        </li>
-        <li class="sidebar-title separator"
-          style="text-indent: 25px; color: #777">
-          <span>Observation</span>
-        </li>
-        <li class="sidebar-list">
-          <a
-            href="http://workplace.spacelabuk.com/spacebox/observations/setup"
-            target="blank">
-            Setup <span class="menu-icon fa fa-magic"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a
-            href="http://workplace.spacelabuk.com/spacebox/observations/progress"
-            target="blank">
-            Progress <span class="menu-icon fa fa-tachometer"></span>
-          </a>
-        </li>
-        <li class="sidebar-title separator"></li>
-        <li class="sidebar-title separator">
-          <span>Tools</span>
-        </li>
-        <li class="sidebar-list">
-          <a ui-sref="tools-netIntegration">
-            Net-Integration<span class="menu-icon fa fa-bullseye"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a href="http://workplace.spacelabuk.com/spacebox/toCircles"
-            target="blank">
-            Circle Generator <span class="menu-icon fa fa-circle-o"></span>
-          </a>
-        </li>
-        <li class="sidebar-list">
-          <a href="http://workplace.spacelabuk.com/spacebox/toSquares"
-            target="blank">
-            Square Generator <span class="menu-icon fa fa-square-o"></span>
-          </a>
-        </li>
-      </ul>
-      <!-- <div class="sidebar-footer">
-        <div class="col-xs-4">
-          <a href="https://github.com/Ehesp/Responsive-Dashboard"
-            target="_blank"> Github </a>
-        </div>
-        <div class="col-xs-4">
-          <a href="#" target="_blank"> About </a>
-        </div>
-        <div class="col-xs-4">
-          <a href="#"> Support </a>
-        </div>
-      </div> -->
+        <ul class="sidebar">
+            <li class="sidebar-main">
+                <a href="#" ng-click="toggleSidebar()">
+                    Dashboard <span
+                        class="menu-icon glyphicon glyphicon-transfer"></span>
+                </a>
+            </li>
+            <li class="sidebar-title separator"></li>
+            <li class="sidebar-title separator">
+                <span>PROJECTS</span>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="projects">
+                    Projects<span class="menu-icon fa fa-list"></span>
+                </a>
+            </li>
+            <li class="sidebar-title separator"></li>
+            <li class="sidebar-title separator">
+                <span>Admin</span>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="devices">
+                    Devices <span class="menu-icon fa fa-tablet"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="metrics">
+                    Metrics <span class="menu-icon fa fa-list-alt"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="issues">
+                    Issues <span class="menu-icon fa fa-sitemap"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="spatialFunctions">
+                    Functions <span class="menu-icon fa fa-tasks"></span>
+                </a>
+            </li>
+            <li class="sidebar-title separator"
+                style="text-indent: 25px; color: #777">
+                <span>Observation</span>
+            </li>
+            <li class="sidebar-list">
+                <a
+                        href="http://workplace.spacelabuk.com/spacebox/observations/setup"
+                        target="blank">
+                    Setup <span class="menu-icon fa fa-magic"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a
+                        href="http://workplace.spacelabuk.com/spacebox/observations/progress"
+                        target="blank">
+                    Progress <span class="menu-icon fa fa-tachometer"></span>
+                </a>
+            </li>
+            <li class="sidebar-title separator"></li>
+            <li class="sidebar-title separator">
+                <span>Tools</span>
+            </li>
+            <li class="sidebar-list">
+                <a ui-sref="tools-netIntegration">
+                    Net-Integration<span class="menu-icon fa fa-bullseye"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a href="http://workplace.spacelabuk.com/spacebox/toCircles"
+                   target="blank">
+                    Circle Generator <span class="menu-icon fa fa-circle-o"></span>
+                </a>
+            </li>
+            <li class="sidebar-list">
+                <a href="http://workplace.spacelabuk.com/spacebox/toSquares"
+                   target="blank">
+                    Square Generator <span class="menu-icon fa fa-square-o"></span>
+                </a>
+            </li>
+        </ul>
+        <!-- <div class="sidebar-footer">
+          <div class="col-xs-4">
+            <a href="https://github.com/Ehesp/Responsive-Dashboard"
+              target="_blank"> Github </a>
+          </div>
+          <div class="col-xs-4">
+            <a href="#" target="_blank"> About </a>
+          </div>
+          <div class="col-xs-4">
+            <a href="#"> Support </a>
+          </div>
+        </div> -->
     </div>
 
     <!-- End Sidebar -->
     <div id="content-wrapper">
-      <div class="page-content">
-        <!-- <ng-view ></ng-view>-->
-        <div ui-view></div>
-        <!--<mainpage style="width:100%"></mainpage>-->
-      </div>
-      <!-- End Page Content -->
+        <div class="page-content">
+            <!-- <ng-view ></ng-view>-->
+            <div ui-view></div>
+            <!--<mainpage style="width:100%"></mainpage>-->
+        </div>
+        <!-- End Page Content -->
     </div>
     <!-- End Content Wrapper -->
-  </div>
-  <!-- End Page Wrapper -->
+</div>
+<!-- End Page Wrapper -->
 </body>
 </html>

@@ -34,25 +34,6 @@ var app = angular.module('Dashboard', [
 		}
 ]);
 
-/*
- * Some basic String functions used throughout
- */
-function eql(str1, str2) {
-	return str1.trim().toLowerCase() === str2.toLowerCase();
-}
-function startsWith(str, prefix) {
-	return str.indexOf(prefix) === 0;
-}
-function endsWith(str, suffix) {
-	return str.match(suffix + "$") == suffix;
-}
-function startsWithIgnoreCase(str, prefix) {
-	return str.toUpperCase().indexOf(prefix.toUpperCase()) === 0;
-}
-function endsWithIgnoreCase(str, suffix) {
-	return str.toUpperCase().match(suffix.toUpperCase() + "$") == suffix
-			.toUpperCase();
-}
 angular
 		.module('Dashboard')
 		.directive(

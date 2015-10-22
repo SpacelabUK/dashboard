@@ -43,42 +43,7 @@
 		// $scope.fetchingObservationRounds = function(id) {
 		// return fetching.is('obs', id);
 		// }
-		vm.setRoundModel = function(observation) {
-			fetching.set('obs', observation.id);
-			RoundModelFactory.getRoundModel(observation).then(function(response) {
-				var data = response.data[0];
-				if (data) {
-					// var startdate = new Date();
-					// startdate.parse(data['startdate']);
-					// var enddate = new Date();
-					// enddate.parse(data['enddate']);
-					if (!observation.roundModel) {
-						observation.roundModel = {
-							observationid : observation.id,
-							type : 'date_round_matrices'
-						};
-					}
-					console.log(response);
-					observation.roundModel.startdate = Date.parse(data.start_date);
-					observation.roundModel.enddate = Date.parse(data.end_date);
-					observation.roundModel.duration = 60;// data['roundduration'];
-				}
-				// console.log(observation);
-				fetching.unset('obs', observation.id);
-				$modal.open({
-					templateUrl : 'studies/observation/setRoundModel.html',
-					controller : 'setRoundModel',
-					size : 'lg',
-					resolve : {
-						observation : function() {
-							return observation;
-						}
-					}
-				});
-			}, function(error) {
-				console.log(error);
-			});
-		};
+
 		vm.addPlans = function(study) {
 			importFactory.addPlans(study);
 		};
