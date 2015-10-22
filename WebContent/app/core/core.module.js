@@ -86,4 +86,11 @@
 			return out;
 		}
 	}
+	angular.module('app.core').config([
+		'$tooltipProvider', function($tooltipProvider) {
+			$tooltipProvider.setTriggers({
+				'mouseenter' : 'mouseleave click'
+			});
+		}
+	]);
 })();
