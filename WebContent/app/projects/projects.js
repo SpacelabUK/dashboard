@@ -3,16 +3,15 @@
     angular.module('app.projects').controller('Projects', projectsController);
     projectsController.$inject = [
 
-        '$modal', 'dataService', 'importFactory'
-        // 'RoundModelFactory', 'fetching'
+        '$modal', 'dataService', 'importFactory', 'HTTPFactory'
     ];
 
-    function projectsController($modal, dataService, importFactory) {
+    function projectsController($modal, dataService, importFactory, HTTPFactory) {
         var vm = this;
         fetchInitialData();
         function fetchInitialData() {
-            dataService.getProjects().then(function (response) {
-                vm.projects = response.data;
+            HTTPFactory.propulsionGet('/projects').then(function (response) {
+                vm.projects = response.data.content;
             }, function (error) {
                 console.log(error);
             });
@@ -31,7 +30,11 @@
                 });
         };
         vm.addStudy = function (project) {
-            dataService.createNewOpenStudy(project.id).then(function () {
+            var data = {
+                project_id : project.id,
+                status: 'open'
+            };
+            HTTPFactory.propulsionPost('/studies', data).then(function () {
                 fetchInitialData();
             });
         };
@@ -41,18 +44,11 @@
         vm.addObservation = function (study) {
             projectFactory.addStudyPart(study, 'observation');
         };
-        // $scope.fetchingObservationRounds = function(id) {
-        // return fetching.is('obs', id);
-        // }
         vm.setRoundModel = function (observation) {
             fetching.set('obs', observation.id);
             RoundModelFactory.getRoundModel(observation).then(function (response) {
                 var data = response.data[0];
                 if (data) {
-                    // var startdate = new Date();
-                    // startdate.parse(data['startdate']);
-                    // var enddate = new Date();
-                    // enddate.parse(data['enddate']);
                     if (!observation.roundModel) {
                         observation.roundModel = {
                             observationid: observation.id,
@@ -64,7 +60,6 @@
                     observation.roundModel.enddate = Date.parse(data.end_date);
                     observation.roundModel.duration = 60;// data['roundduration'];
                 }
-                // console.log(observation);
                 fetching.unset('obs', observation.id);
                 $modal.open({
                     templateUrl: 'studies/observation/setRoundModel.html',
@@ -107,31 +102,17 @@ angular.module('app.projects').controller(
         'HTTPFactory',
         function ($scope, $stateParams, StudyFactory, HTTPFactory) {
             "use strict";
-            // fetch(backend + 'Get?t=study&studyid=' +
-            // study.id).then(
-            // function(response) {
-            // $scope.desks = response.data;
-            // calcAvgOccupancy();
-            // }, function(error) {
-            // });
             $scope.id = $stateParams.studyid;
-            // $scope.study = {};
             StudyFactory.fetchStudy($scope.id, [
                 'project_name'
             ]).then(function (response) {
-                // for (var i = 0; i < response.length;
-                // i++)
-                // $scope.study[response[i][0]] =
-                // response[i][1];
                 $scope.study = response;
-                // console.log(response);
             }, function (error) {
                 console.log(error);
             });
             HTTPFactory.backendGet('GetAll?t=study_parts&studyid=' + $scope.id)
                 .then(
                 function (response) {
-                    // $scope.observation_id = response.data[0]['id'];
                     $scope.observation_id = response.data[0].id;
                     HTTPFactory.backendGet(
                         'Occupancy?t=project_name&obsid=' +
@@ -190,18 +171,7 @@ angular.module('app.projects').controller(
                         'Occupancy?t=get_quotes&obsid=' + $scope.id).then(
                         function (response) {
                             var i;
-                            // if($scope.wordleData)
-                            // {
-                            // for (var
-                            // i = 0; i
-                            // <
-                            // $scope.wordleData.length;
-                            // i++) {
-                            // $scope.wordleData.pop();
-                            // }
-                            // } else {
                             $scope.wordleData = [];
-                            // }
                             var max = 0;
                             for (i = 0; i < response.data.length; i++) {
                                 if (response.data[i].size > max) {
@@ -211,11 +181,8 @@ angular.module('app.projects').controller(
                             for (i = 0; i < response.data.length; i++) {
                                 response.data[i].size = response.data[i].size *
                                     100.0 / max;
-                                // $scope.wordleData.push(response.data[i]);
                             }
                             $scope.wordleData = response.data;
-                            // console
-                            // .log(response.data);
                         }, function (error) {
                         });
                     HTTPFactory.backendGet(
@@ -243,21 +210,6 @@ angular.module('app.projects').controller(
                         'Occupancy?t=desk_occ_frequency&obsid=' +
                         $scope.observation_id).then(function (response) {
                             var data = response.data;
-                            // //
-                            // console.log(data);
-                            // var
-                            // collated
-                            // = {};
-                            // for (var
-                            // i = 0; i
-                            // <
-                            // data.length;
-                            // i++) {
-                            // var id =
-                            // data[i].times_found;
-                            // collated[id]
-                            // = ;
-                            // }
                             $scope.deskOccFreq = [];
                             for (var i = 0; i < data.length; i++) {
                                 $scope.deskOccFreq.push(data[i].frequency);
@@ -279,34 +231,12 @@ angular.module('app.projects').controller(
                 "diam", "nonumy", "eirmod", "tempor", "invidunt", "ut", "labore",
                 "et", "dolore", "magna", "aliquyam", "erat,", "sed", "diam"
             ];
-            // console.log($scope.words);
-
-            // $scope.myOnClickFunction = function(element) {
-            // console.log("click", element);
-            // }
-            //
-            // $scope.myOnHoverFunction = function(element) {
-            // console.log("hover", element);
-            // }
-            // $scope.occPerRound = [ 3, 6, 2, 7, 5, 2, 0, 3, 8,
-            // 9, 2, 5, 9, 3,
-            // 6,
-            // 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 2, 7 ];
             $scope.occPerRound = [
                 0
             ];
             $scope.deskOccFreq = [
                 0
             ];
-            // $scope.wordleData = [ "Hello", "world",
-            // "normally", "you", "want",
-            // "more", "words", "than", "this" ].map(function(d)
-            // {
-            // return {
-            // text : d,
-            // size : 10 + Math.random() * 90
-            // };
-            // });
             $scope.minOccupancyValues = [
                 0, 1
             ];
