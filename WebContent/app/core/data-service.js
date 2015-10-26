@@ -19,7 +19,6 @@
             getIssues: getIssues,
             removeMetricFromIssue: removeMetricFromIssue,
             addMetricToIssue: addMetricToIssue,
-            switchIssueMetricOrder: switchIssueMetricOrder,
             getSpatialFunctions: getSpatialFunctions,
             addSpatialFunction: addSpatialFunction,
             getOccupancyPerSpaceAndRound: getOccupancyPerSpaceAndRound,
@@ -100,15 +99,6 @@
                 metric_id: metricID
             }
             return $http.post(backend + 'AddMetricToIssue', data);
-        }
-
-        function switchIssueMetricOrder(issueID, orderFrom, orderTo) {
-            var data = {
-                order_1: orderFrom,
-                order_2: orderTo,
-                metric_group: issueID
-            };
-            return $http.post(backend + 'SwitchIssueMetricOrder', data);
         }
 
         function getSpatialFunctions() {

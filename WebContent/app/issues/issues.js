@@ -18,28 +18,33 @@
         vm.wantedMetrics = [];
 
         if (vm.issue && vm.issue !== 'all') {
-            vm.selectedIssue= true;
-            HTTPFactory.propulsionGet('/metric/groups/'+vm.issue).then(function (response) {
+            vm.selectedIssue = true;
+            HTTPFactory.propulsionGet('/metric/groups/' + vm.issue).then(function (response) {
                 vm.issueData = response.data;
-                HTTPFactory.propulsionGet('/metric/groups/' + vm.issue +'/metrics').then(function (response) {
+                HTTPFactory.propulsionGet('/metric/groups/' + vm.issue + '/metrics').then(function (response) {
                     vm.wantedMetrics = response.data;
                 });
             });
         }
 
         vm.metrics = [];
-        vm.removeMetric = function (issue, metric, issue_metric) {
+        vm.removeMetric = function (metric) {
             modalFactory.openConfirmModal(
                 "Are you sure you want to remove metric \"" + metric.title +
-                "\" from issue " + issue.id + "?", "Remove", "Cancel").result
+                "\" from issue " + metric.metric_group_id + "?", "Remove", "Cancel").result
                 .then(function (ok) {
-                    dataService.removeMetricFromIssue(issue.id, issue_metric.id).then(
+                    metric.metric_group_id = null;
+                    HTTPFactory.propulsionPut('metrics/' + metric.id, metric).then(
                         function (response) {
-                            vm.wantedMetrics[0].metrics.splice(
-                                vm.wantedMetrics[0].metrics.indexOf(issue_metric), 1);
+                            HTTPFactory.propulsionGet('/metric/groups/' + vm.issue + '/metrics').then(function (response) {
+                                vm.wantedMetrics = response.data;
+                            }, function (error) {
+                                console.log(error);
+                            });
                         }, function (error) {
                             console.log(error);
-                        });
+                        }
+                    );
                 });
         };
         vm.addMetricToIssue = function (issue, okText) {
@@ -78,61 +83,57 @@
             vm.search = data;
         };
         vm.predicate = 'id';
-        vm.moveMetricUp = function (index) {
-            // TODO: Bug in this method and the next. Sometimes the move fails and the
-            // order gets messed up
-            if (index === 0 || vm.wantedMetrics[0].metrics[index].updating ||
-                vm.wantedMetrics[0].metrics[index - 1].updating)
-                return;
-            vm.wantedMetrics[0].metrics[index].updating = true;
-            vm.wantedMetrics[0].metrics[index - 1].updating = true;
-            var temp = vm.wantedMetrics[0].metrics[index - 1];
-            vm.wantedMetrics[0].metrics[index - 1] = vm.wantedMetrics[0].metrics[index];
-            vm.wantedMetrics[0].metrics[index] = temp;
-
-            dataService
-                .switchIssueMetricOrder(vm.wantedMetrics[0].id, index, index - 1)
-                .then(
+        vm.moveMetricUp = function (metrics, index) {
+            console.log(index);
+            var first = metrics[index];
+            var swap = metrics[index-1];
+            var order = first.metric_group_order;
+            first.metric_group_order = swap.metric_group_order;
+            swap.metric_group_order = order;
+            swap.updating = true;
+            first.updating = true;
+            HTTPFactory.propulsionPut('/metrics/' + first.id, first).then(
                 function (response) {
-                    delete vm.wantedMetrics[0].metrics[index].updating;
-                    delete vm.wantedMetrics[0].metrics[index - 1].updating;
-                },
-                function (error) {
+                    HTTPFactory.propulsionPut('/metrics/' + swap.id, swap).then(
+                        function (response) {
+                            metrics[index] = swap;
+                            metrics[index-1] = first;
+                            first.updating = false;
+                            swap.updating = false;
+                        }, function (error) {
+                            console.log(error);
+                        }
+                    );
+                }, function (error) {
                     console.log(error);
-                    var temp = vm.wantedMetrics[0].metrics[index - 1];
-                    vm.wantedMetrics[0].metrics[index - 1] = vm.wantedMetrics[0].metrics[index];
-                    vm.wantedMetrics[0].metrics[index] = temp;
-                    delete vm.wantedMetrics[0].metrics[index].updating;
-                    delete vm.wantedMetrics[0].metrics[index - 1].updating;
-                });
+                }
+            );
         };
-        vm.moveMetricDown = function (index) {
-            // TODO: Bug in this method and the previous. Sometimes the move fails and
-            // the order gets messed up
-            if (index === vm.wantedMetrics[0].metrics.length - 1 ||
-                vm.wantedMetrics[0].metrics[index].updating ||
-                vm.wantedMetrics[0].metrics[index + 1].updating)
-                return;
-            vm.wantedMetrics[0].metrics[index].updating = true;
-            vm.wantedMetrics[0].metrics[index + 1].updating = true;
-            var temp = vm.wantedMetrics[0].metrics[index + 1];
-            vm.wantedMetrics[0].metrics[index + 1] = vm.wantedMetrics[0].metrics[index];
-            vm.wantedMetrics[0].metrics[index] = temp;
-            dataService
-                .switchIssueMetricOrder(vm.wantedMetrics[0].id, index, index + 1)
-                .then(
+        vm.moveMetricDown = function (metrics, index) {
+            console.log(index);
+            var first = metrics[index];
+            var swap = metrics[index+1];
+            var order = first.metric_group_order;
+            first.metric_group_order = swap.metric_group_order;
+            swap.metric_group_order = order;
+            swap.updating = true;
+            first.updating = true;
+            HTTPFactory.propulsionPut('/metrics/' + first.id, first).then(
                 function (response) {
-                    delete vm.wantedMetrics[0].metrics[index].updating;
-                    delete vm.wantedMetrics[0].metrics[index + 1].updating;
-                },
-                function (error) {
+                    HTTPFactory.propulsionPut('/metrics/' + swap.id, swap).then(
+                        function (response) {
+                            metrics[index] = swap;
+                            metrics[index+1] = first;
+                            first.updating = false;
+                            swap.updating = false;
+                        }, function (error) {
+                            console.log(error);
+                        }
+                    );
+                }, function (error) {
                     console.log(error);
-                    var temp = vm.wantedMetrics[0].metrics[index + 1];
-                    vm.wantedMetrics[0].metrics[index + 1] = vm.wantedMetrics[0].metrics[index];
-                    vm.wantedMetrics[0].metrics[index] = temp;
-                    delete vm.wantedMetrics[0].metrics[index].updating;
-                    delete vm.wantedMetrics[0].metrics[index + 1].updating;
-                });
+                }
+            );
         };
     }
 

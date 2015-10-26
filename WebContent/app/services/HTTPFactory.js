@@ -8,6 +8,9 @@ angular.module('app.core').factory('HTTPFactory', ['$http', '$q', function ($htt
         propulsionPost: function (url, data) {
             return $http.post(propulsion + url, data);
         },
+        propulsionPut: function (url, data) {
+            return $http.put(propulsion + url, data);
+        },
         backendGet: function (url) {
             return $http.get(backend + url);
         },
@@ -19,7 +22,7 @@ angular.module('app.core').factory('HTTPFactory', ['$http', '$q', function ($htt
         },
         getBackend: function () {
             return backend;
-        },
+        }
     };
 }
 ]);

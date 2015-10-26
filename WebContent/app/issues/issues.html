@@ -15,7 +15,7 @@
       <div class="widget">
         <div class="widget-title">
           <span>{{vm.issueData.id}} : {{vm.issueData.title}}</span>
-          <a ng-click="vm.addMetricToIssue(issue,'Add to Issue')"
+          <a ng-click="vm.addMetricToIssue(vm.issueData,'Add to Issue')"
             href="#" onclick="return false;" class="pull-right">
             Add metric <i class="fa fa-plus"></i>
           </a>
@@ -37,14 +37,12 @@
                   <td class="text-center" style="width: 5%;"><i
                     ng-if="metric.updating" class="fa fa-cog fa-spin"></i><span
                     ng-if="!metric.updating"><a href=""
-                        ng-click="vm.moveMetricUp($index)">
-                        <i class="fa fa-caret-up fa-lg"
-                          tooltip="Move up"></i>
-                      </a> <a href="" ng-click="vm.moveMetricDown($index)">
-                        <i class="fa fa-caret-down fa-lg"
-                          tooltip="Move down"></i>
+                        ng-click="vm.moveMetricUp(vm.wantedMetrics, $index)">
+                        <i class="fa fa-caret-up fa-lg" tooltip="Move up" ng-show="$index > 0"></i>
+                      </a> <a href="" ng-click="vm.moveMetricDown(vm.wantedMetrics, $index)">
+                        <i class="fa fa-caret-down fa-lg" tooltip="Move down" ng-show="vm.wantedMetrics.length -1 > $index"></i>
                       </a>&nbsp;<a
-                        ng-click="vm.removeMetricFromIssue(issue,metrics[metric.alias], metric)"
+                        ng-click="vm.removeMetricFromIssue(metric)"
                         href="">
                         <i class="fa fa-times" tooltip="Remove metric"></i>
                       </a></span></td>
