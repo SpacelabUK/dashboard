@@ -48,7 +48,7 @@
             <span dropdown on-toggle="toggled(open)"> <a href=""
                 style="display: inline-block; padding: 6px 0"
                 id="simple-dropdown-info" dropdown-toggle>
-                {{study.created | date:'hh:mm dd-MMM-yyyy'}} <span
+                {{study.created | date:'HH:mm, dd-MMM-yyyy'}} <span
                   ng-if="study-type && study.type ==='post'">({{study.type}})</span><span
                   class="caret"></span>
               </a>
