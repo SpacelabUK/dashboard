@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<div class="main-container">
+    <style type="text/css">
+    </style>
+    <!-- Header Bar -->
+
+    <div class="row header">
+        <div class="col-xs-12">
+            <div class="meta pull-centre">
+                <div class="page">Observation Setup</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="widget">
+                <div class="widget-body">
+
+                    <div class="text-center has-feedback">
+                        <h4>Start Date</h4>
+
+                        <div style="display: inline-block; min-height: 290px;">
+                            <datepicker ng-model="observationSetup.observationRounds.startdate"
+                                        class="well well-sm" ng-change="observationSetup.checkEndDate()"
+                                        show-weeks="false"></datepicker>
+                            <button class="btn btn-primary pull-right"
+                                    ng-click="observationSetup.firstDayNextMonday()">Next Monday
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="widget">
+                <div class="widget-body">
+                    <div class="text-center has-feedback">
+                        <h4>End Date</h4>
+
+                        <div style="display: inline-block; min-height: 290px;">
+                            <datepicker ng-model="observationSetup.observationRounds.enddate"
+                                        min-date="observationSetup.observationRounds.startdate" show-weeks="false"
+                                        data-date-today-highlight="true" class="well well-sm"></datepicker>
+                            <button class="btn btn-primary pull-right"
+                                    ng-click="observationSetup.lastDayNextFriday()">Next Friday
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="widget">
+                <div class="widget-body">
+                    <label class="col-sm-4 control-label">Round
+                        duration (minutes)</label>
+
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control"
+                               ng-model="observationSetup.observationRounds.duration" required/>
+                    </div>
+                    <div class="col-sm-1" ng-repeat="duration in observationSetup.defaultDurations">
+                        <button class="btn btn-primary pull-right"
+                                ng-click="observationSetup.observationRounds.duration = duration">{{duration}}
+                        </button>
+                    </div>
+
+                    <div class="clearfix"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="widget">
+                <div class="widget-body">
+                    <h4>Round start times</h4>
+                    <hr/>
+                    <div class="row" ng-repeat="round in observationSetup.observationRounds.rounds">
+                        <label class="col-sm-4 control-label"
+                               style="text-align: right; margin-top: 2.75em;">Round
+                            {{$index + 1}}</label>
+
+                        <div class="col-sm-3">
+                            <timepicker ng-model="round" ng-change="changed()"
+                                        hour-step="1" minute-step="15"></timepicker>
+                        </div>
+                        <button class="btn col-sm-1" style="margin-top: 2.25em;"
+                                ng-click="observationSetup.deleteRound(round)">Delete
+                        </button>
+                    </div>
+                    <button ng-click="observationSetup.deleteAllRounds();"
+                            class="btn btn-primary pull-right">Delete all Rounds
+                    </button>
+                    <button ng-click="observationSetup.setDefaultRounds();"
+                            class="btn btn-primary pull-right">Add Default Rounds
+                    </button>
+                    <button ng-click="observationSetup.addRound('09:00');"
+                            class="btn btn-primary pull-right">Add Round
+                    </button>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <button ng-click="observationSetup.clear()" class="btn btn-primary pull-right" href="#" onclick="return false;">Clear form</button>
+            <button ng-click="observationSetup.save()" class=" btn btn-primary pull-right">Save</button>
+        </div>
+    </div>
+    <!-- End Main Content -->
+
+</div>
+</html>

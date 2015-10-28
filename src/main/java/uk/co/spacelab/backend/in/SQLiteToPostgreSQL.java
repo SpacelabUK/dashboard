@@ -220,7 +220,7 @@ public class SQLiteToPostgreSQL {
 			columnString = "round_id,space_id";
 			valueString = "?,?";
 			String colStringRounds =
-					"study_id,day_no,round_no,start_timestamp,end_timestamp";
+					"study_id,day_no,round_no,observation_start,observation_end";
 			String valStringRounds =
 					"?,?,?,CAST(? AS timestamp with time zone),CAST(? AS timestamp with time zone)";
 			DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");

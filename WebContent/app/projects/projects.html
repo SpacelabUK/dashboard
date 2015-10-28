@@ -52,26 +52,16 @@
                   ng-if="study-type && study.type ==='post'">({{study.type}})</span><span
                   class="caret"></span>
               </a>
-              <ul class="dropdown-menu"
-                aria-labelledby="simple-dropdown">
-                <li ng-if="study.status==='open'">
-                  <a href="">Close study</a>
-                </li>
-                <li ng-if="study.status==='closed'">
-                  <a href="">Open study</a>
-                </li>
-                <li>
-                  <a ui-sref="study-view({studyid:study.id})">View
-                    study details</a>
-                </li>
+              <ul class="dropdown-menu" aria-labelledby="simple-dropdown">
+                <li ng-if="study.status==='open'"><a href="">Close study</a></li>
+                <li ng-if="study.status==='closed'"><a href="">Open study</a></li>
+                <li><a ui-sref="study-view({studyid:study.id})">View study details</a></li>
+                <li><a ui-sref="observation-setup({study_id:study.id})">Set Up Observation</a></li>
               </ul>
             </span>
-            <div ng-if="study.status==='open'"
-              class="btn-group pull-right" dropdown
-              is-open="datadropdown.isopen">
+            <div ng-if="study.status==='open'" class="btn-group pull-right" dropdown is-open="datadropdown.isopen">
               <a type="button" class="btn btn-default" dropdown-toggle
-                ng-disabled="disabled">
-                Add data <span class="caret"></span>
+                ng-disabled="disabled">Add data <span class="caret"></span>
               </a>
               <ul class="dropdown-menu" role="menu"
                 aria-labelledby="single-button">
