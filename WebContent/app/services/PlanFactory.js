@@ -233,7 +233,7 @@ angular
 									}
 								};
 								for (var i = 0; i < o.c.length; i++) {
-									b = o.c[i];
+									var b = o.c[i];
 									var name = b.p[2].split('(')[0].trim().toUpperCase();
 									if (startsWith(name, genIdentifier) &&
 											(endsWith(name, '-' + funcIdentifier) || endsWith(name,
@@ -408,7 +408,7 @@ angular
 								var lastName = '';
 								var requiredBlocks = [];
 								for (var i = 0; i < lines.length; i += 2) {
-									parameter = parseInt(lines[i].trim());
+									var parameter = parseInt(lines[i].trim());
 									while (isNaN(parameter) && i < lines.length - 2) {
 										// in case of malformed dxf where we
 										// fall unto a string instead
@@ -421,7 +421,7 @@ angular
 										continue;
 									if (!readingObject) {
 										// find our section
-										line = lines[i + 1];
+										var line = lines[i + 1];
 										if (-1 == readingSection && 2 != parameter)
 											continue;
 										if (-1 != readingSection &&
@@ -668,13 +668,13 @@ angular
 									var readingObject = false;
 									var name;
 									for (var i = 0; i < lines.length; i += 2) {
-										parameter = parseInt(lines[i].trim());
+										var parameter = parseInt(lines[i].trim());
 										while (isNaN(parameter) && i < lines.length - 2) {
 											i++;
 											parameter = parseInt(lines[i].trim());
 										}
 										if (!readingObject) {
-											line = lines[i + 1];
+											var line = lines[i + 1];
 											if (-1 == readingSection && 2 != parameter)
 												continue;
 											if (-1 != readingSection && (eql(line, "ENDSEC"))) {

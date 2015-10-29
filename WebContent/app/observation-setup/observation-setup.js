@@ -7,6 +7,7 @@
     function ObservationSetupController($stateParams, HTTPFactory, modalFactory) {
 
         var study_id = $stateParams['study_id'];
+        var ob = this;
 
         this.observationRounds = {rounds: []};
 
@@ -20,7 +21,7 @@
         ];
 
         //Nasty but works.
-        var ob = this;
+       
         HTTPFactory.propulsionGet('/studies/' + study_id + '/observation/rounds?sort=day&sort=round')
             .then(function (response) {
                 var data = response.data;
@@ -40,32 +41,32 @@
                 console.log(error);
             });
 
-        this.firstDayNextMonday = function () {
+        ob.firstDayNextMonday = function () {
             var today = new Date();
-            if (this.observationRounds.startdate)
+            if (ob.observationRounds.startdate)
                 today = new Date(this.observationRounds.startdate);
-            this.observationRounds.startdate = new Date(today.getFullYear(),
+            ob.observationRounds.startdate = new Date(today.getFullYear(),
                 today.getMonth(), today.getDate() + 8 - today.getDay());
-            this.checkEndDate();
+            ob.checkEndDate();
         };
 
-        this.lastDayNextFriday = function () {
+        ob.lastDayNextFriday = function () {
             var today = new Date();
-            if (this.observationRounds.startdate)
-                today = new Date(this.observationRounds.startdate);
-            this.observationRounds.enddate = new Date(today.getFullYear(), today
+            if (ob.observationRounds.startdate)
+                today = new Date(ob.observationRounds.startdate);
+            ob.observationRounds.enddate = new Date(today.getFullYear(), today
                 .getMonth(), today.getDate() + 5 - today.getDay());
         };
 
-        this.checkEndDate = function () {
-            if (this.observationRounds.enddate < this.observationRounds.startdate)
-                this.observationRounds.enddate = this.observationRounds.startdate
+        ob.checkEndDate = function () {
+            if (ob.observationRounds.enddate < ob.observationRounds.startdate)
+                ob.observationRounds.enddate = ob.observationRounds.startdate
         };
 
-        this.setDefaultRounds = function () {
-            this.observationRounds.rounds = [];
+        ob.setDefaultRounds = function () {
+            ob.observationRounds.rounds = [];
             var vm = this;
-            angular.forEach(this.defaultRounds, function (round) {
+            angular.forEach(ob.defaultRounds, function (round) {
                 vm.addRound(round);
             });
         };
@@ -75,17 +76,17 @@
             var dt = new Date();
             dt.setHours(timeParts[0]);
             dt.setMinutes(timeParts[1]);
-            this.observationRounds.rounds.push(dt);
+            ob.observationRounds.rounds.push(dt);
         };
 
-        this.deleteRound = function (round) {
+        ob.deleteRound = function (round) {
             var index = ob.observationRounds.rounds.indexOf(round);
             if (index > -1) {
                 ob.observationRounds.rounds.splice(index, 1);
             }
         };
 
-        this.deleteAllRounds = function () {
+        ob.deleteAllRounds = function () {
             HTTPFactory.propulsionDelete('/observation/rounds').then(function (response) {
                 observationSetup.observationRounds.rounds = [];
             }, function (error) {
@@ -93,14 +94,14 @@
             });
         };
 
-        this.clear = function () {
-            this.observationRounds.duration = null;
-            this.observationRounds.rounds = [];
-            this.observationRounds.startdate = new Date();
-            this.observationRounds.enddate = new Date();
+        ob.clear = function () {
+            ob.observationRounds.duration = null;
+            ob.observationRounds.rounds = [];
+            ob.observationRounds.startdate = new Date();
+            ob.observationRounds.enddate = new Date();
         };
 
-        this.save = function () {
+        ob.save = function () {
             modalFactory.openWaitModal('Deleting Existing Observation Rounds..');
             HTTPFactory.propulsionDelete('/studies/' + study_id + '/observation/rounds').then(function (response) {
                 modalFactory.modifyWaitMessage('Saving New Observation Rounds');

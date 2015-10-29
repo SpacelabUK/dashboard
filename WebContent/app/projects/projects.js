@@ -58,7 +58,9 @@
         };
         vm.addStakeholders = function (study) {
             importFactory.addStakeholders(study);
-
+        };
+        vm.storePlans = function(study) {
+            importFactory.storePlans(study);
         };
     }
 })();
