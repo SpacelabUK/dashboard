@@ -2,9 +2,9 @@
     "use strict";
     angular.module('app.observation-setup').controller('ObservationSetupController', ObservationSetupController);
 
-    ObservationSetupController.$inject = ['$stateParams', 'HTTPFactory'];
+    ObservationSetupController.$inject = ['$stateParams', 'HTTPFactory', 'modalFactory'];
 
-    function ObservationSetupController($stateParams, HTTPFactory) {
+    function ObservationSetupController($stateParams, HTTPFactory, modalFactory) {
 
         var study_id = $stateParams['study_id'];
 
@@ -21,23 +21,24 @@
 
         //Nasty but works.
         var ob = this;
-        HTTPFactory.propulsionGet('/studies/' + study_id + '/observation/rounds').then(function (response) {
-            var data = response.data;
-            if (data.length) {
-                ob.observationRounds.startdate = new Date(data[0].observation_start);
-                ob.observationRounds.enddate = new Date(data[data.length - 1].observation_end);
-                var date1 = new Date(data[0].observation_start);
-                var date2 = new Date(data[1].observation_start);
-                ob.observationRounds.duration = (Math.abs(date2.getTime() - date1.getTime())) / (1000 * 60);
-                data.forEach(function (datum) {
-                    if (datum.day == 0) {
-                        ob.observationRounds.rounds.push(new Date(datum.observation_start));
-                    }
-                });
-            }
-        }, function (error) {
-            console.log(error);
-        });
+        HTTPFactory.propulsionGet('/studies/' + study_id + '/observation/rounds?sort=day&sort=round')
+            .then(function (response) {
+                var data = response.data;
+                if (data.length) {
+                    ob.observationRounds.startdate = new Date(data[0].observation_start);
+                    ob.observationRounds.enddate = new Date(data[data.length - 1].observation_end);
+                    var date1 = new Date(data[0].observation_start);
+                    var date2 = new Date(data[1].observation_start);
+                    ob.observationRounds.duration = (Math.abs(date2.getTime() - date1.getTime())) / (1000 * 60);
+                    data.forEach(function (datum) {
+                        if (datum.day == 0) {
+                            ob.observationRounds.rounds.push(new Date(datum.observation_start));
+                        }
+                    });
+                }
+            }, function (error) {
+                console.log(error);
+            });
 
         this.firstDayNextMonday = function () {
             var today = new Date();
@@ -99,15 +100,22 @@
             this.observationRounds.enddate = new Date();
         };
 
-        this.save = function (){
+        this.save = function () {
+            modalFactory.openWaitModal('Deleting Existing Observation Rounds..');
             HTTPFactory.propulsionDelete('/studies/' + study_id + '/observation/rounds').then(function (response) {
+                modalFactory.modifyWaitMessage('Saving New Observation Rounds');
                 doCreate();
+                modalFactory.modifyWaitMessage('Success');
+                setTimeout(function() {
+                    modalFactory.closeWaitModal();
+                }, 2000);
             }, function (error) {
-                console.log(error);
+                modalFactory.closeWaitModal();
+                modalFactory.openErrorModal(error);
             });
         };
 
-        var doCreate = function() {
+        var doCreate = function () {
             var duration = ob.observationRounds.duration;
             var round_no = 0;
             var day = 0;
@@ -132,7 +140,8 @@
                         };
                         HTTPFactory.propulsionPost('/observation/rounds', data).then(function (response) {
                         }, function (error) {
-                            console.log(error);
+                            modalFactory.closeWaitModal();
+                            modalFactory.openErrorModal(error);
                         });
                         round_no++;
                     }
