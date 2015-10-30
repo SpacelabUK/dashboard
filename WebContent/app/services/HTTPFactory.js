@@ -8,13 +8,6 @@ angular.module('app.core').factory('HTTPFactory', ['$http', '$q', function ($htt
         propulsionPost: function (url, data) {
             return $http.post(propulsion + url, data);
         },
-        propulsionUpload: function (url, data) {
-            var config = {
-                transformRequest: angular.identity,
-                headers: {'Content-Type': undefined}
-            };
-            return $http.post(propulsion + url, data, config);
-        },
         propulsionPut: function (url, data) {
             return $http.put(propulsion + url, data);
         },

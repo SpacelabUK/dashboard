@@ -83,7 +83,7 @@
 
         function storePlans(study) {
             $modal.open({
-                templateUrl: 'app/import/plans/addPlans.html',
+                templateUrl: 'app/import/plans/storePlans.html',
                 controller: 'storePlans',
                 controllerAs: 'mainPlans',
                 resolve: {
