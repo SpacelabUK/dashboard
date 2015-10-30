@@ -8,8 +8,6 @@
 
     function dataService($http) {
         var service = {
-            getDevices: getDevices,
-            addDevice: addDevice,
             getProjects: getProjects,
             addProject: addProject,
             getMetrics: getMetrics,
@@ -30,16 +28,9 @@
             convertSVGtoEMF: convertSVGtoEMF,
             storeIssue: storeIssue,
             storeFunction: storeFunction,
-            resolveProc: resolveProc,
+            resolveProc: resolveProc
         };
         return service;
-        function getDevices() {
-            return $http.get(backend + 'GetAll?t=devices');
-        }
-
-        function addDevice(device) {
-            return $http.post(backend + 'Insert?t=device', device);
-        }
 
         function getProjects() {
             return $http.get(backend + 'GetAll?t=allstudies');
