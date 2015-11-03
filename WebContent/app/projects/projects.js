@@ -25,13 +25,13 @@
                 controller: 'AddProjectModal',
                 controllerAs: 'vm'
             }).result.then(function (response) {
-                    vm.search = response.name;
-                    fetchInitialData();
-                });
+                vm.search = response.name;
+                fetchInitialData();
+            });
         };
         vm.addStudy = function (project) {
             var data = {
-                project_id : project.id,
+                project_id: project.id,
                 status: 'open'
             };
             HTTPFactory.propulsionPost('/studies', data).then(function () {
@@ -59,8 +59,20 @@
         vm.addStakeholders = function (study) {
             importFactory.addStakeholders(study);
         };
-        vm.storePlans = function(study) {
+        vm.storePlans = function (study) {
             importFactory.storePlans(study);
+        };
+        vm.triggerObservation = function (study) {
+            $modal.open({
+                templateUrl: 'app/observation-trigger/observation-trigger.modal.html',
+                controller: 'triggerObservation',
+                controllerAs: 'triggerObservation',
+                resolve: {
+                    study: function () {
+                        return study;
+                    }
+                }
+            })
         };
     }
 })();
