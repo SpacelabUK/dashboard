@@ -7,7 +7,7 @@
         $scope.title = "Store Plans";
 
         $scope.uploader = new FileUploader({
-            url: '/propulsion/studies/' + study.id + '/plan/upload'
+            url: '/propulsion/studies/' + study.id + '/device/plan/upload'
         });
 
         $scope.cancel = function () {

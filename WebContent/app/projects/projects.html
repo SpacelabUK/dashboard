@@ -57,8 +57,7 @@
                 <li ng-if="study.status==='closed'"><a href="">Open study</a></li>
                 <li><a ui-sref="study-view({studyid:study.id})">View study details</a></li>
                 <li><a ui-sref="observation-setup({study_id:study.id})">Set Up Observation Rounds</a></li>
-                <li><a href="" ng-click="vm.storePlans(study)">Store Plans</a></li>
-                <li ng-show="study.plan != null"><a href="" ng-click="vm.triggerObservation(study)">Trigger Observation</a></li>
+                <li><a ui-sref="devices-setup({study_id:study.id})">Set Up Devices</a></li>
               </ul>
             </span>
             <div ng-if="study.status==='open'" class="btn-group pull-right" dropdown is-open="datadropdown.isopen">

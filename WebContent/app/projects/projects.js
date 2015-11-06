@@ -64,7 +64,7 @@
         };
         vm.triggerObservation = function (study) {
             $modal.open({
-                templateUrl: 'app/observation-trigger/observation-trigger.modal.html',
+                templateUrl: 'app/devices-setup/devices-setup.modal.html',
                 controller: 'triggerObservation',
                 controllerAs: 'triggerObservation',
                 resolve: {
