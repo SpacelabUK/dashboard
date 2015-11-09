@@ -1,10 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<div class="row">
-    <div class="col-md-12">
-        <div class="row">
-            <h4 style="padding: 12px 12px 0px;">Set Up Devices</h4>
-            <hr/>
+<div class="main-container">
+    <style type="text/css">
+    </style>
+    <!-- Header Bar -->
+
+    <div class="row header">
+        <div class="col-xs-12">
+            <div class="meta pull-centre">
+                <div class="page">Set Up Devices</div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <select ng-model="devicesSetup.selectedId" class="form-control" ng-options="device.name as device.name for device in devicesSetup.devices">
+            <option value="">select</option>
+        </select>
+    </div>
+    <div class="row">
+        <input class="btn" type="file" nv-file-select="" uploader="devicesSetup.uploader" accept=".dxf" />
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <button type="button" class="btn btn-info btn-s pull-right" ng-click="devicesSetup.attach()"
+                    ng-disabled="!devicesSetup.uploader.getNotUploadedItems().length"
+                    style="margin-left: 15px">Set Up Device</button>
         </div>
     </div>
 </div>
