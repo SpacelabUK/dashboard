@@ -16,6 +16,14 @@
             }
         );
 
+        HTTPFactory.propulsionGet("/studies/" + study_id +"/device/plans").then(
+            function(response){
+                ob.devicePlans = response.data
+            }, function (error) {
+                console.log(error);
+            }
+        );
+
         ob.uploader = new FileUploader(
         );
 
@@ -24,10 +32,15 @@
         };
 
         ob.uploader.onSuccessItem = function(item, response, status, headers) {
-            //{studyId}/device/{name}/package
             HTTPFactory.propulsionPost('/studies/' + study_id + '/device/' + ob.selectedId + '/package').then(
-                function(response){
-                    console.log(response)
+                function(){
+                    HTTPFactory.propulsionGet("/studies/" + study_id +"/device/plans").then(
+                        function(response){
+                            ob.devicePlans = response.data
+                        }, function (error) {
+                            console.log(error);
+                        }
+                    );
                 }, function (error) {
                     console.log(error);
                 }
@@ -38,6 +51,27 @@
             ob.uploader.uploadAll();
         };
 
+        ob.deleteDevicePlan = function(devicePlan) {
+            HTTPFactory.propulsionDelete('/studies/' + study_id + '/device/' + devicePlan.device_name + '/package').then(
+                function(){
+                    HTTPFactory.propulsionDelete("/device/plans/" + devicePlan.id).then(
+                        function(){
+                            HTTPFactory.propulsionGet("/studies/" + study_id +"/device/plans").then(
+                                function(response){
+                                    ob.devicePlans = response.data
+                                }, function (error) {
+                                    console.log(error);
+                                }
+                            );
+                        }, function (error) {
+                            console.log(error);
+                        }
+                    );
+                }, function (error) {
+                    console.log(error);
+                }
+            );
+        }
     }
 })
 ();

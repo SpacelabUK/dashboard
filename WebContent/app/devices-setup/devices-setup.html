@@ -12,6 +12,27 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="widget">
+                <div class="widget-body">
+                    <h4>Configured Devices</h4>
+                    <hr/>
+                    <div class="row" ng-repeat="devicePlan in devicesSetup.devicePlans">
+                        <div class="col-lg-12">
+                            {{devicePlan.device_name}} : {{devicePlan.file_path}}
+                        </div>
+                        <button class="btn col-sm-1" style="margin-top: 2.25em;"
+                                ng-click="devicesSetup.deleteDevicePlan(devicePlan)">Delete
+                        </button>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <select ng-model="devicesSetup.selectedId" class="form-control" ng-options="device.name as device.name for device in devicesSetup.devices">
             <option value="">select</option>
