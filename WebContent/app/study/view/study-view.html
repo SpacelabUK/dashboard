@@ -36,12 +36,13 @@
                   </td>
 
                   <td
-                    style="padding: 8px 2px; {{snapshot.round_id == '0' ? 'margin-left:4px;' : ''}}"
-                    ng-repeat="snapshot in space.snapshots"><a
-                      ng-click="vm.showSnapshot(space,snapshot)"
+                    style="padding: 8px 2px; {{round.round == '0' ? 'margin-left:4px;' : ''}}"
+                    ng-repeat="round in vm.rounds"><a
+                      ng-click="vm.showObservationRound(space,round)"
                       href="#" onclick="return false;"
                       class="snapshotcell"
-                      style="background-color: {{;vm.getSnapshotColour(snapshot)}}">&nbsp;</a></td>
+                      title="Day:{{round.day}}: Round: {{round.round}} Number of observations:{{vm.counts[space.id][round.id]}}"
+                      style="background-color:{{vm.calculateColour(space.id, round.id)}}">&nbsp;</a></td>
                 </tr>
               </tbody>
             </table>
@@ -88,11 +89,6 @@
             </table>
           </div>
         </div>
-        <!-- <div style="padding: 5px 15px;">
-          <a ng-click="addMetric()" href="#" onclick="return false;"
-            class="pull-right">Create new Metric</a>
-          <div class="clearfix"></div>
-        </div> -->
       </div>
     </div>
   </div>
