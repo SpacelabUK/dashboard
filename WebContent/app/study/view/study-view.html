@@ -41,7 +41,7 @@
                       ng-click="vm.showObservationRound(space,round)"
                       href="#" onclick="return false;"
                       class="snapshotcell"
-                      title="Day:{{round.day}}: Round: {{round.round}} Number of observations:{{vm.counts[space.id][round.id]}}"
+                      title="Day:{{round.day + 1}}, Round: {{round.round + 1}}, Number of observations:{{vm.counts[space.id][round.id]}}"
                       style="background-color:{{vm.calculateColour(space.id, round.id)}}">&nbsp;</a></td>
                 </tr>
               </tbody>
