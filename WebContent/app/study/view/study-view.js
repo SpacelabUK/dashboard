@@ -83,10 +83,10 @@
         vm.empty = function () {
 
         };
-        vm.showObservationRound = function (space, snapshot) {
-            dataService.getSnapshotData(snapshot.snapshot_id).then(
+        vm.showObservationRound = function (space, round) {
+            HTTPFactory.propulsionGet('/studies/' + vm.id + '/spaces').then(
                 function (response) {
-                    var promise = $modal.open({
+                    $modal.open({
                         templateUrl: 'app/study/snapshot-view.modal.html',
                         controller: 'SnapshotViewModal',
                         controllerAs: 'vm',
