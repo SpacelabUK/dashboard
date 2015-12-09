@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<div class="main-container">
+    <style type="text/css">
+    </style>
+    <!-- Header Bar -->
+
+    <div class="row header">
+        <div class="col-xs-12">
+            <div class="meta pull-centre">
+                <div class="page">Add Accommodation and Team Polygons</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <input class="btn" type="file" nv-file-select="" uploader="accommodationTeamsSetup.uploader" accept=".dxf" />
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <button type="button" class="btn btn-info btn-s pull-right" ng-click="accommodationTeamsSetup.attach()"
+                    ng-disabled="!accommodationTeamsSetup.uploader.getNotUploadedItems().length"
+                    style="margin-left: 15px">Add Accommodation and Teams</button>
+        </div>
+    </div>
+</div>
+</html>

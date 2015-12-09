@@ -14,7 +14,7 @@
 			 */
 			'app.devices', 'app.projects', 'app.metrics', 'app.issues',
 			'app.spatialFunctions', 'app.study', 'app.observation-setup',
-			'app.devices-setup',
+			'app.devices-setup','app.accommodation-teams-setup',
 
 			/*
 			 * Standalone tools
