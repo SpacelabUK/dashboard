@@ -205,31 +205,6 @@ angular.module('Dashboard').factory('fetching', [
 		}
 ]);
 
-angular.module('Dashboard').controller('StdCtrlr', [
-		'$scope', '$stateParams', '$http', function($scope, $stateParams, $http) {
-			"use strict";
-
-			$scope.id = $stateParams.studyid;
-			console.log($scope.id);
-			var scope = $rootScope.$new();
-			scope.params = {
-				studyid : '3'
-			};
-			$scope.addPlans = function() {
-				$modal.open({
-					templateUrl : 'addPlans.html',
-					controller : 'addPlansInstance',
-					// scope: scope
-					resolve : {
-						studyid : function() {
-							return $scope.id;
-						}
-					}
-				});
-			};
-		}
-]);
-
 angular.module('Dashboard')
 		.controller(
 				"addProjectInstance",

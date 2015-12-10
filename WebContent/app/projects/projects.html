@@ -61,32 +61,6 @@
                 <li><a ui-sref="accommodation-teams-setup({study_id:study.id})">Add Accommodation and Team Polygons</a></li>
               </ul>
             </span>
-            <div ng-if="study.status==='open'" class="btn-group pull-right" dropdown is-open="datadropdown.isopen">
-              <a type="button" class="btn btn-default" dropdown-toggle
-                ng-disabled="disabled">Add data <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu" role="menu"
-                aria-labelledby="single-button">
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addObservationData(study)">Observation</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addPlans(study)">Plans /
-                    Polygons</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addDepthmap(study)">Depthmap</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addStaffSurvey(study)">Staff
-                    survey</a>
-                </li>
-                <li role="menuitem" style="text-align: right;">
-                  <a href="" ng-click="vm.addStakeholders(study)">Stakeholder
-                    Interviews</a>
-                </li>
-              </ul>
-            </div>
             <a class="btn pull-right"
               ui-sref="study-issues({studyid:study.id})">Issues</a>
           </div>
